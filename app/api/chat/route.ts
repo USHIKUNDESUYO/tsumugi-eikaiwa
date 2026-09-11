@@ -12,8 +12,8 @@ interface ChatRequest {
 }
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.deepseek.com';
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'deepseek-v4-flash';
 
 async function getAIResponse(
   messages: Message[], 
