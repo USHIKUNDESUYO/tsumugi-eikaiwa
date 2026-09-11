@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Generate Icons</title>
+</head>
+<body>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+  <script>
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      
+      // Background with rounded corners
+      ctx.fillStyle = '#FF6B9D';
+      ctx.fillRect(0, 0, size, size);
+      
+      // White circle
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.arc(size/2, size*0.4, size*0.18, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Text "つ"
+      ctx.fillStyle = '#FF6B9D';
+      ctx.font = `bold ${size*0.25}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('つ', size/2, size*0.42);
+      
+      // Cherry blossom emoji (or text)
+      ctx.font = `${size*0.3}px sans-serif`;
+      ctx.fillStyle = 'white';
+      ctx.fillText('🌸', size/2, size*0.75);
+    }
+    
+    drawIcon(document.getElementById('canvas192'), 192);
+    drawIcon(document.getElementById('canvas512'), 512);
+    
+    // Download links
+    const canvas192 = document.getElementById('canvas192');
+    const canvas512 = document.getElementById('canvas512');
+    
+    canvas192.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'icon-192.png';
+      a.textContent = 'Download 192x192 icon';
+      document.body.appendChild(a);
+      document.body.appendChild(document.createElement('br'));
+    });
+    
+    canvas512.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'icon-512.png';
+      a.textContent = 'Download 512x512 icon';
+      document.body.appendChild(a);
+    });
+  </script>
+</body>
+</html>
