@@ -25,6 +25,19 @@ export interface CorrectionCard {
   severity: 'minor' | 'moderate' | 'important';
 }
 
+export interface MistakeRecord {
+  id: string;
+  said: string;
+  better: string;
+  why: string;
+  severity: 'minor' | 'moderate' | 'important';
+  mode: ChatMode;
+  timestamp: number;
+  timesSeen: number;
+  timesMastered: number;
+  lastReviewed?: number;
+}
+
 export interface UserProfile {
   nativeLanguage: 'ja';
   currentLevel: LanguageLevel;
@@ -47,4 +60,5 @@ export interface AppState {
   messages: Message[];
   sessionStats: SessionStats[];
   voiceEnabled: boolean;
+  mistakes: MistakeRecord[];
 }

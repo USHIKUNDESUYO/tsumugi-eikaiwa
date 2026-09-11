@@ -1,4 +1,4 @@
-import { AppState, UserProfile, Message, SessionStats } from '@/types';
+import { AppState, UserProfile, Message, SessionStats, MistakeRecord, CorrectionCard, ChatMode } from '@/types';
 
 const STORAGE_KEY = 'tsumugi-app-state';
 
@@ -18,6 +18,7 @@ export function getDefaultState(): AppState {
     messages: [],
     sessionStats: [],
     voiceEnabled: false,
+    mistakes: [],
   };
 }
 
@@ -70,4 +71,82 @@ export function clearMessages(): void {
   const state = loadState();
   state.messages = [];
   saveState(state);
+}
+
+export function addMistake(correction: CorrectionCard, mode: ChatMode): void {
+  const state = loadState();
+  
+  // Check if this mistake already exists (same said/better pair)
+  const existing = state.mistakes.find(
+    m => m.said.toLowerCase() === correction.said.toLowerCase() && 
+         m.better.toLowerCase() === correction.better.toLowerCase()
+  );
+  
+  if (existing) {
+    // Update existing mistake
+    existing.timesSeen += 1;
+    existing.lastReviewed = Date.now();
+    existing.mode = mode; // Update to latest mode
+  } else {
+    // Add new mistake
+    const newMistake: MistakeRecord = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      said: correction.said,
+      better: correction.better,
+      why: correction.why,
+      severity: correction.severity,
+      mode,
+      timestamp: Date.now(),
+      timesSeen: 1,
+      timesMastered: 0,
+    };
+    state.mistakes.push(newMistake);
+  }
+  
+  saveState(state);
+}
+
+export function getMistakes(): MistakeRecord[] {
+  const state = loadState();
+  return state.mistakes || [];
+}
+
+export function updateMistake(id: string, updates: Partial<MistakeRecord>): void {
+  const state = loadState();
+  const mistake = state.mistakes.find(m => m.id === id);
+  
+  if (mistake) {
+    Object.assign(mistake, updates);
+    saveState(state);
+  }
+}
+
+export function deleteMistake(id: string): void {
+  const state = loadState();
+  state.mistakes = state.mistakes.filter(m => m.id !== id);
+  saveState(state);
+}
+
+export function markMistakeMastered(id: string): void {
+  const state = loadState();
+  const mistake = state.mistakes.find(m => m.id === id);
+  
+  if (mistake) {
+    mistake.timesMastered += 1;
+    mistake.lastReviewed = Date.now();
+    saveState(state);
+  }
+}
+
+export function getMistakesSortedForReview(): MistakeRecord[] {
+  const mistakes = getMistakes();
+  
+  // Sort by: least mastered first, then newest first
+  return mistakes.sort((a, b) => {
+    const masteryDiff = a.timesMastered - b.timesMastered;
+    if (masteryDiff !== 0) return masteryDiff;
+    
+    // If same mastery level, newer mistakes first
+    return b.timestamp - a.timestamp;
+  });
 }

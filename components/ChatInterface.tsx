@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Message, ChatMode, LanguageLevel, CorrectionCard } from '@/types';
+import { Message, ChatMode, LanguageLevel, CorrectionCard, MistakeRecord } from '@/types';
 import { getInitialGreeting } from '@/lib/prompts';
 import ChatMessage from './ChatMessage';
 import ModeSelector from './ModeSelector';
 import ProgressIndicator from './ProgressIndicator';
 import VoiceControls from './VoiceControls';
 import Avatar from './Avatar';
-import { loadState, saveState, addSessionStats } from '@/lib/storage';
+import ReviewList from './ReviewList';
+import DrillMode from './DrillMode';
+import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview } from '@/lib/storage';
+
+type ViewMode = 'chat' | 'review' | 'drill';
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,6 +23,9 @@ export default function ChatInterface() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [sessionStart] = useState(Date.now());
   const [correctionsCount, setCorrectionsCount] = useState(0);
+  const [viewMode, setViewMode] = useState<ViewMode>('chat');
+  const [mistakes, setMistakes] = useState<MistakeRecord[]>([]);
+  const [drillMistakes, setDrillMistakes] = useState<MistakeRecord[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,6 +33,7 @@ export default function ChatInterface() {
     setProfile(state.profile);
     setCurrentMode(state.currentMode);
     setVoiceEnabled(state.voiceEnabled);
+    setMistakes(getMistakesSortedForReview());
     
     if (state.messages.length === 0) {
       const greeting = getInitialGreeting(state.currentMode);
@@ -124,6 +132,9 @@ export default function ChatInterface() {
 
       if (correction) {
         setCorrectionsCount(prev => prev + 1);
+        // Save mistake to review list
+        addMistake(correction, currentMode);
+        setMistakes(getMistakesSortedForReview());
       }
 
       const assistantMessage: Message = {
@@ -208,6 +219,24 @@ export default function ChatInterface() {
     saveState(state);
   };
 
+  const handleReviewUpdate = () => {
+    setMistakes(getMistakesSortedForReview());
+  };
+
+  const handleStartDrill = (mistakesToDrill: MistakeRecord[]) => {
+    setDrillMistakes(mistakesToDrill);
+    setViewMode('drill');
+  };
+
+  const handleDrillComplete = () => {
+    setMistakes(getMistakesSortedForReview());
+    setViewMode('review');
+  };
+
+  const handleDrillExit = () => {
+    setViewMode('review');
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
       <header className="bg-white border-b border-teal-100 shadow-sm">
@@ -229,43 +258,95 @@ export default function ChatInterface() {
 
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex gap-6 overflow-hidden">
         <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
-          <div className="flex-1 overflow-y-auto p-6">
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-            {isLoading && (
-              <div className="flex justify-start mb-4">
-                <div className="bg-white border border-teal-100 rounded-2xl rounded-bl-md px-4 py-3">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+          {/* Tab Navigation */}
+          <div className="flex border-b border-teal-100">
+            <button
+              onClick={() => setViewMode('chat')}
+              className={`flex-1 px-6 py-3 font-medium transition-colors ${
+                viewMode === 'chat'
+                  ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-500'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              💬 会話
+            </button>
+            <button
+              onClick={() => setViewMode('review')}
+              className={`flex-1 px-6 py-3 font-medium transition-colors relative ${
+                viewMode === 'review'
+                  ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-500'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              📚 復習リスト
+              {mistakes.length > 0 && (
+                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {mistakes.length}
+                </span>
+              )}
+            </button>
           </div>
 
-          <div className="border-t border-teal-100 p-4">
-            <form onSubmit={handleSubmit} className="flex gap-3">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message in English..."
-                className="flex-1 px-4 py-3 border border-teal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-700"
-                disabled={isLoading}
+          {/* Content Area */}
+          {viewMode === 'chat' && (
+            <>
+              <div className="flex-1 overflow-y-auto p-6">
+                {messages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start mb-4">
+                    <div className="bg-white border border-teal-100 rounded-2xl rounded-bl-md px-4 py-3">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="border-t border-teal-100 p-4">
+                <form onSubmit={handleSubmit} className="flex gap-3">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message in English..."
+                    className="flex-1 px-4 py-3 border border-teal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-700"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLoading || !input.trim()}
+                    className="px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    送信
+                  </button>
+                </form>
+              </div>
+            </>
+          )}
+
+          {viewMode === 'review' && (
+            <div className="flex-1 overflow-y-auto p-6">
+              <ReviewList
+                mistakes={mistakes}
+                onUpdate={handleReviewUpdate}
+                onStartDrill={handleStartDrill}
               />
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                送信
-              </button>
-            </form>
-          </div>
+            </div>
+          )}
+
+          {viewMode === 'drill' && (
+            <DrillMode
+              mistakes={drillMistakes}
+              onComplete={handleDrillComplete}
+              onExit={handleDrillExit}
+            />
+          )}
         </div>
 
         <div className="w-80 flex flex-col gap-4 overflow-y-auto">
