@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Message, ChatMode, LanguageLevel, CorrectionCard, MistakeRecord } from '@/types';
+import { Message, ChatMode, LanguageLevel, CorrectionCard, MistakeRecord, BusinessScenario, DifficultyLevel } from '@/types';
 import { getInitialGreeting } from '@/lib/prompts';
 import ChatMessage from './ChatMessage';
 import ModeSelector from './ModeSelector';
@@ -10,7 +10,11 @@ import VoiceControls from './VoiceControls';
 import Avatar from './Avatar';
 import ReviewList from './ReviewList';
 import DrillMode from './DrillMode';
-import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview } from '@/lib/storage';
+import BusinessScenarioSelector from './BusinessScenarioSelector';
+import PhraseBank from './PhraseBank';
+import SessionTips from './SessionTips';
+import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
+import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
@@ -26,6 +30,10 @@ export default function ChatInterface() {
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [mistakes, setMistakes] = useState<MistakeRecord[]>([]);
   const [drillMistakes, setDrillMistakes] = useState<MistakeRecord[]>([]);
+  const [businessScenario, setBusinessScenario] = useState<BusinessScenario | undefined>();
+  const [businessDifficulty, setBusinessDifficulty] = useState<DifficultyLevel>('beginner');
+  const [successfulTurns, setSuccessfulTurns] = useState(0);
+  const [showSessionTips, setShowSessionTips] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,9 +42,12 @@ export default function ChatInterface() {
     setCurrentMode(state.currentMode);
     setVoiceEnabled(state.voiceEnabled);
     setMistakes(getMistakesSortedForReview());
+    setBusinessScenario(state.businessScenario);
+    setBusinessDifficulty(state.businessDifficulty);
+    setSuccessfulTurns(state.successfulTurns);
     
     if (state.messages.length === 0) {
-      const greeting = getInitialGreeting(state.currentMode);
+      const greeting = getInitialGreeting(state.currentMode, state.businessScenario);
       const greetingMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -61,7 +72,19 @@ export default function ChatInterface() {
     }
 
     setCurrentMode(mode);
-    const greeting = getInitialGreeting(mode);
+    resetSuccessfulTurns();
+    setSuccessfulTurns(0);
+    
+    // Set default business scenario if switching to business mode
+    let newScenario = businessScenario;
+    if (mode === 'business' && !businessScenario) {
+      newScenario = 'meeting-basics';
+      setBusinessScenario(newScenario);
+      updateBusinessSettings(newScenario, businessDifficulty);
+      setShowSessionTips(true);
+    }
+    
+    const greeting = getInitialGreeting(mode, newScenario);
     const greetingMessage: Message = {
       id: Date.now().toString(),
       role: 'assistant',
@@ -73,7 +96,48 @@ export default function ChatInterface() {
     const state = loadState();
     state.currentMode = mode;
     state.messages = [greetingMessage];
+    if (mode === 'business') {
+      state.businessScenario = newScenario;
+    }
     saveState(state);
+  };
+
+  const handleBusinessScenarioChange = (scenario: BusinessScenario) => {
+    if (messages.length > 1) {
+      const confirmChange = confirm('シナリオを変更すると会話がリセットされます。よろしいですか？');
+      if (!confirmChange) return;
+    }
+
+    setBusinessScenario(scenario);
+    updateBusinessSettings(scenario, businessDifficulty);
+    resetSuccessfulTurns();
+    setSuccessfulTurns(0);
+    setShowSessionTips(true);
+
+    const greeting = getInitialGreeting('business', scenario);
+    const greetingMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: greeting,
+      timestamp: Date.now(),
+    };
+    setMessages([greetingMessage]);
+
+    const state = loadState();
+    state.messages = [greetingMessage];
+    state.businessScenario = scenario;
+    saveState(state);
+  };
+
+  const handleBusinessDifficultyChange = (difficulty: DifficultyLevel) => {
+    setBusinessDifficulty(difficulty);
+    updateBusinessSettings(businessScenario, difficulty);
+    resetSuccessfulTurns();
+    setSuccessfulTurns(0);
+  };
+
+  const handlePhraseClick = (phrase: string) => {
+    setInput(prev => prev ? `${prev} ${phrase}` : phrase);
   };
 
   const extractCorrection = (text: string): { content: string; correction?: CorrectionCard } => {
@@ -120,6 +184,9 @@ export default function ChatInterface() {
           messages: newMessages,
           mode: currentMode,
           level: profile.currentLevel,
+          businessScenario,
+          businessDifficulty,
+          successfulTurns,
         }),
       });
 
@@ -135,6 +202,12 @@ export default function ChatInterface() {
         // Save mistake to review list
         addMistake(correction, currentMode);
         setMistakes(getMistakesSortedForReview());
+      } else {
+        // No correction means successful turn for scaffolding
+        if (currentMode === 'business') {
+          incrementSuccessfulTurns();
+          setSuccessfulTurns(prev => prev + 1);
+        }
       }
 
       const assistantMessage: Message = {
@@ -356,6 +429,34 @@ export default function ChatInterface() {
             onModeChange={handleModeChange}
             disabled={isLoading}
           />
+          
+          {currentMode === 'business' && businessScenario && (
+            <>
+              <BusinessScenarioSelector
+                currentScenario={businessScenario}
+                currentDifficulty={businessDifficulty}
+                onScenarioChange={handleBusinessScenarioChange}
+                onDifficultyChange={handleBusinessDifficultyChange}
+                disabled={isLoading}
+              />
+              
+              <PhraseBank
+                phrases={businessScenarios[businessScenario].phrases}
+                title="使える表現"
+                onPhraseClick={handlePhraseClick}
+              />
+              
+              {showSessionTips && viewMode === 'chat' && (
+                <SessionTips
+                  tips={getBusinessSessionTips(businessScenario)}
+                  onAddToReview={(phrase) => {
+                    // Add phrase as a "tip" to review list
+                    console.log('Add to review:', phrase);
+                  }}
+                />
+              )}
+            </>
+          )}
           
           {messages.length > 1 && (
             <button

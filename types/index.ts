@@ -8,7 +8,18 @@ export type ChatMode =
   | 'meeting'
   | 'email'
   | 'presentation'
-  | 'vocab-drill';
+  | 'vocab-drill'
+  | 'business'; // New umbrella mode
+
+export type BusinessScenario =
+  | 'meeting-basics'
+  | 'email-tone'
+  | 'presentation-qa'
+  | 'small-talk-work'
+  | 'negotiation'
+  | 'phone-video';
+
+export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface Message {
   id: string;
@@ -54,11 +65,28 @@ export interface SessionStats {
   date: string;
 }
 
+export interface Phrase {
+  english: string;
+  japanese: string;
+  context?: string;
+}
+
+export interface BusinessScenarioInfo {
+  id: BusinessScenario;
+  label: string;
+  description: string;
+  emoji: string;
+  phrases: Phrase[];
+}
+
 export interface AppState {
   profile: UserProfile;
   currentMode: ChatMode;
+  businessScenario?: BusinessScenario;
+  businessDifficulty: DifficultyLevel;
   messages: Message[];
   sessionStats: SessionStats[];
   voiceEnabled: boolean;
   mistakes: MistakeRecord[];
+  successfulTurns: number; // For scaffolding
 }

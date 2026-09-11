@@ -11,9 +11,7 @@ const modes: { value: ChatMode; label: string; emoji: string }[] = [
   { value: 'daily-life', label: '日常会話', emoji: '🏡' },
   { value: 'travel', label: '旅行', emoji: '✈️' },
   { value: 'workplace-small-talk', label: '職場雑談', emoji: '☕' },
-  { value: 'meeting', label: '会議', emoji: '📊' },
-  { value: 'email', label: 'メール', emoji: '📧' },
-  { value: 'presentation', label: 'プレゼン', emoji: '🎤' },
+  { value: 'business', label: 'ビジネス英語', emoji: '💼' },
   { value: 'vocab-drill', label: '語彙練習', emoji: '📚' },
 ];
 

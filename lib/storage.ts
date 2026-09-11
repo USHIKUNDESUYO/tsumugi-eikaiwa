@@ -1,4 +1,4 @@
-import { AppState, UserProfile, Message, SessionStats, MistakeRecord, CorrectionCard, ChatMode } from '@/types';
+import { AppState, UserProfile, Message, SessionStats, MistakeRecord, CorrectionCard, ChatMode, BusinessScenario, DifficultyLevel } from '@/types';
 
 const STORAGE_KEY = 'tsumugi-app-state';
 
@@ -15,10 +15,13 @@ export function getDefaultState(): AppState {
   return {
     profile: getDefaultProfile(),
     currentMode: 'free-chat',
+    businessScenario: undefined,
+    businessDifficulty: 'beginner',
     messages: [],
     sessionStats: [],
     voiceEnabled: false,
     mistakes: [],
+    successfulTurns: 0,
   };
 }
 
@@ -149,4 +152,23 @@ export function getMistakesSortedForReview(): MistakeRecord[] {
     // If same mastery level, newer mistakes first
     return b.timestamp - a.timestamp;
   });
+}
+
+export function updateBusinessSettings(scenario?: BusinessScenario, difficulty?: DifficultyLevel): void {
+  const state = loadState();
+  if (scenario !== undefined) state.businessScenario = scenario;
+  if (difficulty !== undefined) state.businessDifficulty = difficulty;
+  saveState(state);
+}
+
+export function incrementSuccessfulTurns(): void {
+  const state = loadState();
+  state.successfulTurns += 1;
+  saveState(state);
+}
+
+export function resetSuccessfulTurns(): void {
+  const state = loadState();
+  state.successfulTurns = 0;
+  saveState(state);
 }

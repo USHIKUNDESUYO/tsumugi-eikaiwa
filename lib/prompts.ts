@@ -1,6 +1,13 @@
-import { ChatMode, LanguageLevel } from '@/types';
+import { ChatMode, LanguageLevel, BusinessScenario, DifficultyLevel } from '@/types';
+import { getBusinessScenarioPrompt } from './businessScenarios';
 
-export function getSystemPrompt(mode: ChatMode, level: LanguageLevel): string {
+export function getSystemPrompt(
+  mode: ChatMode, 
+  level: LanguageLevel,
+  businessScenario?: BusinessScenario,
+  businessDifficulty?: DifficultyLevel,
+  successfulTurns?: number
+): string {
   const basePersonality = `You are Tsumugi (紬), a gentle and warm English conversation tutor inspired by a calm island-girl personality. You are patient, encouraging, and supportive. You help Japanese learners practice English naturally.
 
 Your teaching style:
@@ -37,16 +44,28 @@ Only provide corrections when helpful - not for every minor issue. Focus on erro
     'email': 'Help with email writing: formal greetings, making requests, responding to inquiries, expressing gratitude, professional closings.',
     'presentation': 'Practice presentation skills: introducing topics, explaining data, handling questions, smooth transitions, engaging the audience.',
     'vocab-drill': 'Focus on vocabulary building. Introduce new words in context, explain usage, create example sentences together, and review.',
+    'business': 'Business English practice with specific scenarios.',
   };
+
+  let specificGuidance = modeGuidance[mode];
+  
+  // Add business scenario specific guidance
+  if (mode === 'business' && businessScenario && businessDifficulty) {
+    specificGuidance = getBusinessScenarioPrompt(
+      businessScenario,
+      businessDifficulty,
+      successfulTurns || 0
+    );
+  }
 
   return `${basePersonality}
 
 Level: ${levelGuidance[level]}
 
-Mode: ${modeGuidance[mode]}`;
+Mode: ${specificGuidance}`;
 }
 
-export function getInitialGreeting(mode: ChatMode): string {
+export function getInitialGreeting(mode: ChatMode, businessScenario?: BusinessScenario): string {
   const greetings: Record<ChatMode, string> = {
     'free-chat': "Hi! I'm Tsumugi. I'm here to practice English with you. What would you like to talk about today?",
     'daily-life': "Hello! Let's practice some daily life English today. How was your day? Or tell me about something you did recently!",
@@ -56,6 +75,21 @@ export function getInitialGreeting(mode: ChatMode): string {
     'email': "Hi! Today we'll practice email writing. Would you like to write a request email, or respond to an inquiry?",
     'presentation': "Hello! Let's work on presentation skills. Pick a topic you'd like to present about - even something simple like your hobby!",
     'vocab-drill': "Hi! Let's build your vocabulary today. Which area interests you? Business terms, daily life, or expressions?",
+    'business': "Hello! Let's practice business English today. I'm here to help you become more confident in professional situations.",
   };
+  
+  const businessGreetings: Record<BusinessScenario, string> = {
+    'meeting-basics': "Hi! Let's practice meeting basics. Imagine we're in a team meeting discussing a project. Shall we start by reviewing the agenda?",
+    'email-tone': "Hello! Today we'll work on professional email tone. I'll help you transform casual English into polished, professional messages. Ready to start?",
+    'presentation-qa': "Hi! Let's practice handling Q&A after presentations. I'll ask you questions, and you can practice responding confidently. What topic are you presenting on?",
+    'small-talk-work': "Good morning! Let's practice workplace small talk. Imagine we're colleagues meeting at the coffee machine. How was your weekend?",
+    'negotiation': "Hello! Let's practice negotiation and scheduling. Imagine we need to schedule a meeting together. When works best for you this week?",
+    'phone-video': "Hi! Let's practice phone and video call skills. Imagine we're on a video call. Can you hear me okay? Let's get started!",
+  };
+  
+  if (mode === 'business' && businessScenario) {
+    return businessGreetings[businessScenario];
+  }
+  
   return greetings[mode];
 }
