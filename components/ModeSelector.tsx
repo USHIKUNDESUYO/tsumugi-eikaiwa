@@ -1,33 +1,40 @@
-"use client";
-
-import { AppMode } from "@/lib/types";
+import { ChatMode } from '@/types';
 
 interface ModeSelectorProps {
-  currentMode: AppMode;
-  onModeChange: (mode: AppMode) => void;
+  currentMode: ChatMode;
+  onModeChange: (mode: ChatMode) => void;
+  disabled?: boolean;
 }
 
-export default function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
-  const modes: { id: AppMode; label: string; icon: string }[] = [
-    { id: "chat", label: "おしゃべり", icon: "💬" },
-    { id: "review", label: "復習", icon: "📚" },
-    { id: "business", label: "ビジネス", icon: "💼" },
-  ];
+const modes: { value: ChatMode; label: string; emoji: string }[] = [
+  { value: 'free-chat', label: 'フリートーク', emoji: '💬' },
+  { value: 'daily-life', label: '日常会話', emoji: '🏡' },
+  { value: 'travel', label: '旅行', emoji: '✈️' },
+  { value: 'workplace-small-talk', label: '職場雑談', emoji: '☕' },
+  { value: 'business', label: 'ビジネス英語', emoji: '💼' },
+  { value: 'vocab-drill', label: '語彙練習', emoji: '📚' },
+];
 
+export default function ModeSelector({ currentMode, onModeChange, disabled }: ModeSelectorProps) {
   return (
-    <div className="bg-white border-b px-4 py-2 overflow-x-auto">
-      <div className="flex gap-2 max-w-4xl mx-auto">
+    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">練習モード</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {modes.map((mode) => (
           <button
-            key={mode.id}
-            onClick={() => onModeChange(mode.id)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              currentMode === mode.id
-                ? "bg-tsumugi-primary text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            key={mode.value}
+            onClick={() => onModeChange(mode.value)}
+            disabled={disabled}
+            className={`
+              px-3 py-2 rounded-lg text-sm font-medium transition-all
+              ${currentMode === mode.value
+                ? 'bg-teal-500 text-white shadow-md'
+                : 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+              }
+              ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            `}
           >
-            <span className="mr-1">{mode.icon}</span>
+            <span className="mr-1">{mode.emoji}</span>
             {mode.label}
           </button>
         ))}
