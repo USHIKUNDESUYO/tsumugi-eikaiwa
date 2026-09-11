@@ -48,17 +48,39 @@
 
 ## 🚀 スマホにインストール（推奨）
 
+このアプリはPWA（Progressive Web App）対応です。ホーム画面に追加すると、ネイティブアプリのように使えます。
+
+### ✨ インストールのメリット
+
+- 📱 ホーム画面からワンタップで起動
+- 🔌 オフラインでも基本機能が使える
+- 🎯 全画面で没入感のある学習体験
+- 🎤 音声機能がスムーズに動作
+- 🚀 高速起動
+
 ### iPhone / iPad (Safari)
-1. Safari でアプリを開く
-2. 画面下の共有ボタン（□↑）をタップ
-3. 「ホーム画面に追加」を選択
-4. 「追加」をタップ
+
+1. **Safari** でアプリを開く（Chrome等では追加できません）
+2. 画面下の**共有ボタン**（□↑）をタップ
+3. 下にスクロールして**「ホーム画面に追加」**を選択
+4. 右上の**「追加」**をタップ
 
 ### Android (Chrome)
-1. Chrome でアプリを開く
-2. 右上のメニュー（⋮）をタップ
-3. 「ホーム画面に追加」または「アプリをインストール」を選択
-4. 「追加」をタップ
+
+1. **Chrome** でアプリを開く
+2. 右上の**メニュー**（⋮）をタップ
+3. **「ホーム画面に追加」**または**「アプリをインストール」**を選択
+4. **「追加」**または**「インストール」**をタップ
+
+### 📱 別のデバイスからアクセス
+
+アプリ内の **QRコードボタン**（右下）をクリックすると、スマホでスキャンしてアクセスできます。
+
+### ⚠️ 重要な注意事項
+
+- **HTTPS環境が必須**: PWAインストールと音声機能は、HTTPS環境（Vercel、Netlify等）でデプロイした場合のみフル機能します
+- **localhost**: 開発環境（`http://localhost:3000`）ではPWAインストールと音声機能に制限があります
+- **推奨デプロイ先**: Vercel（[vercel.com](https://vercel.com)）で簡単にデプロイできます
 
 ## セットアップ
 
@@ -70,15 +92,21 @@ npm install
 
 ### 2. 環境変数の設定（オプション）
 
-OpenAI互換のLLM APIを使用する場合は、`.env.local`ファイルを作成してください：
+このアプリは **AI佐藤さんと同じDeepSeek接続** を使用します。
+
+OpenAI互換のLLM API（DeepSeek推奨）を使用する場合は、`.env.local`ファイルを作成してください：
 
 ```env
-OPENAI_API_KEY=your_api_key_here
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_API_KEY=your_deepseek_api_key_here
+OPENAI_BASE_URL=https://api.deepseek.com
+OPENAI_MODEL=deepseek-v4-flash
 ```
 
-**注意**: API キーなしでも、シンプルなモック応答で動作します。
+- **DeepSeek API Key**: [https://platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) で取得
+- **互換性**: OpenAI互換APIなら他のプロバイダーも使用可能
+- **モックモード**: API キーなしでも、シンプルなモック応答で動作します
+
+**⚠️ 重要**: API キーは `.env.local` にのみ記載し、Gitにコミットしないでください。
 
 ### 3. 開発サーバーの起動
 
@@ -88,12 +116,27 @@ npm run dev
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
 
-## 本番ビルド
+## 本番ビルド・デプロイ
+
+### Vercelへのデプロイ（推奨）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/USHIKUNDESUYO/tsumugi-eikaiwa)
+
+1. 上のボタンをクリック、またはVercelにGitHubリポジトリを接続
+2. 環境変数を設定:
+   - `OPENAI_API_KEY`: DeepSeek APIキー
+   - `OPENAI_BASE_URL`: `https://api.deepseek.com`（デフォルトで設定済み）
+   - `OPENAI_MODEL`: `deepseek-v4-flash`（デフォルトで設定済み）
+3. デプロイ完了！HTTPS URLでPWA機能と音声機能がフル動作します
+
+### ローカルで本番ビルド
 
 ```bash
 npm run build
 npm start
 ```
+
+**注意**: ローカルビルドではHTTPSではないため、PWAインストールと音声機能に制限があります。
 
 ## 技術スタック
 
@@ -101,8 +144,9 @@ npm start
 - **言語**: TypeScript
 - **スタイリング**: Tailwind CSS 4
 - **状態管理**: React Hooks + localStorage
-- **AI API**: OpenAI互換API（任意）
+- **AI API**: OpenAI互換API（DeepSeek v4推奨、AI佐藤さんと同じスタック）
 - **PWA**: Service Worker + Web App Manifest
+- **デプロイ**: Vercel最適化
 
 ## 使い方
 
