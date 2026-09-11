@@ -1,5 +1,11 @@
-import ChatInterface from '@/components/ChatInterface';
+"use client";
+
+import ChatInterface from "@/components/ChatInterface";
 
 export default function Home() {
-  return <ChatInterface />;
+  return (
+    <main className="h-screen overflow-hidden">
+      <ChatInterface />
+    </main>
+  );
 }

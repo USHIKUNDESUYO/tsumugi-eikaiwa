@@ -1,0 +1,8 @@
+
+    <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+      <rect width="512" height="512" fill="#FF6B9D" rx="102.4"/>
+      <circle cx="256" cy="204.8" r="92.16" fill="white" opacity="0.9"/>
+      <text x="256" y="230.4" font-size="128" text-anchor="middle" fill="#FF6B9D" font-family="sans-serif" font-weight="bold">つ</text>
+      <text x="256" y="399.36" font-size="128" text-anchor="middle" fill="white">🌸</text>
+    </svg>
+  
