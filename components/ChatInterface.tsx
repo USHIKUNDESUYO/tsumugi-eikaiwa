@@ -16,7 +16,7 @@ import SessionTips from './SessionTips';
 import SessionSummary from './SessionSummary';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
-import { speakText, stopAllSpeech, initializeTTSVoices } from '@/lib/ttsVoice';
+import { speakText, stopAllSpeech, initializeTTSVoices, getVoiceStatus } from '@/lib/ttsVoice';
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
@@ -267,10 +267,9 @@ export default function ChatInterface() {
         speakText(content, {
           onStart: () => {
             setIsSpeaking(true);
-            const isCloud = fetch('/api/tts', { method: 'HEAD' })
-              .then(r => r.ok)
-              .catch(() => false);
-            isCloud.then(cloud => setVoiceSource(cloud ? 'cloud' : 'device'));
+            // Determine voice source from actual TTS state
+            const status = getVoiceStatus();
+            setVoiceSource(status === 'cloud' ? 'cloud' : status === 'device' ? 'device' : null);
           },
           onEnd: () => {
             setIsSpeaking(false);
