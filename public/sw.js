@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tsumugi-eikaiwa-v1';
+const CACHE_NAME = 'tsumugi-eikaiwa-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',

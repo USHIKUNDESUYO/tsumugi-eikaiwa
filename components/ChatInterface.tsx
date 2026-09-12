@@ -329,13 +329,33 @@ export default function ChatInterface() {
         </div>
       </header>
 
-      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex gap-6 overflow-hidden">
+      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col md:flex-row gap-6 overflow-hidden">
+        {/* Mobile Controls - visible only on mobile */}
+        <div className="md:hidden flex flex-col gap-3">
+          <ProgressIndicator profile={profile} />
+          <ModeSelector
+            currentMode={currentMode}
+            onModeChange={handleModeChange}
+            disabled={isLoading}
+          />
+          
+          {currentMode === 'business' && businessScenario && (
+            <BusinessScenarioSelector
+              currentScenario={businessScenario}
+              currentDifficulty={businessDifficulty}
+              onScenarioChange={handleBusinessScenarioChange}
+              onDifficultyChange={handleBusinessDifficultyChange}
+              disabled={isLoading}
+            />
+          )}
+        </div>
+
         <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
           {/* Tab Navigation */}
           <div className="flex border-b border-teal-100">
             <button
               onClick={() => setViewMode('chat')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors ${
+              className={`flex-1 px-6 py-3 font-medium transition-colors whitespace-nowrap ${
                 viewMode === 'chat'
                   ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-500'
                   : 'text-gray-600 hover:bg-gray-50'
@@ -345,7 +365,7 @@ export default function ChatInterface() {
             </button>
             <button
               onClick={() => setViewMode('review')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors relative ${
+              className={`flex-1 px-6 py-3 font-medium transition-colors whitespace-nowrap relative ${
                 viewMode === 'review'
                   ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-500'
                   : 'text-gray-600 hover:bg-gray-50'
@@ -422,7 +442,8 @@ export default function ChatInterface() {
           )}
         </div>
 
-        <div className="w-80 flex flex-col gap-4 overflow-y-auto">
+        {/* Desktop Sidebar - hidden on mobile */}
+        <div className="hidden md:flex md:w-80 flex-col gap-4 overflow-y-auto">
           <ProgressIndicator profile={profile} />
           <ModeSelector
             currentMode={currentMode}
