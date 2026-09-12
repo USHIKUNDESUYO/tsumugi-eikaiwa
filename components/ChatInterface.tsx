@@ -387,7 +387,7 @@ export default function ChatInterface() {
         </div>
       </header>
 
-      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex gap-6 overflow-hidden">
+      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col md:flex-row gap-6 overflow-hidden">
         <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
           {/* Tab Navigation */}
           <div className="flex border-b border-teal-100">
@@ -480,7 +480,7 @@ export default function ChatInterface() {
           )}
         </div>
 
-        <div className="w-80 flex flex-col gap-4 overflow-y-auto">
+        <div className="hidden md:flex md:w-80 flex-col gap-4 overflow-y-auto">
           <ProgressIndicator profile={profile} />
           <ModeSelector
             currentMode={currentMode}
