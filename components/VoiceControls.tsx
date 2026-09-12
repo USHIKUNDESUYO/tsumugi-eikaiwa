@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { initializeTTSVoices, getSelectedVoiceName, onVoiceSelected } from '@/lib/ttsVoice';
 
 interface VoiceControlsProps {
   enabled: boolean;
@@ -24,6 +25,7 @@ export default function VoiceControls({
   const [supportState, setSupportState] = useState<SupportState>('checking');
   const [errorState, setErrorState] = useState<ErrorState>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('Loading...');
   const recognitionRef = useRef<any>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -35,6 +37,17 @@ export default function VoiceControls({
 
     const hasAPI = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     setSupportState(hasAPI ? 'supported' : 'unsupported');
+    
+    // Initialize TTS voices
+    initializeTTSVoices();
+    setSelectedVoiceName(getSelectedVoiceName());
+    
+    // Subscribe to voice updates
+    const unsubscribe = onVoiceSelected((result) => {
+      setSelectedVoiceName(result.name);
+    });
+    
+    return unsubscribe;
   }, []);
 
   const stopSpeaking = useCallback(() => {
@@ -213,6 +226,13 @@ export default function VoiceControls({
           </button>
         )}
       </div>
+      
+      {/* Show selected voice name when enabled */}
+      {enabled && selectedVoiceName && selectedVoiceName !== 'Loading...' && (
+        <div className="text-xs text-teal-600 bg-teal-50 px-2 py-1 rounded">
+          声: {selectedVoiceName}
+        </div>
+      )}
       
       {errorMessage && (
         <div className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md max-w-xs text-right">
