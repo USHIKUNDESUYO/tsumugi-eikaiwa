@@ -25,7 +25,7 @@ export default function QRCodeDisplay() {
       {/* QR Code Button - desktop only, hidden on mobile to reduce clutter */}
       <button
         onClick={toggleQR}
-        className="hidden md:block fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-3 hover:shadow-xl transition-all border border-gray-200/50 z-30 hover:scale-110 active:scale-95"
+        className="hidden md:flex items-center gap-2 min-h-11 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
         title="QRコードを表示"
       >
         <svg 
@@ -42,6 +42,7 @@ export default function QRCodeDisplay() {
             d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" 
           />
         </svg>
+        スマホで開く
       </button>
 
       {/* QR Code Modal */}

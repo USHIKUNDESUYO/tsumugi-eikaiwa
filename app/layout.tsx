@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
-import InstallPrompt from "@/components/InstallPrompt";
-import QRCodeDisplay from "@/components/QRCodeDisplay";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,8 +52,6 @@ export default function RootLayout({
       </head>
       <body className="h-dvh flex flex-col overflow-hidden">
         <ServiceWorkerRegistration />
-        <InstallPrompt />
-        <QRCodeDisplay />
         {children}
       </body>
     </html>

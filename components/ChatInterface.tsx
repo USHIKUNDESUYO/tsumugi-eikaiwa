@@ -16,6 +16,8 @@ import SessionTips from './SessionTips';
 import OfflineIndicator from './OfflineIndicator';
 import PronunciationRecorder from './PronunciationRecorder';
 import SessionSummary from './SessionSummary';
+import InstallPrompt from './InstallPrompt';
+import QRCodeDisplay from './QRCodeDisplay';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
 import { speakText, stopAllSpeech, initializeTTSVoices, getVoiceStatus, probeCloudTTS } from '@/lib/ttsVoice';
@@ -415,7 +417,7 @@ export default function ChatInterface() {
             <Avatar />
             <div className="min-w-0">
               <h1 className="text-lg font-bold text-gray-900 truncate">紬の英会話</h1>
-              <p className="text-xs text-gray-500 hidden sm:block">やさしく、楽しく</p>
+              <p className="text-xs text-teal-700">{modes.find(mode => mode.value === currentMode)?.label} · やさしく、楽しく</p>
             </div>
           </div>
         </div>
@@ -425,13 +427,13 @@ export default function ChatInterface() {
       <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col lg:flex-row gap-0 lg:gap-6 lg:px-6 lg:py-6 overflow-hidden">
         
         {/* Main chat panel */}
-        <div className="flex-1 flex flex-col bg-white lg:rounded-2xl lg:shadow-xl overflow-hidden lg:border lg:border-gray-200/50 min-w-0">
+        <div className="flex-1 flex flex-col bg-white lg:rounded-2xl lg:shadow-sm overflow-hidden lg:border lg:border-gray-200/50 min-w-0">
           
           {/* Chat View */}
           {viewMode === 'chat' && (
             <div className="flex-1 flex flex-col min-h-0">
               {/* Chat messages area - true full height */}
-              <div ref={messagesRef} role="log" aria-label="会話履歴" className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 bg-gradient-to-b from-cyan-50/20 to-transparent">
+              <div ref={messagesRef} role="log" aria-label="会話履歴" className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin px-4 py-5 bg-slate-50/50">
                 {messages.map((message) => (
                   <ChatMessage key={message.id} message={message} />
                 ))}
@@ -449,7 +451,7 @@ export default function ChatInterface() {
               </div>
 
               {/* Voice controls - compact horizontal bar */}
-              <div className="shrink-0 border-t border-cyan-100/30 bg-white px-4 pt-2">
+              <div className="shrink-0 border-t border-gray-100 bg-white px-4 pt-3">
                 <VoiceControls
                   enabled={voiceEnabled}
                   disabled={isLoading}
@@ -459,7 +461,7 @@ export default function ChatInterface() {
                   onSpeakingChange={handleSpeakingChange}
                 />
                 <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
-                  <span>{isSpeaking ? (voiceSource === 'cloud' ? '紬が話しています' : '紬が話しています・端末音声') : '話した内容は自動で送信されます'}</span>
+                  <span>{isSpeaking ? (voiceSource === 'cloud' ? '紬が話しています' : '紬が話しています・端末音声') : '話し終わると自動送信'}</span>
                   <button type="button" disabled={isLoading || isListening} className="min-h-11 shrink-0 text-teal-700 disabled:opacity-40"
                     onClick={() => {
                       if (isSpeaking) stopSpeaking();
@@ -490,7 +492,7 @@ export default function ChatInterface() {
                     type="submit"
                     aria-label="送信"
                     disabled={isLoading || isListening || !input.trim()}
-                    className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-full font-medium hover:from-cyan-600 hover:to-teal-600 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95 touch-manipulation min-h-[48px] min-w-[48px] flex items-center justify-center"
+                    className="px-5 py-3 bg-teal-600 text-white rounded-full font-medium hover:bg-teal-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition-all active:scale-95 touch-manipulation min-h-[48px] min-w-[48px] flex items-center justify-center"
                   >
                     <span className="hidden sm:inline">送信</span>
                     <span className="sm:hidden text-lg">→</span>
@@ -502,8 +504,10 @@ export default function ChatInterface() {
 
           {/* Settings View */}
           {viewMode === 'settings' && (
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 bg-gradient-to-b from-cyan-50/20 to-transparent safe-area-bottom">
+            <div className="flex-1 w-full max-w-3xl mx-auto overflow-y-auto px-4 py-6 space-y-4 bg-gradient-to-b from-cyan-50/20 to-transparent safe-area-bottom">
               <h2 className="text-xl font-bold text-gray-800 mb-4">設定</h2>
+              <InstallPrompt />
+              <QRCodeDisplay />
               <div className="rounded-2xl border border-gray-200 bg-white p-4">
                 <button type="button" aria-expanded={showPronunciationRecorder}
                   className="min-h-11 text-sm font-medium text-teal-700"
@@ -579,7 +583,7 @@ export default function ChatInterface() {
         </div>
 
         {/* Desktop Sidebar */}
-        <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col gap-4 overflow-y-auto pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent [&>*]:shrink-0">
+        <div className={`hidden ${viewMode === 'chat' ? 'lg:flex' : ''} lg:w-72 xl:w-80 flex-col gap-4 overflow-y-auto pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent [&>*]:shrink-0`}>
           <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
             <ProgressIndicator profile={profile} />
           </div>
@@ -641,36 +645,39 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      {/* Bottom Navigation - Mobile only, native app style */}
+      {/* Compact navigation stays close to the conversation at every width. */}
       <nav aria-label="メインメニュー" className="shrink-0 bg-white border-t border-cyan-100/30 safe-area-bottom z-20">
-        <div className="flex items-center justify-around px-2 py-2">
+        <div className="mx-auto flex max-w-md items-center justify-around gap-1 px-3 py-1.5">
           <button
             onClick={() => setViewMode('chat')}
-            className={`flex-1 flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all touch-manipulation min-h-[48px] ${
+            aria-current={viewMode === 'chat' ? 'page' : undefined}
+            className={`flex-1 flex gap-2 items-center justify-center py-2 px-3 rounded-xl transition-all touch-manipulation min-h-[44px] ${
               viewMode === 'chat'
                 ? 'text-cyan-600 bg-cyan-50'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <span className="text-xl mb-0.5">💬</span>
+            <span aria-hidden="true" className="text-base">💬</span>
             <span className="text-xs font-medium">会話</span>
           </button>
           
           <button
             onClick={() => setViewMode('settings')}
-            className={`flex-1 flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all touch-manipulation min-h-[48px] ${
+            aria-current={viewMode === 'settings' ? 'page' : undefined}
+            className={`flex-1 flex gap-2 items-center justify-center py-2 px-3 rounded-xl transition-all touch-manipulation min-h-[44px] ${
               viewMode === 'settings'
                 ? 'text-cyan-600 bg-cyan-50'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <span className="text-xl mb-0.5">{modes.find(m => m.value === currentMode)?.emoji || '⚙️'}</span>
+            <span aria-hidden="true" className="text-base">⚙️</span>
             <span className="text-xs font-medium">設定</span>
           </button>
           
           <button
             onClick={() => setViewMode('review')}
-            className={`flex-1 flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all touch-manipulation min-h-[48px] relative ${
+            aria-current={viewMode === 'review' || viewMode === 'drill' ? 'page' : undefined}
+            className={`flex-1 flex gap-2 items-center justify-center py-2 px-3 rounded-xl transition-all touch-manipulation min-h-[44px] relative ${
               viewMode === 'review'
                 ? 'text-cyan-600 bg-cyan-50'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -681,7 +688,7 @@ export default function ChatInterface() {
                 {mistakes.length > 99 ? '99+' : mistakes.length}
               </span>
             )}
-            <span className="text-xl mb-0.5">📚</span>
+            <span aria-hidden="true" className="text-base">📚</span>
             <span className="text-xs font-medium">復習</span>
           </button>
         </div>

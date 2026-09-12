@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { CorrectionCard as CorrectionCardType } from '@/types';
 
 interface CorrectionCardProps {
@@ -8,12 +8,13 @@ interface CorrectionCardProps {
 }
 
 export default function CorrectionCard({ correction }: CorrectionCardProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const explanationId = useId();
   
   const severityColors = {
-    minor: 'bg-blue-50/80 border-blue-200/50',
-    moderate: 'bg-amber-50/80 border-amber-200/50',
-    important: 'bg-rose-50/80 border-rose-200/50',
+    minor: 'border-l-teal-400',
+    moderate: 'border-l-amber-400',
+    important: 'border-l-rose-400',
   };
 
   const severityIcons = {
@@ -29,34 +30,32 @@ export default function CorrectionCard({ correction }: CorrectionCardProps) {
   };
 
   return (
-    <div className={`rounded-xl border backdrop-blur-sm transition-all ${severityColors[correction.severity]} ${isExpanded ? 'p-3' : 'p-2.5'}`}>
+    <div className={`rounded-xl border border-gray-200 border-l-2 bg-white px-3 pb-3 ${severityColors[correction.severity]}`}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between gap-2 text-left"
+        aria-expanded={isExpanded}
+        aria-controls={explanationId}
+        className="min-h-11 w-full flex items-center justify-between gap-2 text-left"
       >
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-base flex-shrink-0">{severityIcons[correction.severity]}</span>
           <span className="text-xs font-semibold text-gray-700 truncate">
-            {severityLabels[correction.severity]}
+            表現のヒント
           </span>
         </div>
-        <span className="text-gray-400 text-sm flex-shrink-0 transition-transform" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-          ▼
+        <span className="text-teal-700 text-xs flex-shrink-0">
+          {isExpanded ? '閉じる −' : '解説 ＋'}
         </span>
       </button>
+      <p className="text-sm leading-6 font-medium text-teal-800 break-words">{correction.better}</p>
       
       {isExpanded && (
-        <div className="mt-2.5 space-y-2 text-xs">
+        <div id={explanationId} className="mt-3 space-y-3 border-t border-gray-100 pt-3 text-sm break-words">
+          <p className="text-xs text-gray-500">{severityLabels[correction.severity]}</p>
           <div className="flex gap-1.5">
             <span className="text-gray-500 font-medium flex-shrink-0">❌</span>
             <div className="min-w-0">
-              <p className="text-gray-700 leading-relaxed">"{correction.said}"</p>
-            </div>
-          </div>
-          <div className="flex gap-1.5">
-            <span className="text-green-600 font-medium flex-shrink-0">✅</span>
-            <div className="min-w-0">
-              <p className="font-semibold text-gray-900 leading-relaxed">"{correction.better}"</p>
+              <p className="text-gray-700 leading-relaxed">{correction.said}</p>
             </div>
           </div>
           <div className="pt-1 border-t border-gray-200/50">
