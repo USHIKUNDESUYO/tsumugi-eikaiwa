@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const TTS_API_KEY = process.env.TTS_API_KEY || process.env.OPENAI_API_KEY;
+// Only use explicit TTS_API_KEY - do NOT fallback to OPENAI_API_KEY
+// (which may be a DeepSeek chat key, not a TTS key)
+const TTS_API_KEY = process.env.TTS_API_KEY;
 const TTS_BASE_URL = process.env.TTS_BASE_URL || 'https://api.openai.com/v1';
 const TTS_MODEL = process.env.TTS_MODEL || 'tts-1';
 const TTS_VOICE = process.env.TTS_VOICE || 'nova';
 
 interface TTSRequest {
   text: string;
+}
+
+export async function HEAD() {
+  if (!TTS_API_KEY) {
+    return new NextResponse(null, { status: 503 });
+  }
+  return new NextResponse(null, { status: 200 });
 }
 
 export async function POST(request: NextRequest) {

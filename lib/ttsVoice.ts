@@ -21,6 +21,8 @@ let cachedVoice: SpeechSynthesisVoice | null = null;
 let cachedVoiceName: string = 'Loading...';
 let voicesLoaded = false;
 let voiceListeners: Array<(result: VoiceSelectionResult) => void> = [];
+let cloudTTSAvailable: boolean | null = null;
+let iOSResumeInterval: number | null = null;
 
 /**
  * Female voice name patterns to prioritize
@@ -260,6 +262,33 @@ export function stopAllSpeech() {
     window.speechSynthesis.cancel();
     currentUtterance = null;
   }
+  
+  // Clear iOS resume interval
+  if (iOSResumeInterval !== null) {
+    clearInterval(iOSResumeInterval);
+    iOSResumeInterval = null;
+  }
+}
+
+/**
+ * Checks if cloud TTS is available (caches result)
+ */
+async function checkCloudTTSAvailability(): Promise<boolean> {
+  if (cloudTTSAvailable !== null) {
+    return cloudTTSAvailable;
+  }
+  
+  try {
+    const response = await fetch('/api/tts', {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(2000),
+    });
+    cloudTTSAvailable = response.ok;
+  } catch {
+    cloudTTSAvailable = false;
+  }
+  
+  return cloudTTSAvailable;
 }
 
 /**
@@ -313,7 +342,7 @@ export async function speakWithCloudTTS(
 }
 
 /**
- * Device TTS with soft female voice selection
+ * Device TTS with soft female voice selection and iOS safeguards
  */
 export function speakWithDeviceTTS(
   text: string,
@@ -324,18 +353,41 @@ export function speakWithDeviceTTS(
     return;
   }
 
+  // Ensure voices are loaded before speaking
+  if (!voicesLoaded) {
+    loadVoices();
+  }
+
   const utterance = createTsumugiUtterance(text);
 
   utterance.onstart = () => {
     options.onStart?.();
+    
+    // iOS Safari workaround: resume every 100ms to prevent pausing
+    if (iOSResumeInterval !== null) {
+      clearInterval(iOSResumeInterval);
+    }
+    iOSResumeInterval = window.setInterval(() => {
+      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 100) as unknown as number;
   };
 
   utterance.onend = () => {
+    if (iOSResumeInterval !== null) {
+      clearInterval(iOSResumeInterval);
+      iOSResumeInterval = null;
+    }
     currentUtterance = null;
     options.onEnd?.();
   };
 
   utterance.onerror = (event) => {
+    if (iOSResumeInterval !== null) {
+      clearInterval(iOSResumeInterval);
+      iOSResumeInterval = null;
+    }
     currentUtterance = null;
     options.onError?.(event);
   };
@@ -345,7 +397,8 @@ export function speakWithDeviceTTS(
 }
 
 /**
- * Speaks text using cloud TTS first, falls back to device TTS
+ * Speaks text using device TTS by default, cloud TTS only if explicitly configured.
+ * This ensures immediate speech on iOS Safari without losing user gesture context.
  */
 export async function speakText(
   text: string,
@@ -353,11 +406,19 @@ export async function speakText(
 ): Promise<void> {
   stopAllSpeech();
 
-  const cloudSuccess = await speakWithCloudTTS(text, options);
+  // Check if cloud TTS is configured (quick check, cached after first call)
+  const isCloudAvailable = await checkCloudTTSAvailability();
   
-  if (!cloudSuccess) {
-    speakWithDeviceTTS(text, options);
+  if (isCloudAvailable) {
+    // Cloud TTS is explicitly configured - try it first
+    const cloudSuccess = await speakWithCloudTTS(text, options);
+    if (cloudSuccess) {
+      return;
+    }
   }
+  
+  // Use device TTS (default path, no async delay before speak)
+  speakWithDeviceTTS(text, options);
 }
 
 /**
