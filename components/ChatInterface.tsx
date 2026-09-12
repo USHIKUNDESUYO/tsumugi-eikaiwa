@@ -15,6 +15,7 @@ import PhraseBank from './PhraseBank';
 import SessionTips from './SessionTips';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
+import { createTsumugiUtterance, initializeTTSVoices } from '@/lib/ttsVoice';
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
@@ -58,6 +59,9 @@ export default function ChatInterface() {
     setBusinessScenario(state.businessScenario);
     setBusinessDifficulty(state.businessDifficulty);
     setSuccessfulTurns(state.successfulTurns);
+    
+    // Initialize TTS voices
+    initializeTTSVoices();
     
     if (state.messages.length === 0) {
       const greeting = getInitialGreeting(state.currentMode, state.businessScenario);
@@ -256,10 +260,7 @@ export default function ChatInterface() {
         try {
           stopSpeaking();
           
-          const utterance = new SpeechSynthesisUtterance(content);
-          utterance.lang = 'en-US';
-          utterance.rate = 0.9;
-          utterance.volume = 1.0;
+          const utterance = createTsumugiUtterance(content);
           
           utterance.onstart = () => {
             setIsSpeaking(true);
