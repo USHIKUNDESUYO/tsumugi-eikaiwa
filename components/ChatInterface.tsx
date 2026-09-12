@@ -18,6 +18,15 @@ import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenari
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
+const modes: { value: ChatMode; label: string; emoji: string }[] = [
+  { value: 'free-chat', label: 'フリートーク', emoji: '💬' },
+  { value: 'daily-life', label: '日常会話', emoji: '🏡' },
+  { value: 'travel', label: '旅行', emoji: '✈️' },
+  { value: 'workplace-small-talk', label: '職場雑談', emoji: '☕' },
+  { value: 'business', label: 'ビジネス英語', emoji: '💼' },
+  { value: 'vocab-drill', label: '語彙練習', emoji: '📚' },
+];
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -36,6 +45,7 @@ export default function ChatInterface() {
   const [showSessionTips, setShowSessionTips] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showMobileControls, setShowMobileControls] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -388,23 +398,43 @@ export default function ChatInterface() {
       </header>
 
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col md:flex-row gap-6 overflow-hidden">
-        {/* Mobile Controls - visible only on mobile */}
-        <div className="md:hidden flex flex-col gap-3">
-          <ProgressIndicator profile={profile} />
-          <ModeSelector
-            currentMode={currentMode}
-            onModeChange={handleModeChange}
-            disabled={isLoading}
-          />
+        {/* Mobile Controls Compact Header - visible only on mobile */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setShowMobileControls(!showMobileControls)}
+            className="w-full bg-white border border-teal-100 rounded-xl px-4 py-3 shadow-sm flex items-center justify-between text-teal-700 font-medium hover:bg-teal-50 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <span>⚙️</span>
+              <span>モード・設定</span>
+              <span className="text-xs bg-teal-100 px-2 py-0.5 rounded-full">
+                {modes.find(m => m.value === currentMode)?.emoji} {modes.find(m => m.value === currentMode)?.label}
+              </span>
+            </span>
+            <span className="text-lg transform transition-transform" style={{ transform: showMobileControls ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              ▼
+            </span>
+          </button>
           
-          {currentMode === 'business' && businessScenario && (
-            <BusinessScenarioSelector
-              currentScenario={businessScenario}
-              currentDifficulty={businessDifficulty}
-              onScenarioChange={handleBusinessScenarioChange}
-              onDifficultyChange={handleBusinessDifficultyChange}
-              disabled={isLoading}
-            />
+          {showMobileControls && (
+            <div className="mt-3 flex flex-col gap-3 max-h-[50vh] overflow-y-auto">
+              <ProgressIndicator profile={profile} />
+              <ModeSelector
+                currentMode={currentMode}
+                onModeChange={handleModeChange}
+                disabled={isLoading}
+              />
+              
+              {currentMode === 'business' && businessScenario && (
+                <BusinessScenarioSelector
+                  currentScenario={businessScenario}
+                  currentDifficulty={businessDifficulty}
+                  onScenarioChange={handleBusinessScenarioChange}
+                  onDifficultyChange={handleBusinessDifficultyChange}
+                  disabled={isLoading}
+                />
+              )}
+            </div>
           )}
         </div>
 
