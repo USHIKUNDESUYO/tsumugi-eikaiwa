@@ -16,7 +16,7 @@ import SessionTips from './SessionTips';
 import SessionSummary from './SessionSummary';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
-import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
+import { speakText, stopAllSpeech, initializeTTSVoices } from '@/lib/ttsVoice';
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
@@ -66,6 +66,9 @@ export default function ChatInterface() {
     setBusinessScenario(state.businessScenario);
     setBusinessDifficulty(state.businessDifficulty);
     setSuccessfulTurns(state.successfulTurns);
+    
+    // Initialize TTS voices
+    initializeTTSVoices();
     
     if (state.messages.length === 0) {
       const greeting = getInitialGreeting(state.currentMode, state.businessScenario);
