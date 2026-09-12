@@ -194,17 +194,17 @@ export default function VoiceControls({
   const canUseMic = supportState === 'supported' && enabled;
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-center gap-2 justify-center">
         <button
           onClick={handleEnableToggle}
           className={`
-            px-3 py-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all touch-manipulation
+            flex-1 md:flex-initial px-4 py-2 rounded-full text-xs font-medium transition-all touch-manipulation min-h-[40px]
             ${enabled
-              ? 'bg-teal-500 text-white'
-              : 'bg-gray-200 text-gray-600'
+              ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-sm'
+              : 'bg-gray-100 text-gray-600 border border-gray-200'
             }
-            ${supportState === 'unsupported' ? 'opacity-50 cursor-not-allowed' : ''}
+            ${supportState === 'unsupported' ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
           `}
           disabled={supportState === 'unsupported'}
         >
@@ -216,34 +216,34 @@ export default function VoiceControls({
             onClick={startListening}
             disabled={isListening}
             className={`
-              px-3 py-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all touch-manipulation min-w-[100px]
+              flex-1 md:flex-initial px-4 py-2 rounded-full text-xs font-medium transition-all touch-manipulation min-h-[40px]
               ${isListening
-                ? 'bg-red-500 text-white animate-pulse'
-                : 'bg-teal-100 text-teal-700 hover:bg-teal-200 active:bg-teal-300'
+                ? 'bg-red-500 text-white animate-pulse shadow-md'
+                : 'bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 active:bg-teal-200'
               }
-              disabled:opacity-50
+              disabled:opacity-50 active:scale-95
             `}
           >
-            {isListening ? '🎤 聞いています...' : '🎤 話す'}
+            {isListening ? '🎤 聞いています' : '🎤 話す'}
           </button>
         )}
       </div>
       
-      {/* Show voice source: cloud or device voice name */}
-      {enabled && voiceSource && (
-        <div className="text-xs text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
-          声: {voiceSource === 'cloud' ? 'クラウド' : selectedVoiceName !== 'Loading...' ? selectedVoiceName : 'デバイス'}
+      {/* Show voice source or error inline */}
+      {enabled && voiceSource && !errorMessage && (
+        <div className="text-[10px] text-center text-teal-600 bg-teal-50/50 px-2 py-1 rounded-full">
+          {voiceSource === 'cloud' ? 'クラウド音声' : selectedVoiceName !== 'Loading...' ? selectedVoiceName : 'デバイス音声'}
         </div>
       )}
       
       {errorMessage && (
-        <div className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md max-w-xs text-right">
+        <div className="text-[10px] text-center text-red-600 bg-red-50 px-2 py-1 rounded-full">
           {errorMessage}
         </div>
       )}
       
       {supportState === 'unsupported' && (
-        <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded-md max-w-xs text-right">
+        <div className="text-[10px] text-center text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
           テキスト入力でご利用いただけます
         </div>
       )}

@@ -91,36 +91,37 @@ export default function DrillMode({ mistakes, onComplete, onExit }: DrillModePro
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-4 sm:py-6 px-3 sm:px-4">
+    <div className="max-w-2xl mx-auto py-4 px-4 safe-area-bottom">
       {/* Progress Header */}
-      <div className="mb-4 sm:mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+      <div className="mb-5 bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <span className="text-2xl">🎯</span>
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-gray-800">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-bold text-gray-800">
                 復習ドリル
               </h3>
-              <p className="text-xs sm:text-sm text-gray-500">
+              <p className="text-xs text-gray-500">
                 問題 {currentIndex + 1} / {mistakes.length}
               </p>
             </div>
           </div>
           <button
             onClick={onExit}
-            className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all touch-manipulation"
+            className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all touch-manipulation min-h-[44px] flex items-center gap-1.5 flex-shrink-0"
           >
-            ✕ 終了
+            <span>✕</span>
+            <span className="hidden sm:inline">終了</span>
           </button>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
           <div
-            className="bg-gradient-to-r from-teal-500 to-cyan-500 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
+            className="bg-gradient-to-r from-teal-500 to-cyan-500 h-3 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-2 text-right">
-          進捗 {Math.round(progress)}%
+        <p className="text-xs text-gray-500 mt-2 text-right font-medium">
+          {Math.round(progress)}% 完了
         </p>
       </div>
 
@@ -169,18 +170,18 @@ export default function DrillMode({ mistakes, onComplete, onExit }: DrillModePro
               />
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 type="submit"
                 disabled={!userInput.trim()}
-                className="flex-1 px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-600 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95 touch-manipulation"
+                className="flex-1 px-6 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-bold hover:from-teal-600 hover:to-cyan-600 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95 touch-manipulation min-h-[52px]"
               >
                 ✓ 確認する
               </button>
               <button
                 type="button"
                 onClick={handleShowAnswer}
-                className="px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 active:bg-gray-300 transition-all touch-manipulation border-2 border-gray-200"
+                className="px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 active:bg-gray-300 transition-all touch-manipulation border-2 border-gray-200 min-h-[52px]"
               >
                 💡 答えを見る
               </button>
