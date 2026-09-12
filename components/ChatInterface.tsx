@@ -13,6 +13,8 @@ import DrillMode from './DrillMode';
 import BusinessScenarioSelector from './BusinessScenarioSelector';
 import PhraseBank from './PhraseBank';
 import SessionTips from './SessionTips';
+import OfflineIndicator from './OfflineIndicator';
+import PronunciationRecorder from './PronunciationRecorder';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
 
@@ -46,6 +48,8 @@ export default function ChatInterface() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showMobileControls, setShowMobileControls] = useState(false);
+  const [lastUserMessage, setLastUserMessage] = useState<string>('');
+  const [showPronunciationRecorder, setShowPronunciationRecorder] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -202,6 +206,8 @@ export default function ChatInterface() {
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
+    setLastUserMessage(text);
+    setShowPronunciationRecorder(voiceEnabled);
 
     try {
       const response = await fetch('/api/chat', {
@@ -378,6 +384,7 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-sky-50 via-white to-cyan-50/30">
+      <OfflineIndicator />
       {/* Slim header - mobile first */}
       <header className="bg-white/90 backdrop-blur-lg border-b border-cyan-100/50 shadow-sm sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
@@ -464,6 +471,12 @@ export default function ChatInterface() {
                   onSpeakingChange={handleSpeakingChange}
                 />
               </div>
+
+              {/* Pronunciation recorder - mobile and desktop */}
+              <PronunciationRecorder
+                lastUserMessage={lastUserMessage}
+                isVisible={showPronunciationRecorder && voiceEnabled}
+              />
 
               {/* Composer - mobile optimized with safe area */}
               <div className="border-t border-gray-200/50 bg-white p-3 sm:p-4 pb-safe">

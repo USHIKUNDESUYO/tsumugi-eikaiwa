@@ -17,7 +17,12 @@ export type BusinessScenario =
   | 'presentation-qa'
   | 'small-talk-work'
   | 'negotiation'
-  | 'phone-video';
+  | 'phone-video'
+  | 'difficult-clients'
+  | 'status-updates'
+  | 'one-on-one-feedback'
+  | 'networking'
+  | 'timezone-scheduling';
 
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 

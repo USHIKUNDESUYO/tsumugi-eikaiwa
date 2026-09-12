@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { MistakeRecord } from '@/types';
 import { deleteMistake, markMistakeMastered } from '@/lib/storage';
 
@@ -21,6 +22,25 @@ const modeLabels: Record<string, string> = {
 };
 
 export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewListProps) {
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+    
+    setIsOnline(navigator.onLine);
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  }, []);
+
   const handleDelete = (id: string) => {
     if (confirm('この記録を削除しますか？')) {
       deleteMistake(id);
@@ -56,6 +76,11 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
           会話の中で訂正があると、自動的にここに記録されます。<br />
           後で復習して、英語力を伸ばしましょう！
         </p>
+        {!isOnline && (
+          <div className="mt-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+            📡 オフライン中 - 過去の記録があればここで復習できます
+          </div>
+        )}
       </div>
     );
   }
@@ -64,10 +89,19 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             復習リスト <span className="text-teal-600">({mistakes.length}件)</span>
+            {!isOnline && (
+              <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-normal">
+                📡 オフライン
+              </span>
+            )}
           </h3>
-          <p className="text-sm text-gray-500">間違えた表現をまとめて復習できます</p>
+          <p className="text-sm text-gray-500">
+            {isOnline 
+              ? '間違えた表現をまとめて復習できます' 
+              : 'ローカルデータから復習できます'}
+          </p>
         </div>
         {mistakes.length > 0 && (
           <button

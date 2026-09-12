@@ -87,6 +87,11 @@ export function getInitialGreeting(mode: ChatMode, businessScenario?: BusinessSc
     'small-talk-work': "Good morning! Let's practice workplace small talk. Imagine we're colleagues meeting at the coffee machine. Um... how was your weekend? Did you do anything fun?",
     'negotiation': "Hello! Let's practice negotiation and scheduling. These conversations can be tricky, but... we'll take it step by step. Imagine we need to schedule a meeting. When works best for you this week?",
     'phone-video': "Hi! Let's practice phone and video call skills together. Imagine we're on a video call right now. Can you hear me okay? Let's get started!",
+    'difficult-clients': "Hello! Let's practice handling difficult client situations together. I know these conversations can feel stressful, but... we'll work through it step by step. Imagine a client has reached out with a concern. How would you like to start?",
+    'status-updates': "Hi! Let's practice giving clear status updates. These are important for keeping everyone informed. Imagine you're updating your team on a project. What's the current status?",
+    'one-on-one-feedback': "Hello! Let's practice giving constructive feedback in 1-on-1 conversations. These talks can feel a bit nervous-making, but... they're so important. Imagine you're meeting with a colleague. What would you like to discuss?",
+    'networking': "Hi! Let's practice networking together. Meeting new people can be a little intimidating, but... it gets easier with practice. Imagine we're at a professional event. Nice to meet you! What brings you here?",
+    'timezone-scheduling': "Hello! Let's practice scheduling across time zones. I know coordinating international meetings can be tricky, but... we'll figure it out together. What time zones are we working with today?",
   };
   
   if (mode === 'business' && businessScenario) {
