@@ -7,24 +7,27 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  // Removing inline correction data can leave several empty paragraphs behind.
+  // Apply on display so previously saved replies also retain normal spacing.
+  const content = isUser ? message.content : message.content.replace(/\n(?:[ \t]*\n){2,}/g, '\n\n');
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300`}>
       <div className={`max-w-[90%] sm:max-w-[85%] lg:max-w-[80%] ${isUser ? 'order-2' : 'order-1'}`}>
         {!isUser && (
           <div className="text-xs text-cyan-600 font-semibold mb-1.5 px-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span>
+            <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
             紬
           </div>
         )}
         <div
-          className={`rounded-2xl px-4 py-3 shadow-md ${
+          className={`rounded-2xl px-4 py-3 ${
             isUser
-              ? 'bg-gradient-to-br from-cyan-500 to-teal-500 text-white rounded-br-md'
-              : 'bg-white border border-gray-200/50 text-gray-800 rounded-bl-md'
+              ? 'bg-teal-600 text-white rounded-br-md'
+              : 'bg-white border border-gray-200/70 text-gray-800 rounded-bl-md shadow-sm'
           }`}
         >
-          <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
+          <p className="text-base leading-7 whitespace-pre-wrap break-words">{content}</p>
         </div>
         {message.correction && (
           <div className="mt-2">

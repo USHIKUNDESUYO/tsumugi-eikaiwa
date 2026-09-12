@@ -13,29 +13,35 @@ export default function PronunciationRecorder({ lastUserMessage, isVisible }: Pr
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [hasInteracted, setHasInteracted] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const mountedRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
+  const startingRef = useRef(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      if (audioURL) {
-        URL.revokeObjectURL(audioURL);
+      mountedRef.current = false;
+      const recorder = mediaRecorderRef.current;
+      if (recorder) {
+        recorder.onstop = recorder.ondataavailable = null;
+        if (recorder.state !== 'inactive') recorder.stop();
       }
-      if (mediaRecorderRef.current && recordingState === 'recording') {
-        try {
-          mediaRecorderRef.current.stop();
-          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-        } catch (e) {
-          // Already stopped
-        }
-      }
+      streamRef.current?.getTracks().forEach(track => track.stop());
     };
-  }, [audioURL, recordingState]);
+  }, []);
+
+  useEffect(() => () => {
+    if (audioURL) URL.revokeObjectURL(audioURL);
+  }, [audioURL]);
 
   const startRecording = async () => {
-    setHasInteracted(true);
+    if (startingRef.current) return;
+    startingRef.current = true;
+    setIsStarting(true);
     setErrorMessage('');
     
     try {
@@ -46,14 +52,19 @@ export default function PronunciationRecorder({ lastUserMessage, isVisible }: Pr
           autoGainControl: true,
         } 
       });
+      if (!mountedRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      streamRef.current = stream;
       
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
         ? 'audio/webm' 
         : MediaRecorder.isTypeSupported('audio/mp4')
         ? 'audio/mp4'
-        : 'audio/wav';
+        : '';
       
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -64,12 +75,8 @@ export default function PronunciationRecorder({ lastUserMessage, isVisible }: Pr
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
         const url = URL.createObjectURL(audioBlob);
-        
-        if (audioURL) {
-          URL.revokeObjectURL(audioURL);
-        }
         
         setAudioURL(url);
         setRecordingState('recorded');
@@ -80,18 +87,24 @@ export default function PronunciationRecorder({ lastUserMessage, isVisible }: Pr
       mediaRecorder.start();
       setRecordingState('recording');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      streamRef.current?.getTracks().forEach(track => track.stop());
+      if (!mountedRef.current) return;
       console.error('Failed to start recording:', error);
       
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      const name = error instanceof Error ? error.name : '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
         setErrorMessage('マイクの許可が必要です');
-      } else if (error.name === 'NotFoundError') {
+      } else if (name === 'NotFoundError') {
         setErrorMessage('マイクが見つかりません');
       } else {
         setErrorMessage('録音を開始できませんでした');
       }
       
       setRecordingState('error');
+    } finally {
+      startingRef.current = false;
+      if (mountedRef.current) setIsStarting(false);
     }
   };
 
@@ -148,12 +161,13 @@ export default function PronunciationRecorder({ lastUserMessage, isVisible }: Pr
         )}
 
         <div className="flex items-center gap-2">
-          {recordingState === 'idle' && (
+          {(recordingState === 'idle' || recordingState === 'error') && (
             <button
               onClick={startRecording}
+              disabled={isStarting}
               className="flex-1 px-3 py-2 bg-teal-500 text-white rounded-lg text-xs font-medium hover:bg-teal-600 transition-colors touch-manipulation"
             >
-              🎤 録音開始
+              {isStarting ? 'マイクを準備中…' : '🎤 録音開始'}
             </button>
           )}
 
@@ -182,6 +196,7 @@ export default function PronunciationRecorder({ lastUserMessage, isVisible }: Pr
               </button>
               <button
                 onClick={startRecording}
+                disabled={isStarting}
                 className="px-3 py-2 bg-teal-500 text-white rounded-lg text-xs font-medium hover:bg-teal-600 transition-colors touch-manipulation"
               >
                 🔄 もう一度

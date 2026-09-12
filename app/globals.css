@@ -19,11 +19,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Surfaces use a light palette; preserve readable text under OS dark mode. */
+:root { color-scheme: light; }
+
+button:focus-visible, a:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 3px;
 }
 
 body {

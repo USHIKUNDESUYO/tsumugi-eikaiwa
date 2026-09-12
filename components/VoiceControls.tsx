@@ -1,278 +1,161 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { initializeTTSVoices, getSelectedVoiceName, onVoiceSelected, unlockIOSAudio } from '@/lib/ttsVoice';
+import { useState, useEffect, useRef } from 'react';
+import { stopAllSpeech, unlockIOSAudio } from '@/lib/ttsVoice';
 
 interface VoiceControlsProps {
   enabled: boolean;
+  disabled?: boolean;
   onEnabledChange: (enabled: boolean) => void;
   onSpeechResult: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
   onSpeakingChange?: (speaking: boolean) => void;
-  voiceSource?: 'cloud' | 'device' | null;
 }
 
-type SupportState = 'supported' | 'unsupported' | 'permission-denied' | 'checking';
-type ErrorState = null | 'not-allowed' | 'no-speech' | 'network' | 'other';
+interface Recognition {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  continuous: boolean;
+  onstart: (() => void) | null;
+  onresult: ((event: { results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
 
-export default function VoiceControls({ 
-  enabled, 
-  onEnabledChange, 
-  onSpeechResult,
-  onListeningChange,
-  onSpeakingChange,
-  voiceSource
-}: VoiceControlsProps) {
+function recognitionConstructor() {
+  const browser = window as unknown as {
+    SpeechRecognition?: new () => Recognition;
+    webkitSpeechRecognition?: new () => Recognition;
+  };
+  return browser.SpeechRecognition || browser.webkitSpeechRecognition;
+}
+
+export default function VoiceControls(props: VoiceControlsProps) {
+  const { enabled, disabled = false, onEnabledChange } = props;
+  const [supported, setSupported] = useState<boolean | null>(null);
+  const [canSpeak, setCanSpeak] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [supportState, setSupportState] = useState<SupportState>('checking');
-  const [errorState, setErrorState] = useState<ErrorState>(null);
-  const [hasInteracted, setHasInteracted] = useState(false);
-  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('Loading...');
-  const recognitionRef = useRef<any>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [transcript, setTranscript] = useState('');
+  const [error, setError] = useState('');
+  const recognitionRef = useRef<Recognition | null>(null);
+  const callbacks = useRef(props);
 
+  // Recognition outlives renders; always use the latest parent callbacks.
+  useEffect(() => { callbacks.current = props; });
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      setSupportState('unsupported');
-      return;
-    }
-
-    const hasAPI = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-    setSupportState(hasAPI ? 'supported' : 'unsupported');
-    
-    // Initialize TTS voices
-    initializeTTSVoices();
-    setSelectedVoiceName(getSelectedVoiceName());
-    
-    // Subscribe to voice updates
-    const unsubscribe = onVoiceSelected((result) => {
-      setSelectedVoiceName(result.name);
-    });
-    
-    return unsubscribe;
+    // Detect browser APIs only after hydration; the server has no speech APIs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSupported(Boolean(recognitionConstructor()));
+    setCanSpeak(Boolean(window.speechSynthesis));
+    return () => {
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      if (recognition) {
+        recognition.onstart = recognition.onresult = recognition.onerror = recognition.onend = null;
+        recognition.abort();
+        callbacks.current.onListeningChange?.(false);
+      }
+    };
   }, []);
 
-  const stopSpeaking = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      utteranceRef.current = null;
-      onSpeakingChange?.(false);
-    }
-  }, [onSpeakingChange]);
-
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {
-        // Already stopped
-      }
-      recognitionRef.current = null;
+  const cancelListening = () => {
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    if (recognition) {
+      recognition.onstart = recognition.onresult = recognition.onerror = recognition.onend = null;
+      recognition.abort();
     }
     setIsListening(false);
-    onListeningChange?.(false);
-  }, [onListeningChange]);
+    setTranscript('');
+    callbacks.current.onListeningChange?.(false);
+  };
 
-  useEffect(() => {
-    return () => {
-      stopListening();
-      stopSpeaking();
+  const startListening = () => {
+    const Constructor = recognitionConstructor();
+    if (!Constructor || disabled || recognitionRef.current) return;
+    setError('');
+    setTranscript('');
+    // Cancel previous speech BEFORE warming up, and start STT in this tap.
+    stopAllSpeech();
+    callbacks.current.onSpeakingChange?.(false);
+    unlockIOSAudio();
+    if (!enabled) onEnabledChange(true);
+
+    const recognition = new Constructor();
+    recognitionRef.current = recognition;
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+    let finalText = '';
+    setIsListening(true);
+    callbacks.current.onListeningChange?.(true);
+
+    recognition.onstart = () => setError('');
+    recognition.onresult = (event) => {
+      if (recognitionRef.current !== recognition) return;
+      const results = Array.from(event.results);
+      setTranscript(results.map(result => result[0].transcript).join(' '));
+      finalText = results.filter(result => result.isFinal).map(result => result[0].transcript).join(' ').trim();
     };
-  }, [stopListening, stopSpeaking]);
-
-  const startListening = async () => {
-    if (supportState !== 'supported' || isListening) return;
-
-    setHasInteracted(true);
-    setErrorState(null);
-    
-    // Auto-enable voice if not enabled
-    if (!enabled) {
-      unlockIOSAudio();
-      onEnabledChange(true);
-    }
-    
-    stopSpeaking();
-
-    // Prime getUserMedia for permissions (iOS needs this before recognition)
-    // But do it non-blocking to keep recognition.start() in gesture context
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          // Got permission, immediately stop to release mic
-          stream.getTracks().forEach(track => track.stop());
-        })
-        .catch(err => {
-          console.warn('getUserMedia permission issue:', err);
-          // Continue anyway - recognition will handle permission errors
-        });
-    }
-
-    try {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.lang = 'en-US';
-      recognition.interimResults = true; // Show interim results for better feedback
-      recognition.maxAlternatives = 1;
-      recognition.continuous = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-        setErrorState(null);
-        onListeningChange?.(true);
-      };
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript.trim() && event.results[0].isFinal) {
-          onSpeechResult(transcript);
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        
-        switch (event.error) {
-          case 'not-allowed':
-          case 'permission-denied':
-            setSupportState('permission-denied');
-            setErrorState('not-allowed');
-            break;
-          case 'no-speech':
-            setErrorState('no-speech');
-            break;
-          case 'network':
-            setErrorState('network');
-            break;
-          default:
-            setErrorState('other');
-        }
-        
-        setIsListening(false);
-        onListeningChange?.(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-        onListeningChange?.(false);
-        recognitionRef.current = null;
-      };
-
-      recognitionRef.current = recognition;
-      // Start recognition immediately - must be synchronous in gesture handler
-      recognition.start();
-    } catch (error) {
-      console.error('Failed to start recognition:', error);
-      setErrorState('other');
-      setIsListening(false);
-      onListeningChange?.(false);
-    }
-  };
-
-  const handleEnableToggle = () => {
-    if (!enabled) {
-      setHasInteracted(true);
-      // Unlock iOS audio context properly
-      unlockIOSAudio();
-    } else {
-      stopListening();
-      stopSpeaking();
-    }
-    onEnabledChange(!enabled);
-  };
-
-  const getErrorMessage = (): string | null => {
-    if (supportState === 'permission-denied') {
-      return '⚠️ マイクの許可が必要です。設定で許可してください';
-    }
-    if (supportState === 'unsupported') {
-      // Detect Chrome on iOS vs Safari
-      const isChromeiOS = /CriOS/i.test(navigator.userAgent);
-      if (isChromeiOS) {
-        return '⚠️ Chrome iOS版は音声認識非対応。Safariをご利用ください';
+    recognition.onerror = (event) => {
+      if (recognitionRef.current !== recognition) return;
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setError('マイクの許可を確認して、もう一度「話す」を押してください。');
+      } else if (event.error === 'no-speech') {
+        setError('声を聞き取れませんでした。もう一度話してください。');
+      } else if (event.error === 'network') {
+        setError('音声認識に接続できません。通信を確認してください。');
+      } else {
+        setError('音声入力を開始できませんでした。もう一度お試しください。');
       }
-      return 'このブラウザは音声認識に対応していません';
-    }
-    
-    switch (errorState) {
-      case 'not-allowed':
-        return '⚠️ マイクの使用が許可されていません。設定で許可してください';
-      case 'no-speech':
-        return '音声が検出されませんでした。もう一度お試しください';
-      case 'network':
-        return '⚠️ ネットワークエラー。接続を確認してください';
-      case 'other':
-        return 'エラーが発生しました。もう一度お試しください';
-      default:
-        return null;
+      cancelListening();
+    };
+    recognition.onend = () => {
+      if (recognitionRef.current !== recognition) return;
+      recognitionRef.current = null;
+      setIsListening(false);
+      callbacks.current.onListeningChange?.(false);
+      setTranscript('');
+      // Submit once, after STT releases the microphone, so TTS can answer.
+      if (finalText) callbacks.current.onSpeechResult(finalText);
+      else setError('声を聞き取れませんでした。もう一度話してください。');
+    };
+    try {
+      recognition.start();
+    } catch {
+      cancelListening();
+      setError('音声入力を開始できませんでした。もう一度お試しください。');
     }
   };
-
-  if (supportState === 'checking') {
-    return null;
-  }
-
-  const errorMessage = getErrorMessage();
-  const canUseMic = supportState === 'supported';
 
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <div className="flex items-center gap-2 justify-center">
-        {/* Show mic button prominently on mobile */}
-        {canUseMic && (
-          <button
-            onClick={startListening}
-            disabled={isListening}
-            className={`
-              flex-1 md:flex-initial px-6 py-2 rounded-full text-sm font-medium transition-all touch-manipulation min-h-[44px]
-              ${isListening
-                ? 'bg-red-500 text-white animate-pulse shadow-lg ring-2 ring-red-300'
-                : enabled
-                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md hover:shadow-lg active:scale-95'
-                : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-md hover:shadow-lg active:scale-95'
-              }
-              disabled:opacity-50
-            `}
-          >
-            {isListening ? '🎤 聞いています...' : '🎤 話す'}
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 sm:max-w-sm">
+        {supported && (
+          <button type="button" onClick={isListening ? () => recognitionRef.current?.stop() : startListening}
+            disabled={disabled && !isListening} aria-pressed={isListening}
+            className={`min-h-11 flex-1 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-50 ${isListening ? 'bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}>
+            {isListening ? '■ 話し終わる' : '🎤 話す'}
           </button>
         )}
-        
-        <button
-          onClick={handleEnableToggle}
-          className={`
-            px-4 py-2 rounded-full text-xs font-medium transition-all touch-manipulation min-h-[40px]
-            ${enabled
-              ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-sm'
-              : 'bg-gray-100 text-gray-600 border border-gray-200'
-            }
-            ${supportState === 'unsupported' ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}
-          `}
-          disabled={supportState === 'unsupported'}
-        >
-          {enabled ? '🔊 音声ON' : '🔇 音声OFF'}
+        <button type="button" disabled={!canSpeak} aria-pressed={enabled}
+          onClick={() => {
+            if (enabled) { cancelListening(); stopAllSpeech(); }
+            else unlockIOSAudio();
+            onEnabledChange(!enabled);
+          }}
+          className="min-h-11 rounded-full border border-gray-200 px-3 py-2 text-xs text-gray-600 disabled:opacity-50">
+          {enabled ? '🔊 読み上げON' : '🔇 読み上げOFF'}
         </button>
       </div>
-      
-      {/* Show voice source or error inline */}
-      {enabled && voiceSource && !errorMessage && (
-        <div className="text-[10px] text-center text-teal-600 bg-teal-50/50 px-2 py-1 rounded-full">
-          {voiceSource === 'cloud' ? 'クラウド音声' : selectedVoiceName !== 'Loading...' ? selectedVoiceName : 'デバイス音声'}
-        </div>
-      )}
-      
-      {errorMessage && (
-        <div className="text-[10px] text-center text-red-600 bg-red-50 px-2 py-1 rounded-full">
-          {errorMessage}
-        </div>
-      )}
-      
-      {supportState === 'unsupported' && (
-        <div className="text-[10px] text-center text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-          テキスト入力でご利用いただけます
-        </div>
-      )}
+      {isListening && <p role="status" className="max-h-16 overflow-y-auto text-sm text-teal-800">{transcript || '聞いています。英語で話してください…'}</p>}
+      {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
+      {supported === false && <p className="text-xs text-gray-500">音声入力に対応していません。キーボードのマイク、または文字入力をお使いください。</p>}
     </div>
   );
 }

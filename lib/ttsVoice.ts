@@ -7,7 +7,7 @@
 export interface TTSOptions {
   onStart?: () => void;
   onEnd?: () => void;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
 }
 
 type VoiceSelectionResult = {
@@ -16,6 +16,8 @@ type VoiceSelectionResult = {
 };
 
 let currentAudio: HTMLAudioElement | null = null;
+let currentAudioURL: string | null = null;
+let speechGeneration = 0;
 let currentUtterance: SpeechSynthesisUtterance | null = null;
 let cachedVoice: SpeechSynthesisVoice | null = null;
 let cachedVoiceName: string = 'Loading...';
@@ -70,7 +72,7 @@ const MALE_VOICE_PATTERNS = [
   /james/i,
   /david/i,
   /aaron/i,
-  /male/i,
+  /\bmale\b/i,
 ];
 
 /**
@@ -151,11 +153,8 @@ function selectBestVoice(voices: SpeechSynthesisVoice[]): VoiceSelectionResult {
   const bestVoice = scoredVoices[0];
   
   if (bestVoice.score < 0) {
-    const defaultVoice = voices.find(v => v.default) || voices[0];
-    return {
-      voice: defaultVoice,
-      name: defaultVoice.name.split(/[(\s]/)[0] || 'Default',
-    };
+    // Let lang=en-US choose the browser default instead of forcing a Japanese voice.
+    return { voice: null, name: 'English default' };
   }
   
   return {
@@ -254,12 +253,19 @@ export function createTsumugiUtterance(content: string): SpeechSynthesisUtteranc
  * Stops all speech (both cloud and device)
  */
 export function stopAllSpeech() {
+  speechGeneration++;
   if (currentAudio) {
+    currentAudio.onplay = currentAudio.onended = currentAudio.onerror = null;
     currentAudio.pause();
     currentAudio = null;
   }
+  if (currentAudioURL) {
+    URL.revokeObjectURL(currentAudioURL);
+    currentAudioURL = null;
+  }
   
   if (typeof window !== 'undefined' && window.speechSynthesis) {
+    if (currentUtterance) currentUtterance.onstart = currentUtterance.onend = currentUtterance.onerror = null;
     window.speechSynthesis.cancel();
     currentUtterance = null;
   }
@@ -312,6 +318,8 @@ export async function speakWithCloudTTS(
   text: string,
   options: TTSOptions = {}
 ): Promise<boolean> {
+  const generation = speechGeneration;
+  let audioUrl: string | null = null;
   try {
     const response = await fetch('/api/tts', {
       method: 'POST',
@@ -327,7 +335,9 @@ export async function speakWithCloudTTS(
     }
 
     const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
+    if (generation !== speechGeneration) return false;
+    audioUrl = URL.createObjectURL(audioBlob);
+    currentAudioURL = audioUrl;
     const audio = new Audio(audioUrl);
 
     audio.onplay = () => {
@@ -335,13 +345,15 @@ export async function speakWithCloudTTS(
     };
 
     audio.onended = () => {
-      URL.revokeObjectURL(audioUrl);
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      currentAudioURL = null;
       currentAudio = null;
       options.onEnd?.();
     };
 
     audio.onerror = (error) => {
-      URL.revokeObjectURL(audioUrl);
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      currentAudioURL = null;
       currentAudio = null;
       options.onError?.(error);
     };
@@ -350,6 +362,11 @@ export async function speakWithCloudTTS(
     await audio.play();
     return true;
   } catch (error) {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    if (generation === speechGeneration) {
+      currentAudio = null;
+      currentAudioURL = null;
+    }
     console.error('Cloud TTS failed:', error);
     return false;
   }
@@ -425,8 +442,8 @@ export function unlockIOSAudio(): void {
   
   // Create a brief warm-up utterance with actual content
   // iOS requires actual speech to unlock, not just an empty utterance
-  const warmup = new SpeechSynthesisUtterance(' ');
-  warmup.volume = 0.01; // Nearly silent
+  const warmup = new SpeechSynthesisUtterance('Ready');
+  warmup.volume = 0; // Silent but non-empty; never imitate a person's voice.
   warmup.rate = 2.0; // Fast
   
   warmup.onend = () => {
@@ -451,18 +468,18 @@ export function speakText(
 
   // Synchronous check - no network calls before speaking
   if (isCloudTTSEnabled()) {
+    const generation = speechGeneration;
+    let fellBack = false;
+    const fallback = () => {
+      if (generation !== speechGeneration || fellBack) return;
+      fellBack = true;
+      speakWithDeviceTTS(text, options);
+    };
     // Cloud TTS is explicitly configured - try it asynchronously
     speakWithCloudTTS(text, {
       ...options,
-      onError: (error) => {
-        console.error('Cloud TTS failed, falling back to device:', error);
-        // Fallback to device TTS on error
-        speakWithDeviceTTS(text, options);
-      }
-    }).catch((error) => {
-      console.error('Cloud TTS error, falling back to device:', error);
-      speakWithDeviceTTS(text, options);
-    });
+      onError: fallback,
+    }).then(played => { if (!played) fallback(); }).catch(fallback);
     return;
   }
   
