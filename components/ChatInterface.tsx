@@ -34,7 +34,10 @@ export default function ChatInterface() {
   const [businessDifficulty, setBusinessDifficulty] = useState<DifficultyLevel>('beginner');
   const [successfulTurns, setSuccessfulTurns] = useState(0);
   const [showSessionTips, setShowSessionTips] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     const state = loadState();
@@ -64,6 +67,20 @@ export default function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const stopSpeaking = () => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      currentUtteranceRef.current = null;
+      setIsSpeaking(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
 
   const handleModeChange = (mode: ChatMode) => {
     if (messages.length > 1) {
@@ -225,11 +242,36 @@ export default function ChatInterface() {
       state.messages = updatedMessages;
       saveState(state);
 
-      if (voiceEnabled && typeof window !== 'undefined') {
-        const utterance = new SpeechSynthesisUtterance(content);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
+      if (voiceEnabled && typeof window !== 'undefined' && !isListening) {
+        try {
+          stopSpeaking();
+          
+          const utterance = new SpeechSynthesisUtterance(content);
+          utterance.lang = 'en-US';
+          utterance.rate = 0.9;
+          utterance.volume = 1.0;
+          
+          utterance.onstart = () => {
+            setIsSpeaking(true);
+          };
+          
+          utterance.onend = () => {
+            setIsSpeaking(false);
+            currentUtteranceRef.current = null;
+          };
+          
+          utterance.onerror = (event) => {
+            console.error('Speech synthesis error:', event);
+            setIsSpeaking(false);
+            currentUtteranceRef.current = null;
+          };
+          
+          currentUtteranceRef.current = utterance;
+          window.speechSynthesis.speak(utterance);
+        } catch (error) {
+          console.error('Failed to speak:', error);
+          setIsSpeaking(false);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -257,9 +299,23 @@ export default function ChatInterface() {
 
   const handleVoiceToggle = (enabled: boolean) => {
     setVoiceEnabled(enabled);
+    if (!enabled) {
+      stopSpeaking();
+    }
     const state = loadState();
     state.voiceEnabled = enabled;
     saveState(state);
+  };
+
+  const handleListeningChange = (listening: boolean) => {
+    setIsListening(listening);
+    if (listening) {
+      stopSpeaking();
+    }
+  };
+
+  const handleSpeakingChange = (speaking: boolean) => {
+    setIsSpeaking(speaking);
   };
 
   const handleEndSession = () => {
@@ -274,7 +330,7 @@ export default function ChatInterface() {
       date: new Date().toISOString(),
     });
 
-    alert(`セッション終了！\n\nメッセージ数: ${messages.filter(m => m.role === 'user').length}\n訂正数: ${correctionsCount}\n時間: ${Math.round(duration / 60000)}分`);
+    alert(`お疲れ様でした！\n\nメッセージ数: ${messages.filter(m => m.role === 'user').length}\n訂正数: ${correctionsCount}\n時間: ${Math.round(duration / 60000)}分\n\n今日も一緒に練習できて嬉しかったです。`);
     
     const greeting = getInitialGreeting(currentMode);
     const greetingMessage: Message = {
@@ -325,6 +381,8 @@ export default function ChatInterface() {
             enabled={voiceEnabled}
             onEnabledChange={handleVoiceToggle}
             onSpeechResult={handleVoiceResult}
+            onListeningChange={handleListeningChange}
+            onSpeakingChange={handleSpeakingChange}
           />
         </div>
       </header>

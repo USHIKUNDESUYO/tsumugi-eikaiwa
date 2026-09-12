@@ -106,106 +106,106 @@ export function getBusinessScenarioPrompt(
 ): string {
   const scenarioDetails = {
     'meeting-basics': {
-      beginner: `You are in a team meeting. Start simple: 
-- Help the learner confirm the meeting agenda
-- Practice asking simple clarification questions ("Could you explain that?")
+      beginner: `You are in a team meeting. Let's start simple: 
+- Help the learner confirm the meeting agenda gently
+- Practice asking simple clarification questions like "Could you explain that?"
 - Keep sentences short and clear
-- Guide them to express agreement/disagreement politely`,
-      intermediate: `You are in a project meeting. Practice:
-- Discussing action items and responsibilities
-- Disagreeing politely with reasons
+- Guide them to express agreement or disagreement politely — it's okay to take your time`,
+      intermediate: `You are in a project meeting. Let's practice:
+- Discussing action items and who's responsible
+- Disagreeing politely with reasons (it takes courage!)
 - Asking for clarification on complex points
-- Use natural meeting language`,
-      advanced: `You are in a strategic planning meeting. Practice:
-- Challenging assumptions diplomatically
-- Summarizing complex discussions
+- Using natural meeting language that feels professional but not stiff`,
+      advanced: `You are in a strategic planning meeting. Let's practice:
+- Challenging assumptions diplomatically (this is a good skill!)
+- Summarizing complex discussions clearly
 - Negotiating priorities and timelines
-- Managing meeting dynamics`,
+- Managing meeting dynamics with confidence`,
     },
     'email-tone': {
-      beginner: `Help the learner write professional emails. Start with:
-- Simple greetings and closings
-- Making basic requests politely
-- Showing "I would like..." and "Could you please..."
-- Converting casual phrases to professional tone`,
-      intermediate: `Practice professional email writing:
-- Following up on previous conversations
+      beginner: `Let's help the learner write professional emails. Start with basics:
+- Simple greetings and closings that feel polite
+- Making basic requests kindly using "I would like..." and "Could you please..."
+- Converting casual phrases to professional tone (it's easier than you think!)
+- Remember: professional doesn't mean unfriendly`,
+      intermediate: `Let's practice professional email writing:
+- Following up on previous conversations naturally
 - Making requests with proper context
-- Handling complaints or concerns politely
-- Using formal transitions and connectors`,
-      advanced: `Master professional email nuances:
-- Writing persuasive proposals
+- Handling complaints or concerns politely (this is important!)
+- Using formal transitions and connectors smoothly`,
+      advanced: `Let's master professional email nuances:
+- Writing persuasive proposals that sound confident
 - Handling delicate situations diplomatically
-- Adjusting tone for different audiences (clients, executives, team)
-- Complex multi-point requests`,
+- Adjusting tone for different audiences — clients, executives, teammates
+- Managing complex multi-point requests clearly`,
     },
     'presentation-qa': {
-      beginner: `You are presenting to a small team. Practice:
-- Thanking people for questions
-- Admitting when you don't know ("I don't have that information right now")
-- Buying time to think
-- Asking for question clarification`,
-      intermediate: `You are presenting to stakeholders. Practice:
-- Handling challenging questions confidently
-- Redirecting to your key points
-- Promising to follow up on complex queries
-- Using data and examples in responses`,
-      advanced: `You are presenting to executives. Practice:
-- Handling hostile or skeptical questions
-- Turning difficult questions into opportunities
-- Being concise under pressure
-- Defending your recommendations strongly but diplomatically`,
+      beginner: `You are presenting to a small team. Let's practice:
+- Thanking people for questions (it shows confidence!)
+- It's okay to admit when you don't know something: "I don't have that information right now"
+- Buying time to think is perfectly fine
+- Asking for clarification if a question isn't clear`,
+      intermediate: `You are presenting to stakeholders. Let's practice:
+- Handling challenging questions with confidence (you can do this!)
+- Redirecting smoothly to your key points
+- Promising to follow up on complex queries — that's professional
+- Using data and examples to support your responses`,
+      advanced: `You are presenting to executives. Let's practice:
+- Handling difficult or skeptical questions calmly
+- Turning challenging questions into opportunities to shine
+- Being concise under pressure (take a breath, you've got this)
+- Defending your recommendations firmly but diplomatically`,
     },
     'small-talk-work': {
-      beginner: `Practice casual workplace conversation:
-- Weekend small talk ("How was your weekend?")
-- Transitioning naturally to work topics
-- Showing interest in colleagues
-- Simple personal sharing`,
-      intermediate: `Build workplace relationships through conversation:
-- Finding common ground
-- Smooth transitions from personal to professional
-- Asking thoughtful follow-up questions
+      beginner: `Let's practice casual workplace conversation:
+- Weekend small talk like "How was your weekend?" — it's a nice way to connect
+- Transitioning naturally to work topics (don't worry, it gets easier!)
+- Showing genuine interest in colleagues
+- Simple personal sharing that feels comfortable`,
+      intermediate: `Let's build workplace relationships through conversation:
+- Finding common ground with colleagues
+- Smooth transitions from personal to professional topics
+- Asking thoughtful follow-up questions (this shows you care)
 - Balancing friendliness and professionalism`,
-      advanced: `Master professional networking conversation:
-- Building rapport with new colleagues quickly
-- Navigating cultural differences in small talk
-- Using small talk strategically for work goals
-- Reading social cues and adjusting`,
+      advanced: `Let's master professional networking conversation:
+- Building rapport with new colleagues naturally and quickly
+- Navigating cultural differences in small talk with sensitivity
+- Using small talk strategically to build work relationships
+- Reading social cues and adjusting your approach`,
     },
     negotiation: {
-      beginner: `Practice basic scheduling and negotiation:
+      beginner: `Let's practice basic scheduling and negotiation:
 - Proposing meeting times politely
-- Saying no politely ("I'm afraid that doesn't work")
-- Suggesting alternatives
-- Confirming agreements`,
-      intermediate: `Practice professional negotiation:
+- Saying no kindly: "I'm afraid that doesn't work for me"
+- Suggesting alternatives (this shows flexibility!)
+- Confirming agreements clearly`,
+      intermediate: `Let's practice professional negotiation:
 - Making counteroffers diplomatically
-- Explaining constraints without seeming inflexible
-- Finding middle ground
-- Using "What if..." to explore options`,
-      advanced: `Master complex negotiation:
+- Explaining your constraints without seeming inflexible
+- Finding middle ground — this is a valuable skill
+- Using "What if..." to explore options together`,
+      advanced: `Let's master complex negotiation:
 - Strategic concessions and trade-offs
-- Handling tough pushback
-- Maintaining relationships under pressure
-- Creating win-win outcomes from difficult positions`,
+- Handling tough pushback while staying calm
+- Maintaining good relationships even under pressure
+- Creating win-win outcomes from difficult starting positions`,
     },
     'phone-video': {
-      beginner: `Practice basic phone/video call etiquette:
-- Checking audio/video ("Can you hear me?")
-- Asking people to repeat
-- Simple turn-taking
-- Basic technical troubleshooting`,
-      intermediate: `Handle video calls professionally:
-- Managing technical issues smoothly
-- Interrupting politely
+      beginner: `Let's practice basic phone and video call etiquette:
+- Checking audio and video: "Can you hear me okay?"
+- It's perfectly fine to ask people to repeat
+- Simple turn-taking in conversation
+- Basic technical troubleshooting (everyone deals with this!)`,
+      intermediate: `Let's handle video calls professionally:
+- Managing technical issues smoothly and calmly
+- Interrupting politely when needed
 - Yielding the floor appropriately
-- Keeping calls on track`,
-      advanced: `Master complex call situations:
-- Facilitating multi-party calls
-- Handling difficult personalities on calls
-- Managing time constraints
-- Reading virtual body language`,
+- Keeping calls on track without being pushy`,
+      advanced: `Let's master complex call situations:
+- Facilitating multi-party calls confidently
+- Handling difficult personalities on calls with grace
+- Managing time constraints tactfully
+- Reading virtual body language and adapting`,
     },
   };
 
@@ -214,9 +214,9 @@ export function getBusinessScenarioPrompt(
   // Auto-level-up suggestion
   let levelUpHint = '';
   if (difficulty === 'beginner' && successfulTurns >= 4) {
-    levelUpHint = '\n\nNote: The learner is doing well. You can gradually increase complexity.';
+    levelUpHint = '\n\nNote: The learner is doing really well! You can gently start introducing slightly more complex expressions.';
   } else if (difficulty === 'intermediate' && successfulTurns >= 6) {
-    levelUpHint = '\n\nNote: The learner is ready for more advanced scenarios.';
+    levelUpHint = '\n\nNote: The learner is ready for more advanced scenarios. They\'re making great progress!';
   }
 
   return difficultyText + levelUpHint;
