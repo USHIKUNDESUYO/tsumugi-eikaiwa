@@ -1,13 +1,22 @@
 /**
- * TTS Voice Selection for the tsumugi-eikaiwa app
- * Selects a soft female English voice from available system voices
+ * TTS Voice Management for tsumugi-eikaiwa
+ * Combines cloud TTS (OpenAI-compatible API) with device TTS fallback
+ * Includes soft female English voice selection for device TTS
  */
+
+export interface TTSOptions {
+  onStart?: () => void;
+  onEnd?: () => void;
+  onError?: (error: any) => void;
+}
 
 type VoiceSelectionResult = {
   voice: SpeechSynthesisVoice | null;
   name: string;
 };
 
+let currentAudio: HTMLAudioElement | null = null;
+let currentUtterance: SpeechSynthesisUtterance | null = null;
 let cachedVoice: SpeechSynthesisVoice | null = null;
 let cachedVoiceName: string = 'Loading...';
 let voicesLoaded = false;
@@ -53,7 +62,7 @@ const FEMALE_VOICE_PATTERNS = [
  */
 const MALE_VOICE_PATTERNS = [
   /daniel/i,
-  /alex/i,  // Can be male or female, but often male
+  /alex/i,
   /tom/i,
   /james/i,
   /david/i,
@@ -95,7 +104,6 @@ function scoreVoice(voice: SpeechSynthesisVoice): number {
   for (let i = 0; i < FEMALE_VOICE_PATTERNS.length; i++) {
     const pattern = FEMALE_VOICE_PATTERNS[i];
     if (pattern.test(name) || pattern.test(uri)) {
-      // Earlier patterns get higher scores
       score += 200 - (i * 5);
       break;
     }
@@ -122,13 +130,11 @@ function selectBestVoice(voices: SpeechSynthesisVoice[]): VoiceSelectionResult {
     return { voice: null, name: 'Default' };
   }
   
-  // Score all voices
   const scoredVoices = voices.map(voice => ({
     voice,
     score: scoreVoice(voice),
   }));
   
-  // Sort by score (highest first)
   scoredVoices.sort((a, b) => b.score - a.score);
   
   // Log top 5 voices for debugging
@@ -139,15 +145,13 @@ function selectBestVoice(voices: SpeechSynthesisVoice[]): VoiceSelectionResult {
     });
   }
   
-  // Select the best voice
   const bestVoice = scoredVoices[0];
   
   if (bestVoice.score < 0) {
-    // No good match, use default
     const defaultVoice = voices.find(v => v.default) || voices[0];
     return {
       voice: defaultVoice,
-      name: defaultVoice.name.split(/[(\s]/)[ 0] || 'Default',
+      name: defaultVoice.name.split(/[(\s]/)[0] || 'Default',
     };
   }
   
@@ -168,7 +172,6 @@ function loadVoices(): void {
   const voices = window.speechSynthesis.getVoices();
   
   if (voices.length === 0 && !voicesLoaded) {
-    // Voices not loaded yet, will be called again by voiceschanged event
     return;
   }
   
@@ -177,13 +180,12 @@ function loadVoices(): void {
   cachedVoice = result.voice;
   cachedVoiceName = result.name;
   
-  // Notify listeners
   voiceListeners.forEach(listener => listener(result));
   voiceListeners = [];
 }
 
 /**
- * Gets the currently selected voice (returns null if voices not loaded yet)
+ * Gets the currently selected voice
  */
 export function getSelectedVoice(): SpeechSynthesisVoice | null {
   if (!voicesLoaded && typeof window !== 'undefined' && window.speechSynthesis) {
@@ -204,14 +206,11 @@ export function getSelectedVoiceName(): string {
 
 /**
  * Subscribes to voice selection updates
- * Returns an unsubscribe function
  */
 export function onVoiceSelected(callback: (result: VoiceSelectionResult) => void): () => void {
   if (voicesLoaded) {
-    // Already loaded, call immediately
     callback({ voice: cachedVoice, name: cachedVoiceName });
   } else {
-    // Add to listeners
     voiceListeners.push(callback);
   }
   
@@ -221,7 +220,7 @@ export function onVoiceSelected(callback: (result: VoiceSelectionResult) => void
 }
 
 /**
- * Configures a SpeechSynthesisUtterance with optimal settings for Tsumugi
+ * Configures a SpeechSynthesisUtterance with optimal settings
  */
 export function configureTsumugiUtterance(
   utterance: SpeechSynthesisUtterance,
@@ -229,13 +228,10 @@ export function configureTsumugiUtterance(
 ): void {
   utterance.text = content;
   utterance.lang = 'en-US';
-  
-  // Soft, gentle voice settings
-  utterance.rate = 0.9; // Slightly slower for clarity
-  utterance.pitch = 1.08; // Slightly higher for a softer female tone (if supported)
+  utterance.rate = 0.9;
+  utterance.pitch = 1.08;
   utterance.volume = 1.0;
   
-  // Use selected voice if available
   const voice = getSelectedVoice();
   if (voice) {
     utterance.voice = voice;
@@ -243,7 +239,7 @@ export function configureTsumugiUtterance(
 }
 
 /**
- * Creates and configures a new utterance ready to speak
+ * Creates and configures a new utterance
  */
 export function createTsumugiUtterance(content: string): SpeechSynthesisUtterance {
   const utterance = new SpeechSynthesisUtterance();
@@ -252,18 +248,137 @@ export function createTsumugiUtterance(content: string): SpeechSynthesisUtteranc
 }
 
 /**
+ * Stops all speech (both cloud and device)
+ */
+export function stopAllSpeech() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    currentUtterance = null;
+  }
+}
+
+/**
+ * Cloud TTS using OpenAI-compatible API
+ */
+export async function speakWithCloudTTS(
+  text: string,
+  options: TTSOptions = {}
+): Promise<boolean> {
+  try {
+    const response = await fetch('/api/tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+
+    audio.onplay = () => {
+      options.onStart?.();
+    };
+
+    audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+      currentAudio = null;
+      options.onEnd?.();
+    };
+
+    audio.onerror = (error) => {
+      URL.revokeObjectURL(audioUrl);
+      currentAudio = null;
+      options.onError?.(error);
+    };
+
+    currentAudio = audio;
+    await audio.play();
+    return true;
+  } catch (error) {
+    console.error('Cloud TTS failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Device TTS with soft female voice selection
+ */
+export function speakWithDeviceTTS(
+  text: string,
+  options: TTSOptions = {}
+): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    options.onError?.(new Error('Speech synthesis not supported'));
+    return;
+  }
+
+  const utterance = createTsumugiUtterance(text);
+
+  utterance.onstart = () => {
+    options.onStart?.();
+  };
+
+  utterance.onend = () => {
+    currentUtterance = null;
+    options.onEnd?.();
+  };
+
+  utterance.onerror = (event) => {
+    currentUtterance = null;
+    options.onError?.(event);
+  };
+
+  currentUtterance = utterance;
+  window.speechSynthesis.speak(utterance);
+}
+
+/**
+ * Speaks text using cloud TTS first, falls back to device TTS
+ */
+export async function speakText(
+  text: string,
+  options: TTSOptions = {}
+): Promise<void> {
+  stopAllSpeech();
+
+  const cloudSuccess = await speakWithCloudTTS(text, options);
+  
+  if (!cloudSuccess) {
+    speakWithDeviceTTS(text, options);
+  }
+}
+
+/**
+ * Returns current voice status
+ */
+export function getVoiceStatus(): 'cloud' | 'device' | 'none' {
+  if (currentAudio) return 'cloud';
+  if (currentUtterance) return 'device';
+  return 'none';
+}
+
+/**
  * Initialize voice loading
- * Call this once when the app starts
  */
 export function initializeTTSVoices(): void {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
     return;
   }
   
-  // Try to load voices immediately
   loadVoices();
   
-  // Also listen for the voiceschanged event (important for iOS/Safari)
   if (!window.speechSynthesis.onvoiceschanged) {
     window.speechSynthesis.onvoiceschanged = () => {
       loadVoices();
@@ -271,7 +386,7 @@ export function initializeTTSVoices(): void {
   }
 }
 
-// Auto-initialize on module load
+// Auto-initialize
 if (typeof window !== 'undefined') {
   initializeTTSVoices();
 }

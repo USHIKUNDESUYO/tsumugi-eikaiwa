@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tsumugi-eikaiwa-v3';
+const CACHE_NAME = 'tsumugi-eikaiwa-v4';
 
 // Assets that can be cached (images, manifest)
 const staticAssets = [
