@@ -274,7 +274,7 @@ export default function ChatInterface() {
       date: new Date().toISOString(),
     });
 
-    alert(`セッション終了！\n\nメッセージ数: ${messages.filter(m => m.role === 'user').length}\n訂正数: ${correctionsCount}\n時間: ${Math.round(duration / 60000)}分`);
+    alert(`お疲れ様でした！\n\nメッセージ数: ${messages.filter(m => m.role === 'user').length}\n訂正数: ${correctionsCount}\n時間: ${Math.round(duration / 60000)}分\n\n今日も一緒に練習できて嬉しかったです。`);
     
     const greeting = getInitialGreeting(currentMode);
     const greetingMessage: Message = {
