@@ -397,33 +397,26 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-cyan-50/30 via-white to-teal-50/20">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-cyan-50/30 via-white to-teal-50/20">
       <OfflineIndicator />
-      {/* Ultra-slim header - mobile first */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-cyan-100/30 safe-area-top z-30">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Avatar />
-          <div className="flex-1 min-w-0">
-            <h1 className="text-sm sm:text-base font-semibold text-gray-800 truncate">紬の英会話</h1>
-          </div>
-          <div className="hidden md:flex">
-            <VoiceControls
-              enabled={voiceEnabled}
-              onEnabledChange={handleVoiceToggle}
-              onSpeechResult={handleVoiceResult}
-              onListeningChange={handleListeningChange}
-              onSpeakingChange={handleSpeakingChange}
-              voiceSource={voiceSource}
-            />
+      {/* Clean header */}
+      <header className="bg-white/95 backdrop-blur-xl border-b border-cyan-100/30 shadow-sm safe-area-top z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar />
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-gray-900 truncate">紬の英会話</h1>
+              <p className="text-xs text-gray-500 hidden sm:block">やさしく、楽しく</p>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main content - full height, bottom nav friendly */}
-      <div className="flex-1 max-w-4xl w-full mx-auto flex flex-col md:flex-row gap-0 md:gap-6 md:px-4 md:py-6 overflow-hidden">
+      <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col lg:flex-row gap-0 lg:gap-6 lg:px-6 lg:py-6 overflow-hidden">
         
-        {/* Mobile: Full-screen views */}
-        <div className="flex-1 flex flex-col bg-white md:rounded-2xl md:shadow-lg overflow-hidden md:border md:border-cyan-100/30">
+        {/* Main chat panel */}
+        <div className="flex-1 flex flex-col bg-white lg:rounded-2xl lg:shadow-xl overflow-hidden lg:border lg:border-gray-200/50 min-w-0">
           
           {/* Chat View */}
           {viewMode === 'chat' && (
@@ -448,7 +441,7 @@ export default function ChatInterface() {
               </div>
 
               {/* Voice controls - compact horizontal bar */}
-              <div className="md:hidden border-t border-cyan-100/30 bg-gradient-to-r from-cyan-50/50 to-teal-50/50 px-4 py-2">
+              <div className="lg:hidden border-t border-cyan-100/30 bg-gradient-to-r from-cyan-50/50 to-teal-50/50 px-4 py-2">
                 <VoiceControls
                   enabled={voiceEnabled}
                   onEnabledChange={handleVoiceToggle}
@@ -559,38 +552,49 @@ export default function ChatInterface() {
           )}
         </div>
 
-        {/* Desktop Sidebar - unchanged */}
-        <div className="hidden md:flex md:w-80 flex-col gap-4 overflow-y-auto">
-          <ProgressIndicator profile={profile} />
-          <ModeSelector
-            currentMode={currentMode}
-            onModeChange={handleModeChange}
-            disabled={isLoading}
-          />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:flex lg:w-80 xl:w-96 flex-col gap-4 overflow-y-auto pb-6 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+          <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+            <ProgressIndicator profile={profile} />
+          </div>
+          
+          <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+            <ModeSelector
+              currentMode={currentMode}
+              onModeChange={handleModeChange}
+              disabled={isLoading}
+            />
+          </div>
           
           {currentMode === 'business' && businessScenario && (
             <>
-              <BusinessScenarioSelector
-                currentScenario={businessScenario}
-                currentDifficulty={businessDifficulty}
-                onScenarioChange={handleBusinessScenarioChange}
-                onDifficultyChange={handleBusinessDifficultyChange}
-                disabled={isLoading}
-              />
+              <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+                <BusinessScenarioSelector
+                  currentScenario={businessScenario}
+                  currentDifficulty={businessDifficulty}
+                  onScenarioChange={handleBusinessScenarioChange}
+                  onDifficultyChange={handleBusinessDifficultyChange}
+                  disabled={isLoading}
+                />
+              </div>
               
-              <PhraseBank
-                phrases={businessScenarios[businessScenario].phrases}
-                title="使える表現"
-                onPhraseClick={handlePhraseClick}
-              />
+              <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+                <PhraseBank
+                  phrases={businessScenarios[businessScenario].phrases}
+                  title="使える表現"
+                  onPhraseClick={handlePhraseClick}
+                />
+              </div>
               
               {showSessionTips && viewMode === 'chat' && (
-                <SessionTips
-                  tips={getBusinessSessionTips(businessScenario)}
-                  onAddToReview={(phrase) => {
-                    console.log('Add to review:', phrase);
-                  }}
-                />
+                <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm overflow-hidden">
+                  <SessionTips
+                    tips={getBusinessSessionTips(businessScenario)}
+                    onAddToReview={(phrase) => {
+                      console.log('Add to review:', phrase);
+                    }}
+                  />
+                </div>
               )}
             </>
           )}
@@ -598,21 +602,21 @@ export default function ChatInterface() {
           {messages.length > 1 && (
             <button
               onClick={handleEndSession}
-              className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl p-4 shadow-sm text-rose-700 font-medium hover:shadow-md transition-all"
+              className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-3.5 shadow-sm text-rose-700 font-semibold hover:shadow-md transition-all"
             >
               📝 セッション終了
             </button>
           )}
 
-          <div className="bg-gradient-to-br from-gray-50 to-slate-50 border border-gray-200 rounded-2xl p-4 shadow-sm text-xs text-gray-500">
-            <p className="font-semibold mb-2 text-gray-700">⚠️ 免責事項</p>
-            <p className="leading-relaxed">このアプリは個人が作成した二次創作の学習ツールです。Key/Visual Artsとは一切関係ありません。</p>
+          <div className="bg-gradient-to-br from-gray-50 to-slate-50/50 border border-gray-200 rounded-xl p-3.5 shadow-sm text-xs text-gray-600">
+            <p className="font-bold mb-1.5 text-gray-800 text-[11px]">⚠️ 免責事項</p>
+            <p className="leading-relaxed text-[11px]">このアプリは個人が作成した二次創作の学習ツールです。Key/Visual Artsとは一切関係ありません。</p>
           </div>
         </div>
       </div>
 
       {/* Bottom Navigation - Mobile only, native app style */}
-      <nav className="md:hidden bg-white border-t border-cyan-100/30 safe-area-bottom z-20">
+      <nav className="lg:hidden bg-white border-t border-cyan-100/30 safe-area-bottom z-20">
         <div className="flex items-center justify-around px-2 py-2">
           <button
             onClick={() => setViewMode('chat')}
