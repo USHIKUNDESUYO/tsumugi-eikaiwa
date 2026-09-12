@@ -17,28 +17,28 @@ const modes: { value: ChatMode; label: string; emoji: string }[] = [
 
 export default function ModeSelector({ currentMode, onModeChange, disabled }: ModeSelectorProps) {
   return (
-    <div className="bg-gradient-to-br from-cyan-50/50 to-teal-50/50 border border-cyan-100/50 rounded-2xl p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+    <div className="p-4">
+      <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
         <span className="text-cyan-600">📚</span>
         練習モード
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2">
         {modes.map((mode) => (
           <button
             key={mode.value}
             onClick={() => onModeChange(mode.value)}
             disabled={disabled}
             className={`
-              px-3 py-2.5 rounded-xl text-sm font-medium transition-all touch-manipulation
+              px-3 py-2.5 rounded-lg text-sm font-medium transition-all touch-manipulation
               ${currentMode === mode.value
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-md scale-105'
-                : 'bg-white/80 text-gray-700 hover:bg-white hover:shadow-sm border border-gray-200/50'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-md'
+                : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
               }
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
             `}
           >
             <span className="mr-1.5">{mode.emoji}</span>
-            <span className="text-xs sm:text-sm">{mode.label}</span>
+            <span className="text-xs">{mode.label}</span>
           </button>
         ))}
       </div>

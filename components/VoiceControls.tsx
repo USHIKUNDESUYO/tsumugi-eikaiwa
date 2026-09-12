@@ -194,21 +194,22 @@ export default function VoiceControls({
   const canUseMic = supportState === 'supported' && enabled;
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <button
           onClick={handleEnableToggle}
           className={`
-            px-3 py-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all touch-manipulation
+            px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-medium transition-all touch-manipulation
             ${enabled
-              ? 'bg-teal-500 text-white'
-              : 'bg-gray-200 text-gray-600'
+              ? 'bg-teal-500 text-white shadow-sm'
+              : 'bg-gray-100 text-gray-600 border border-gray-200'
             }
             ${supportState === 'unsupported' ? 'opacity-50 cursor-not-allowed' : ''}
           `}
           disabled={supportState === 'unsupported'}
+          title={enabled ? '音声をOFFにする' : '音声をONにする'}
         >
-          {enabled ? '🎤 音声ON' : '🔇 音声OFF'}
+          {enabled ? '🎤' : '🔇'}
         </button>
         
         {canUseMic && (
@@ -216,35 +217,29 @@ export default function VoiceControls({
             onClick={startListening}
             disabled={isListening}
             className={`
-              px-3 py-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all touch-manipulation min-w-[100px]
+              px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg text-xs font-medium transition-all touch-manipulation
               ${isListening
-                ? 'bg-red-500 text-white animate-pulse'
-                : 'bg-teal-100 text-teal-700 hover:bg-teal-200 active:bg-teal-300'
+                ? 'bg-red-500 text-white animate-pulse shadow-sm'
+                : 'bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 active:bg-teal-200'
               }
               disabled:opacity-50
             `}
+            title={isListening ? '聞いています' : 'タップして話す'}
           >
-            {isListening ? '🎤 聞いています...' : '🎤 話す'}
+            {isListening ? '⏺' : '話す'}
           </button>
         )}
       </div>
       
-      {/* Show voice source: cloud or device voice name */}
-      {enabled && voiceSource && (
-        <div className="text-xs text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
-          声: {voiceSource === 'cloud' ? 'クラウド' : selectedVoiceName !== 'Loading...' ? selectedVoiceName : 'デバイス'}
-        </div>
-      )}
-      
       {errorMessage && (
-        <div className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md max-w-xs text-right">
+        <div className="text-[10px] text-red-600 bg-red-50 px-2 py-1 rounded max-w-[200px]">
           {errorMessage}
         </div>
       )}
       
       {supportState === 'unsupported' && (
-        <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded-md max-w-xs text-right">
-          テキスト入力でご利用いただけます
+        <div className="text-[10px] text-gray-500 px-2">
+          テキスト入力をご利用ください
         </div>
       )}
     </div>
