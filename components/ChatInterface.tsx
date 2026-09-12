@@ -13,8 +13,10 @@ import DrillMode from './DrillMode';
 import BusinessScenarioSelector from './BusinessScenarioSelector';
 import PhraseBank from './PhraseBank';
 import SessionTips from './SessionTips';
+import SessionSummary from './SessionSummary';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
+import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
@@ -46,8 +48,14 @@ export default function ChatInterface() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showMobileControls, setShowMobileControls] = useState(false);
+  const [voiceSource, setVoiceSource] = useState<'cloud' | 'device' | null>(null);
+  const [showSessionSummary, setShowSessionSummary] = useState(false);
+  const [sessionSummaryData, setSessionSummaryData] = useState({
+    messagesCount: 0,
+    correctionsCount: 0,
+    durationMinutes: 0,
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     const state = loadState();
@@ -79,11 +87,9 @@ export default function ChatInterface() {
   }, [messages]);
 
   const stopSpeaking = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      currentUtteranceRef.current = null;
-      setIsSpeaking(false);
-    }
+    stopAllSpeech();
+    setIsSpeaking(false);
+    setVoiceSource(null);
   };
 
   useEffect(() => {
@@ -253,35 +259,26 @@ export default function ChatInterface() {
       saveState(state);
 
       if (voiceEnabled && typeof window !== 'undefined' && !isListening) {
-        try {
-          stopSpeaking();
-          
-          const utterance = new SpeechSynthesisUtterance(content);
-          utterance.lang = 'en-US';
-          utterance.rate = 0.9;
-          utterance.volume = 1.0;
-          
-          utterance.onstart = () => {
+        stopSpeaking();
+        
+        speakText(content, {
+          onStart: () => {
             setIsSpeaking(true);
-          };
-          
-          utterance.onend = () => {
+            const isCloud = fetch('/api/tts', { method: 'HEAD' })
+              .then(r => r.ok)
+              .catch(() => false);
+            isCloud.then(cloud => setVoiceSource(cloud ? 'cloud' : 'device'));
+          },
+          onEnd: () => {
             setIsSpeaking(false);
-            currentUtteranceRef.current = null;
-          };
-          
-          utterance.onerror = (event) => {
-            console.error('Speech synthesis error:', event);
+            setVoiceSource(null);
+          },
+          onError: (error) => {
+            console.error('Speech synthesis error:', error);
             setIsSpeaking(false);
-            currentUtteranceRef.current = null;
-          };
-          
-          currentUtteranceRef.current = utterance;
-          window.speechSynthesis.speak(utterance);
-        } catch (error) {
-          console.error('Failed to speak:', error);
-          setIsSpeaking(false);
-        }
+            setVoiceSource(null);
+          },
+        });
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -332,15 +329,26 @@ export default function ChatInterface() {
     if (messages.length <= 1) return;
 
     const duration = Date.now() - sessionStart;
+    const userMessagesCount = messages.filter(m => m.role === 'user').length;
+    
     addSessionStats({
-      messagesCount: messages.filter(m => m.role === 'user').length,
+      messagesCount: userMessagesCount,
       correctionsCount,
       duration,
       mode: currentMode,
       date: new Date().toISOString(),
     });
 
-    alert(`お疲れ様でした！\n\nメッセージ数: ${messages.filter(m => m.role === 'user').length}\n訂正数: ${correctionsCount}\n時間: ${Math.round(duration / 60000)}分\n\n今日も一緒に練習できて嬉しかったです。`);
+    setSessionSummaryData({
+      messagesCount: userMessagesCount,
+      correctionsCount,
+      durationMinutes: Math.round(duration / 60000),
+    });
+    setShowSessionSummary(true);
+  };
+
+  const handleCloseSummary = () => {
+    setShowSessionSummary(false);
     
     const greeting = getInitialGreeting(currentMode);
     const greetingMessage: Message = {
@@ -395,6 +403,7 @@ export default function ChatInterface() {
               onSpeechResult={handleVoiceResult}
               onListeningChange={handleListeningChange}
               onSpeakingChange={handleSpeakingChange}
+              voiceSource={voiceSource}
             />
           </div>
         </div>
@@ -462,6 +471,7 @@ export default function ChatInterface() {
                   onSpeechResult={handleVoiceResult}
                   onListeningChange={handleListeningChange}
                   onSpeakingChange={handleSpeakingChange}
+                  voiceSource={voiceSource}
                 />
               </div>
 
@@ -627,6 +637,15 @@ export default function ChatInterface() {
           </div>
         </div>
       </div>
+
+      <SessionSummary
+        show={showSessionSummary}
+        messagesCount={sessionSummaryData.messagesCount}
+        correctionsCount={sessionSummaryData.correctionsCount}
+        durationMinutes={sessionSummaryData.durationMinutes}
+        mode={currentMode}
+        onClose={handleCloseSummary}
+      />
     </div>
   );
 }

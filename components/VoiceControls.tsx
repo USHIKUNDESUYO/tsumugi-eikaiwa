@@ -8,6 +8,7 @@ interface VoiceControlsProps {
   onSpeechResult: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
   onSpeakingChange?: (speaking: boolean) => void;
+  voiceSource?: 'cloud' | 'device' | null;
 }
 
 type SupportState = 'supported' | 'unsupported' | 'permission-denied' | 'checking';
@@ -18,7 +19,8 @@ export default function VoiceControls({
   onEnabledChange, 
   onSpeechResult,
   onListeningChange,
-  onSpeakingChange 
+  onSpeakingChange,
+  voiceSource
 }: VoiceControlsProps) {
   const [isListening, setIsListening] = useState(false);
   const [supportState, setSupportState] = useState<SupportState>('checking');
@@ -213,6 +215,12 @@ export default function VoiceControls({
           </button>
         )}
       </div>
+      
+      {enabled && voiceSource && (
+        <div className="text-xs text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
+          声: {voiceSource === 'cloud' ? 'クラウド' : 'デバイス'}
+        </div>
+      )}
       
       {errorMessage && (
         <div className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md max-w-xs text-right">
