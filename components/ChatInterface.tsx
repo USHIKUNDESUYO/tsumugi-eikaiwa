@@ -18,7 +18,7 @@ import PronunciationRecorder from './PronunciationRecorder';
 import SessionSummary from './SessionSummary';
 import { loadState, saveState, addSessionStats, addMistake, getMistakesSortedForReview, updateBusinessSettings, incrementSuccessfulTurns, resetSuccessfulTurns } from '@/lib/storage';
 import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenarios';
-import { speakText, stopAllSpeech, initializeTTSVoices, getVoiceStatus } from '@/lib/ttsVoice';
+import { speakText, stopAllSpeech, initializeTTSVoices, getVoiceStatus, probeCloudTTS } from '@/lib/ttsVoice';
 
 type ViewMode = 'chat' | 'settings' | 'review' | 'drill';
 
@@ -72,6 +72,11 @@ export default function ChatInterface() {
     
     // Initialize TTS voices
     initializeTTSVoices();
+    
+    // Probe cloud TTS availability in background (non-blocking)
+    probeCloudTTS().catch(err => {
+      console.warn('Cloud TTS probe failed:', err);
+    });
     
     if (state.messages.length === 0) {
       const greeting = getInitialGreeting(state.currentMode, state.businessScenario);
