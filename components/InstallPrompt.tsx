@@ -72,7 +72,7 @@ export default function InstallPrompt() {
   return (
     <>
       {/* Minimal install hint - unobtrusive */}
-      <div className="bg-gradient-to-r from-cyan-50/80 to-teal-50/80 border-b border-cyan-100/50 px-3 py-2 safe-area-top">
+      <div className="shrink-0 bg-gradient-to-r from-cyan-50/80 to-teal-50/80 border-b border-cyan-100/50 px-3 py-2">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-base flex-shrink-0">📱</span>

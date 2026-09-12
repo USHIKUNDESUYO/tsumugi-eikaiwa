@@ -32,6 +32,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
   themeColor: "#FF6B9D",
 };
 
@@ -51,7 +52,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="h-dvh flex flex-col overflow-hidden">
         <ServiceWorkerRegistration />
         <InstallPrompt />
         <QRCodeDisplay />
