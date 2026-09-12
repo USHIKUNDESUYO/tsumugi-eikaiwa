@@ -22,23 +22,23 @@ export default function ModeSelector({ currentMode, onModeChange, disabled }: Mo
         <span className="text-cyan-600">📚</span>
         練習モード
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2.5">
         {modes.map((mode) => (
           <button
             key={mode.value}
             onClick={() => onModeChange(mode.value)}
             disabled={disabled}
             className={`
-              px-3 py-2.5 rounded-xl text-sm font-medium transition-all touch-manipulation
+              px-3 py-3.5 rounded-xl text-sm font-medium transition-all touch-manipulation min-h-[52px] flex flex-col items-center justify-center gap-1
               ${currentMode === mode.value
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-md scale-105'
-                : 'bg-white/80 text-gray-700 hover:bg-white hover:shadow-sm border border-gray-200/50'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-md'
+                : 'bg-white/90 text-gray-700 hover:bg-white hover:shadow-sm border border-gray-200/50'
               }
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
             `}
           >
-            <span className="mr-1.5">{mode.emoji}</span>
-            <span className="text-xs sm:text-sm">{mode.label}</span>
+            <span className="text-xl">{mode.emoji}</span>
+            <span className="text-xs leading-tight">{mode.label}</span>
           </button>
         ))}
       </div>

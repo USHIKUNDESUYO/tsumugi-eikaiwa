@@ -18,22 +18,22 @@ export default function CorrectionCard({ correction }: CorrectionCardProps) {
   };
 
   return (
-    <div className={`rounded-lg border-2 p-4 my-3 ${severityColors[correction.severity]}`}>
-      <div className="text-xs font-semibold mb-2 text-gray-600">
+    <div className={`rounded-2xl border-2 p-4 shadow-sm ${severityColors[correction.severity]}`}>
+      <div className="text-xs font-semibold mb-3 text-gray-700">
         {severityLabels[correction.severity]}
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div>
-          <span className="text-xs font-medium text-gray-500">あなたの表現:</span>
-          <p className="text-sm text-gray-700 mt-1">"{correction.said}"</p>
+          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">あなたの表現</span>
+          <p className="text-sm text-gray-700 mt-1.5 leading-relaxed">"{correction.said}"</p>
         </div>
         <div>
-          <span className="text-xs font-medium text-gray-500">より良い表現:</span>
-          <p className="text-sm font-semibold text-gray-900 mt-1">"{correction.better}"</p>
+          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">より良い表現</span>
+          <p className="text-sm font-bold text-gray-900 mt-1.5 leading-relaxed bg-white/50 rounded-lg px-3 py-2">"{correction.better}"</p>
         </div>
         <div>
-          <span className="text-xs font-medium text-gray-500">解説:</span>
-          <p className="text-sm text-gray-700 mt-1">{correction.why}</p>
+          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">解説</span>
+          <p className="text-sm text-gray-700 mt-1.5 leading-relaxed">{correction.why}</p>
         </div>
       </div>
     </div>

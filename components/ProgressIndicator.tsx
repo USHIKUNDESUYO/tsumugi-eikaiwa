@@ -39,28 +39,28 @@ export default function ProgressIndicator({ profile }: ProgressIndicatorProps) {
       
       <div className="space-y-3">
         {/* Compact level display */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex-1">
-            <div className="text-xs text-gray-500 mb-1">現在</div>
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-medium ${currentInfo.color}`}>
+            <div className="text-[11px] text-gray-500 mb-1.5 font-medium">現在のレベル</div>
+            <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-white text-xs font-semibold shadow-sm ${currentInfo.color}`}>
               {currentInfo.label}
             </div>
           </div>
-          <div className="text-lg text-gray-300">→</div>
+          <div className="text-xl text-gray-300">→</div>
           <div className="flex-1 text-right">
-            <div className="text-xs text-gray-500 mb-1">目標</div>
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-medium ${goalInfo.color}`}>
+            <div className="text-[11px] text-gray-500 mb-1.5 font-medium">目標</div>
+            <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-white text-xs font-semibold shadow-sm ${goalInfo.color}`}>
               {goalInfo.label}
             </div>
           </div>
         </div>
         
         {/* Progress bar */}
-        <div className="flex gap-1.5">
+        <div className="flex gap-2 px-1">
           {levels.map((level, index) => (
             <div
               key={level}
-              className={`h-1.5 flex-1 rounded-full transition-all ${
+              className={`h-2 flex-1 rounded-full transition-all shadow-sm ${
                 index <= currentIndex
                   ? levelInfo[level].color
                   : 'bg-gray-200'
@@ -70,14 +70,14 @@ export default function ProgressIndicator({ profile }: ProgressIndicatorProps) {
         </div>
         
         {/* Stats */}
-        <div className="flex items-center justify-between pt-2 border-t border-blue-100/50">
+        <div className="flex items-center justify-between pt-3 border-t border-blue-100/50">
           <div>
             <div className="text-xs text-gray-500">練習回数</div>
-            <div className="text-base font-bold text-blue-600">{profile.totalSessions}回</div>
+            <div className="text-lg font-bold text-blue-600">{profile.totalSessions}回</div>
           </div>
           {profile.lastSessionDate && (
             <div className="text-right">
-              <div className="text-xs text-gray-500">最終日</div>
+              <div className="text-xs text-gray-500">最終学習</div>
               <div className="text-xs font-medium text-gray-700">
                 {new Date(profile.lastSessionDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
               </div>
