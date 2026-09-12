@@ -22,10 +22,10 @@ export default function QRCodeDisplay() {
 
   return (
     <>
-      {/* QR Code Button */}
+      {/* QR Code Button - positioned to avoid FAB and input */}
       <button
         onClick={toggleQR}
-        className="fixed bottom-4 right-4 bg-white shadow-lg rounded-full p-3 hover:shadow-xl transition-shadow border border-gray-200 z-40"
+        className="fixed bottom-24 md:bottom-4 left-4 md:right-4 md:left-auto bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-3 hover:shadow-xl transition-all border border-gray-200/50 z-30 hover:scale-110 active:scale-95"
         title="QRコードを表示"
       >
         <svg 

@@ -18,6 +18,15 @@ import { businessScenarios, getBusinessSessionTips } from '@/lib/businessScenari
 
 type ViewMode = 'chat' | 'review' | 'drill';
 
+const modes: { value: ChatMode; label: string; emoji: string }[] = [
+  { value: 'free-chat', label: 'フリートーク', emoji: '💬' },
+  { value: 'daily-life', label: '日常会話', emoji: '🏡' },
+  { value: 'travel', label: '旅行', emoji: '✈️' },
+  { value: 'workplace-small-talk', label: '職場雑談', emoji: '☕' },
+  { value: 'business', label: 'ビジネス英語', emoji: '💼' },
+  { value: 'vocab-drill', label: '語彙練習', emoji: '📚' },
+];
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -36,6 +45,7 @@ export default function ChatInterface() {
   const [showSessionTips, setShowSessionTips] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showMobileControls, setShowMobileControls] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -367,71 +377,55 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
-      <header className="bg-white border-b border-teal-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-sky-50 via-white to-cyan-50/30">
+      {/* Slim header - mobile first */}
+      <header className="bg-white/90 backdrop-blur-lg border-b border-cyan-100/50 shadow-sm sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <Avatar />
-            <div>
-              <h1 className="text-xl font-bold text-teal-700">紬の英会話レッスン</h1>
-              <p className="text-xs text-gray-500">やさしく、楽しく、上達へ</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-lg font-semibold text-gray-800 truncate">紬の英会話</h1>
+              <p className="text-xs text-gray-500 hidden sm:block">やさしく、楽しく</p>
             </div>
           </div>
-          <VoiceControls
-            enabled={voiceEnabled}
-            onEnabledChange={handleVoiceToggle}
-            onSpeechResult={handleVoiceResult}
-            onListeningChange={handleListeningChange}
-            onSpeakingChange={handleSpeakingChange}
-          />
+          <div className="hidden md:flex">
+            <VoiceControls
+              enabled={voiceEnabled}
+              onEnabledChange={handleVoiceToggle}
+              onSpeechResult={handleVoiceResult}
+              onListeningChange={handleListeningChange}
+              onSpeakingChange={handleSpeakingChange}
+            />
+          </div>
         </div>
       </header>
 
-      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 flex flex-col md:flex-row gap-6 overflow-hidden">
-        {/* Mobile Controls - visible only on mobile */}
-        <div className="md:hidden flex flex-col gap-3">
-          <ProgressIndicator profile={profile} />
-          <ModeSelector
-            currentMode={currentMode}
-            onModeChange={handleModeChange}
-            disabled={isLoading}
-          />
-          
-          {currentMode === 'business' && businessScenario && (
-            <BusinessScenarioSelector
-              currentScenario={businessScenario}
-              currentDifficulty={businessDifficulty}
-              onScenarioChange={handleBusinessScenarioChange}
-              onDifficultyChange={handleBusinessDifficultyChange}
-              disabled={isLoading}
-            />
-          )}
-        </div>
-
-        <div className="flex-1 flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
-          {/* Tab Navigation */}
-          <div className="flex border-b border-teal-100">
+      <div className="flex-1 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-0 md:gap-6 md:px-4 md:py-6 overflow-hidden">
+        {/* Main chat panel - mobile takes full width */}
+        <div className="flex-1 flex flex-col bg-white md:rounded-2xl md:shadow-lg overflow-hidden md:border md:border-cyan-100/50">
+          {/* Tab Navigation - cleaner design */}
+          <div className="flex border-b border-gray-200/50 bg-gray-50/50">
             <button
               onClick={() => setViewMode('chat')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors whitespace-nowrap ${
+              className={`flex-1 px-4 py-3 sm:py-3.5 text-sm font-medium transition-all ${
                 viewMode === 'chat'
-                  ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-500'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'text-cyan-700 bg-white border-b-2 border-cyan-500'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100/50'
               }`}
             >
               💬 会話
             </button>
             <button
               onClick={() => setViewMode('review')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors whitespace-nowrap relative ${
+              className={`flex-1 px-4 py-3 sm:py-3.5 text-sm font-medium transition-all relative ${
                 viewMode === 'review'
-                  ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-500'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'text-cyan-700 bg-white border-b-2 border-cyan-500'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100/50'
               }`}
             >
-              📚 復習リスト
+              📚 復習
               {mistakes.length > 0 && (
-                <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-rose-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-sm">
                   {mistakes.length}
                 </span>
               )}
@@ -441,17 +435,18 @@ export default function ChatInterface() {
           {/* Content Area */}
           {viewMode === 'chat' && (
             <>
-              <div className="flex-1 overflow-y-auto p-6">
+              {/* Chat messages - with better mobile spacing */}
+              <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-4 sm:py-5 bg-gradient-to-b from-gray-50/30 to-transparent">
                 {messages.map((message) => (
                   <ChatMessage key={message.id} message={message} />
                 ))}
                 {isLoading && (
                   <div className="flex justify-start mb-4">
-                    <div className="bg-white border border-teal-100 rounded-2xl rounded-bl-md px-4 py-3">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="bg-white/80 backdrop-blur-sm border border-cyan-100/50 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                      <div className="flex gap-1.5">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
                     </div>
                   </div>
@@ -459,20 +454,32 @@ export default function ChatInterface() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="border-t border-teal-100 p-4">
-                <form onSubmit={handleSubmit} className="flex gap-3">
+              {/* Mobile voice controls bar */}
+              <div className="md:hidden border-t border-gray-200/50 bg-gray-50/50 px-3 py-2">
+                <VoiceControls
+                  enabled={voiceEnabled}
+                  onEnabledChange={handleVoiceToggle}
+                  onSpeechResult={handleVoiceResult}
+                  onListeningChange={handleListeningChange}
+                  onSpeakingChange={handleSpeakingChange}
+                />
+              </div>
+
+              {/* Composer - mobile optimized with safe area */}
+              <div className="border-t border-gray-200/50 bg-white p-3 sm:p-4 pb-safe">
+                <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Type your message in English..."
-                    className="flex-1 px-4 py-3 border border-teal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-700"
+                    className="flex-1 px-4 py-3 border border-gray-300/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400 text-gray-800 placeholder:text-gray-400 bg-gray-50/50 transition-all"
                     disabled={isLoading}
                   />
                   <button
                     type="submit"
                     disabled={isLoading || !input.trim()}
-                    className="px-6 py-3 bg-teal-500 text-white rounded-xl font-medium hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="px-5 sm:px-6 py-3 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-2xl font-medium hover:from-cyan-600 hover:to-teal-600 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95 touch-manipulation"
                   >
                     送信
                   </button>
@@ -500,7 +507,75 @@ export default function ChatInterface() {
           )}
         </div>
 
-        {/* Desktop Sidebar - hidden on mobile */}
+        {/* Mobile Mode/Settings Bottom Sheet */}
+        {showMobileControls && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+            onClick={() => setShowMobileControls(false)}
+          >
+            <div 
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Handle bar */}
+              <div className="sticky top-0 bg-white pt-2 pb-3 px-4 border-b border-gray-100">
+                <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-800">モード・設定</h3>
+                  <button
+                    onClick={() => setShowMobileControls(false)}
+                    className="text-gray-400 hover:text-gray-600 p-2 -mr-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-4 space-y-4 pb-safe">
+                <ModeSelector
+                  currentMode={currentMode}
+                  onModeChange={handleModeChange}
+                  disabled={isLoading}
+                />
+                
+                {currentMode === 'business' && businessScenario && (
+                  <BusinessScenarioSelector
+                    currentScenario={businessScenario}
+                    currentDifficulty={businessDifficulty}
+                    onScenarioChange={handleBusinessScenarioChange}
+                    onDifficultyChange={handleBusinessDifficultyChange}
+                    disabled={isLoading}
+                  />
+                )}
+                
+                <ProgressIndicator profile={profile} />
+                
+                {messages.length > 1 && (
+                  <button
+                    onClick={handleEndSession}
+                    className="w-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl p-4 shadow-sm text-rose-700 font-medium hover:shadow-md transition-all"
+                  >
+                    📝 セッション終了
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile FAB - Mode selector button */}
+        <button
+          onClick={() => setShowMobileControls(true)}
+          className="md:hidden fixed bottom-24 right-4 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-30 active:scale-95 touch-manipulation"
+          title="モード切替"
+        >
+          <div className="flex flex-col items-center">
+            <span className="text-xl">{modes.find(m => m.value === currentMode)?.emoji}</span>
+            <span className="text-[10px] font-medium mt-0.5">モード</span>
+          </div>
+        </button>
+
+        {/* Desktop Sidebar */}
         <div className="hidden md:flex md:w-80 flex-col gap-4 overflow-y-auto">
           <ProgressIndicator profile={profile} />
           <ModeSelector
@@ -540,15 +615,15 @@ export default function ChatInterface() {
           {messages.length > 1 && (
             <button
               onClick={handleEndSession}
-              className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-teal-700 font-medium"
+              className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl p-4 shadow-sm text-rose-700 font-medium hover:shadow-md transition-all"
             >
               📝 セッション終了
             </button>
           )}
 
-          <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm text-xs text-gray-500">
-            <p className="font-semibold mb-2">⚠️ 免責事項</p>
-            <p>このアプリは個人が作成した二次創作の学習ツールです。Key/Visual Artsとは一切関係ありません。</p>
+          <div className="bg-gradient-to-br from-gray-50 to-slate-50 border border-gray-200 rounded-2xl p-4 shadow-sm text-xs text-gray-500">
+            <p className="font-semibold mb-2 text-gray-700">⚠️ 免責事項</p>
+            <p className="leading-relaxed">このアプリは個人が作成した二次創作の学習ツールです。Key/Visual Artsとは一切関係ありません。</p>
           </div>
         </div>
       </div>
