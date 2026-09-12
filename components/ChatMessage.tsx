@@ -7,6 +7,9 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  // Removing inline correction data can leave several empty paragraphs behind.
+  // Apply on display so previously saved replies also retain normal spacing.
+  const content = isUser ? message.content : message.content.replace(/\n(?:[ \t]*\n){2,}/g, '\n\n');
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -24,7 +27,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
               : 'bg-white border border-gray-200/70 text-gray-800 rounded-bl-md shadow-sm'
           }`}
         >
-          <p className="text-base leading-7 whitespace-pre-wrap break-words">{message.content}</p>
+          <p className="text-base leading-7 whitespace-pre-wrap break-words">{content}</p>
         </div>
         {message.correction && (
           <div className="mt-2">
