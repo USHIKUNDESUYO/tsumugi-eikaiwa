@@ -1,13 +1,13 @@
 export default function Avatar() {
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center flex-shrink-0">
       <svg
-        width="80"
-        height="80"
+        width="40"
+        height="40"
         viewBox="0 0 80 80"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-md"
+        className="drop-shadow-sm md:w-12 md:h-12"
       >
         <circle cx="40" cy="40" r="40" fill="#5EEAD4" />
         

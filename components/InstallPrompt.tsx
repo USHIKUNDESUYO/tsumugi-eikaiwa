@@ -71,37 +71,21 @@ export default function InstallPrompt() {
 
   return (
     <>
-      {/* Install banner */}
-      <div className="bg-gradient-to-r from-pink-100 to-purple-100 border-b border-pink-200 px-4 py-3 shadow-sm">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <span className="text-2xl flex-shrink-0">📱</span>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-800">
-                ホーム画面に追加してアプリとして使おう！
-              </p>
-              <p className="text-xs text-gray-600">
-                オフラインでも使えて、すぐに開けます
-              </p>
-            </div>
+      {/* Minimal install hint - unobtrusive */}
+      <div className="bg-gradient-to-r from-cyan-50/80 to-teal-50/80 border-b border-cyan-100/50 px-3 py-2 safe-area-top">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-base flex-shrink-0">📱</span>
+            <p className="text-xs font-medium text-gray-700 truncate">
+              ホーム画面に追加できます
+            </p>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
-            {deferredPrompt ? (
-              <button
-                onClick={handleInstallClick}
-                className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors whitespace-nowrap"
-              >
-                インストール
-              </button>
-            ) : (
-              <button
-                onClick={handleShowInstructions}
-                className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors whitespace-nowrap"
-              >
-                手順を見る
-              </button>
-            )}
-          </div>
+          <button
+            onClick={deferredPrompt ? handleInstallClick : handleShowInstructions}
+            className="px-3 py-1.5 bg-cyan-500 text-white text-xs font-medium rounded-full hover:bg-cyan-600 transition-colors whitespace-nowrap shadow-sm active:scale-95 touch-manipulation"
+          >
+            {deferredPrompt ? 'インストール' : '手順'}
+          </button>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { MistakeRecord } from '@/types';
 import { deleteMistake, markMistakeMastered } from '@/lib/storage';
 
@@ -21,6 +22,25 @@ const modeLabels: Record<string, string> = {
 };
 
 export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewListProps) {
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+    
+    setIsOnline(navigator.onLine);
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  }, []);
+
   const handleDelete = (id: string) => {
     if (confirm('この記録を削除しますか？')) {
       deleteMistake(id);
@@ -47,23 +67,20 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
 
   if (mistakes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4 sm:px-6 min-h-[400px]">
-        <div className="text-5xl sm:text-6xl mb-4 animate-bounce">📝</div>
-        <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2 text-center">
+      <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[500px]">
+        <div className="text-6xl mb-6 animate-bounce">📝</div>
+        <h3 className="text-xl font-bold text-gray-800 mb-3 text-center">
           まだ訂正記録がありません
         </h3>
-        <p className="text-sm sm:text-base text-gray-500 text-center max-w-md leading-relaxed">
+        <p className="text-sm text-gray-600 text-center max-w-md leading-relaxed">
           会話の中で訂正があると、自動的にここに記録されます。
-        </p>
-        <p className="text-sm sm:text-base text-gray-500 text-center max-w-md mt-2">
           後で復習して、英語力を伸ばしましょう！
         </p>
-        <button
-          onClick={() => window.history.back()}
-          className="mt-6 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-xl font-medium hover:from-cyan-600 hover:to-teal-600 transition-all shadow-sm"
-        >
-          💬 会話に戻る
-        </button>
+        {!isOnline && (
+          <div className="mt-4 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm text-center">
+            📡 オフライン中 - 過去の記録があればここで復習できます
+          </div>
+        )}
       </div>
     );
   }
@@ -73,14 +90,21 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
       <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-100 rounded-2xl p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex-1">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 flex items-center gap-2 flex-wrap">
               📚 復習リスト 
-              <span className="ml-2 text-teal-600 bg-teal-100 px-2.5 py-0.5 rounded-full text-sm font-semibold">
+              <span className="text-teal-600 bg-teal-100 px-2.5 py-0.5 rounded-full text-sm font-semibold">
                 {mistakes.length}件
               </span>
+              {!isOnline && (
+                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-normal">
+                  📡 オフライン
+                </span>
+              )}
             </h3>
             <p className="text-xs sm:text-sm text-gray-600">
-              間違えた表現をまとめて復習できます
+              {isOnline 
+                ? '間違えた表現をまとめて復習できます' 
+                : 'ローカルデータから復習できます'}
             </p>
           </div>
           {mistakes.length > 0 && (
@@ -108,21 +132,21 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
                   {modeLabels[mistake.mode] || mistake.mode}
                 </span>
               </div>
-              <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
+              <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={() => handleMarkMastered(mistake.id)}
-                  className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 bg-green-100 text-green-700 rounded-lg font-medium hover:bg-green-200 active:bg-green-300 transition-all touch-manipulation"
+                  className="text-xs px-3 py-2.5 bg-green-100 text-green-700 rounded-xl font-medium hover:bg-green-200 active:bg-green-300 transition-all touch-manipulation min-h-[44px] flex items-center justify-center"
                   title="習得済みにする"
                 >
                   <span className="hidden sm:inline">✓ 習得</span>
-                  <span className="sm:hidden">✓</span>
+                  <span className="sm:hidden text-base">✓</span>
                 </button>
                 <button
                   onClick={() => handleDelete(mistake.id)}
-                  className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gray-100 text-gray-600 rounded-lg font-medium hover:bg-gray-200 active:bg-gray-300 transition-all touch-manipulation"
+                  className="text-xs px-3 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-medium hover:bg-gray-200 active:bg-gray-300 transition-all touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                   title="削除"
                 >
-                  ✕
+                  <span className="text-base">✕</span>
                 </button>
               </div>
             </div>

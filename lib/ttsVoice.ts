@@ -21,6 +21,9 @@ let cachedVoice: SpeechSynthesisVoice | null = null;
 let cachedVoiceName: string = 'Loading...';
 let voicesLoaded = false;
 let voiceListeners: Array<(result: VoiceSelectionResult) => void> = [];
+let cloudTTSEnabled: boolean = false;
+let iOSResumeInterval: number | null = null;
+let isUnlocked: boolean = false;
 
 /**
  * Female voice name patterns to prioritize
@@ -260,6 +263,46 @@ export function stopAllSpeech() {
     window.speechSynthesis.cancel();
     currentUtterance = null;
   }
+  
+  // Clear iOS resume interval
+  if (iOSResumeInterval !== null) {
+    clearInterval(iOSResumeInterval);
+    iOSResumeInterval = null;
+  }
+}
+
+/**
+ * Checks if cloud TTS is enabled via environment variable (synchronous)
+ * Only check NEXT_PUBLIC_TTS_ENABLED to avoid network requests before speech
+ */
+function isCloudTTSEnabled(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  // Check if explicitly enabled via environment variable
+  return cloudTTSEnabled;
+}
+
+/**
+ * Probes cloud TTS availability in the background (non-blocking)
+ * Call this during app initialization, not before speaking
+ */
+export async function probeCloudTTS(): Promise<void> {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/tts', {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(2000),
+    });
+    cloudTTSEnabled = response.ok;
+    console.log('🎤 Cloud TTS available:', cloudTTSEnabled);
+  } catch {
+    cloudTTSEnabled = false;
+  }
 }
 
 /**
@@ -313,7 +356,7 @@ export async function speakWithCloudTTS(
 }
 
 /**
- * Device TTS with soft female voice selection
+ * Device TTS with soft female voice selection and iOS safeguards
  */
 export function speakWithDeviceTTS(
   text: string,
@@ -324,18 +367,41 @@ export function speakWithDeviceTTS(
     return;
   }
 
+  // Ensure voices are loaded before speaking
+  if (!voicesLoaded) {
+    loadVoices();
+  }
+
   const utterance = createTsumugiUtterance(text);
 
   utterance.onstart = () => {
     options.onStart?.();
+    
+    // iOS Safari workaround: resume every 100ms to prevent pausing
+    if (iOSResumeInterval !== null) {
+      clearInterval(iOSResumeInterval);
+    }
+    iOSResumeInterval = window.setInterval(() => {
+      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 100) as unknown as number;
   };
 
   utterance.onend = () => {
+    if (iOSResumeInterval !== null) {
+      clearInterval(iOSResumeInterval);
+      iOSResumeInterval = null;
+    }
     currentUtterance = null;
     options.onEnd?.();
   };
 
   utterance.onerror = (event) => {
+    if (iOSResumeInterval !== null) {
+      clearInterval(iOSResumeInterval);
+      iOSResumeInterval = null;
+    }
     currentUtterance = null;
     options.onError?.(event);
   };
@@ -345,19 +411,63 @@ export function speakWithDeviceTTS(
 }
 
 /**
- * Speaks text using cloud TTS first, falls back to device TTS
+ * Unlocks iOS audio context with a proper warm-up utterance
+ * Must be called inside a user gesture handler (click, tap)
  */
-export async function speakText(
+export function unlockIOSAudio(): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    return;
+  }
+  
+  if (isUnlocked) {
+    return;
+  }
+  
+  // Create a brief warm-up utterance with actual content
+  // iOS requires actual speech to unlock, not just an empty utterance
+  const warmup = new SpeechSynthesisUtterance(' ');
+  warmup.volume = 0.01; // Nearly silent
+  warmup.rate = 2.0; // Fast
+  
+  warmup.onend = () => {
+    isUnlocked = true;
+    window.speechSynthesis.resume(); // Ensure ready state
+    console.log('🎤 iOS audio unlocked');
+  };
+  
+  window.speechSynthesis.speak(warmup);
+}
+
+/**
+ * Speaks text using device TTS by default (synchronous for iOS compatibility)
+ * Cloud TTS only if explicitly configured via probeCloudTTS.
+ * NEVER await network checks before calling speechSynthesis.speak on iOS.
+ */
+export function speakText(
   text: string,
   options: TTSOptions = {}
-): Promise<void> {
+): void {
   stopAllSpeech();
 
-  const cloudSuccess = await speakWithCloudTTS(text, options);
-  
-  if (!cloudSuccess) {
-    speakWithDeviceTTS(text, options);
+  // Synchronous check - no network calls before speaking
+  if (isCloudTTSEnabled()) {
+    // Cloud TTS is explicitly configured - try it asynchronously
+    speakWithCloudTTS(text, {
+      ...options,
+      onError: (error) => {
+        console.error('Cloud TTS failed, falling back to device:', error);
+        // Fallback to device TTS on error
+        speakWithDeviceTTS(text, options);
+      }
+    }).catch((error) => {
+      console.error('Cloud TTS error, falling back to device:', error);
+      speakWithDeviceTTS(text, options);
+    });
+    return;
   }
+  
+  // Use device TTS (default path, synchronous)
+  speakWithDeviceTTS(text, options);
 }
 
 /**
