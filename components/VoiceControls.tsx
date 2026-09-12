@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { initializeTTSVoices, getSelectedVoiceName, onVoiceSelected } from '@/lib/ttsVoice';
 
 interface VoiceControlsProps {
   enabled: boolean;
@@ -8,6 +9,7 @@ interface VoiceControlsProps {
   onSpeechResult: (text: string) => void;
   onListeningChange?: (listening: boolean) => void;
   onSpeakingChange?: (speaking: boolean) => void;
+  voiceSource?: 'cloud' | 'device' | null;
 }
 
 type SupportState = 'supported' | 'unsupported' | 'permission-denied' | 'checking';
@@ -18,12 +20,14 @@ export default function VoiceControls({
   onEnabledChange, 
   onSpeechResult,
   onListeningChange,
-  onSpeakingChange 
+  onSpeakingChange,
+  voiceSource
 }: VoiceControlsProps) {
   const [isListening, setIsListening] = useState(false);
   const [supportState, setSupportState] = useState<SupportState>('checking');
   const [errorState, setErrorState] = useState<ErrorState>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('Loading...');
   const recognitionRef = useRef<any>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -35,6 +39,17 @@ export default function VoiceControls({
 
     const hasAPI = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     setSupportState(hasAPI ? 'supported' : 'unsupported');
+    
+    // Initialize TTS voices
+    initializeTTSVoices();
+    setSelectedVoiceName(getSelectedVoiceName());
+    
+    // Subscribe to voice updates
+    const unsubscribe = onVoiceSelected((result) => {
+      setSelectedVoiceName(result.name);
+    });
+    
+    return unsubscribe;
   }, []);
 
   const stopSpeaking = useCallback(() => {
@@ -213,6 +228,13 @@ export default function VoiceControls({
           </button>
         )}
       </div>
+      
+      {/* Show voice source: cloud or device voice name */}
+      {enabled && voiceSource && (
+        <div className="text-xs text-teal-600 bg-teal-50 px-3 py-1 rounded-md">
+          声: {voiceSource === 'cloud' ? 'クラウド' : selectedVoiceName !== 'Loading...' ? selectedVoiceName : 'デバイス'}
+        </div>
+      )}
       
       {errorMessage && (
         <div className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md max-w-xs text-right">
