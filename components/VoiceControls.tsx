@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { initializeTTSVoices, getSelectedVoiceName, onVoiceSelected } from '@/lib/ttsVoice';
+import { initializeTTSVoices, getSelectedVoiceName, onVoiceSelected, unlockIOSAudio } from '@/lib/ttsVoice';
 
 interface VoiceControlsProps {
   enabled: boolean;
@@ -80,20 +80,40 @@ export default function VoiceControls({
     };
   }, [stopListening, stopSpeaking]);
 
-  const startListening = () => {
-    if (supportState !== 'supported' || !enabled || isListening) return;
+  const startListening = async () => {
+    if (supportState !== 'supported' || isListening) return;
 
     setHasInteracted(true);
     setErrorState(null);
     
+    // Auto-enable voice if not enabled
+    if (!enabled) {
+      unlockIOSAudio();
+      onEnabledChange(true);
+    }
+    
     stopSpeaking();
+
+    // Prime getUserMedia for permissions (iOS needs this before recognition)
+    // But do it non-blocking to keep recognition.start() in gesture context
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          // Got permission, immediately stop to release mic
+          stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(err => {
+          console.warn('getUserMedia permission issue:', err);
+          // Continue anyway - recognition will handle permission errors
+        });
+    }
 
     try {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       const recognition = new SpeechRecognition();
       
       recognition.lang = 'en-US';
-      recognition.interimResults = false;
+      recognition.interimResults = true; // Show interim results for better feedback
       recognition.maxAlternatives = 1;
       recognition.continuous = false;
 
@@ -105,7 +125,7 @@ export default function VoiceControls({
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        if (transcript.trim()) {
+        if (transcript.trim() && event.results[0].isFinal) {
           onSpeechResult(transcript);
         }
       };
@@ -140,6 +160,7 @@ export default function VoiceControls({
       };
 
       recognitionRef.current = recognition;
+      // Start recognition immediately - must be synchronous in gesture handler
       recognition.start();
     } catch (error) {
       console.error('Failed to start recognition:', error);
@@ -152,11 +173,8 @@ export default function VoiceControls({
   const handleEnableToggle = () => {
     if (!enabled) {
       setHasInteracted(true);
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        const testUtterance = new SpeechSynthesisUtterance('');
-        window.speechSynthesis.speak(testUtterance);
-        window.speechSynthesis.cancel();
-      }
+      // Unlock iOS audio context properly
+      unlockIOSAudio();
     } else {
       stopListening();
       stopSpeaking();
@@ -166,19 +184,24 @@ export default function VoiceControls({
 
   const getErrorMessage = (): string | null => {
     if (supportState === 'permission-denied') {
-      return '⚠️ マイクの許可が必要です';
+      return '⚠️ マイクの許可が必要です。設定で許可してください';
     }
     if (supportState === 'unsupported') {
+      // Detect Chrome on iOS vs Safari
+      const isChromeiOS = /CriOS/i.test(navigator.userAgent);
+      if (isChromeiOS) {
+        return '⚠️ Chrome iOS版は音声認識非対応。Safariをご利用ください';
+      }
       return 'このブラウザは音声認識に対応していません';
     }
     
     switch (errorState) {
       case 'not-allowed':
-        return '⚠️ マイクの使用が許可されていません';
+        return '⚠️ マイクの使用が許可されていません。設定で許可してください';
       case 'no-speech':
         return '音声が検出されませんでした。もう一度お試しください';
       case 'network':
-        return 'ネットワークエラー。接続を確認してください';
+        return '⚠️ ネットワークエラー。接続を確認してください';
       case 'other':
         return 'エラーが発生しました。もう一度お試しください';
       default:
@@ -191,15 +214,35 @@ export default function VoiceControls({
   }
 
   const errorMessage = getErrorMessage();
-  const canUseMic = supportState === 'supported' && enabled;
+  const canUseMic = supportState === 'supported';
 
   return (
     <div className="flex flex-col gap-2 w-full">
       <div className="flex items-center gap-2 justify-center">
+        {/* Show mic button prominently on mobile */}
+        {canUseMic && (
+          <button
+            onClick={startListening}
+            disabled={isListening}
+            className={`
+              flex-1 md:flex-initial px-6 py-2 rounded-full text-sm font-medium transition-all touch-manipulation min-h-[44px]
+              ${isListening
+                ? 'bg-red-500 text-white animate-pulse shadow-lg ring-2 ring-red-300'
+                : enabled
+                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md hover:shadow-lg active:scale-95'
+                : 'bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-md hover:shadow-lg active:scale-95'
+              }
+              disabled:opacity-50
+            `}
+          >
+            {isListening ? '🎤 聞いています...' : '🎤 話す'}
+          </button>
+        )}
+        
         <button
           onClick={handleEnableToggle}
           className={`
-            flex-1 md:flex-initial px-4 py-2 rounded-full text-xs font-medium transition-all touch-manipulation min-h-[40px]
+            px-4 py-2 rounded-full text-xs font-medium transition-all touch-manipulation min-h-[40px]
             ${enabled
               ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-sm'
               : 'bg-gray-100 text-gray-600 border border-gray-200'
@@ -208,25 +251,8 @@ export default function VoiceControls({
           `}
           disabled={supportState === 'unsupported'}
         >
-          {enabled ? '🎤 音声ON' : '🔇 音声OFF'}
+          {enabled ? '🔊 音声ON' : '🔇 音声OFF'}
         </button>
-        
-        {canUseMic && (
-          <button
-            onClick={startListening}
-            disabled={isListening}
-            className={`
-              flex-1 md:flex-initial px-4 py-2 rounded-full text-xs font-medium transition-all touch-manipulation min-h-[40px]
-              ${isListening
-                ? 'bg-red-500 text-white animate-pulse shadow-md'
-                : 'bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 active:bg-teal-200'
-              }
-              disabled:opacity-50 active:scale-95
-            `}
-          >
-            {isListening ? '🎤 聞いています' : '🎤 話す'}
-          </button>
-        )}
       </div>
       
       {/* Show voice source or error inline */}
