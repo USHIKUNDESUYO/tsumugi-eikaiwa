@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { MistakeRecord } from '@/types';
 import { deleteMistake, markMistakeMastered } from '@/lib/storage';
 
@@ -21,6 +22,25 @@ const modeLabels: Record<string, string> = {
 };
 
 export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewListProps) {
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+    
+    setIsOnline(navigator.onLine);
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  }, []);
+
   const handleDelete = (id: string) => {
     if (confirm('この記録を削除しますか？')) {
       deleteMistake(id);
@@ -58,6 +78,11 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
         <p className="text-sm sm:text-base text-gray-500 text-center max-w-md mt-2">
           後で復習して、英語力を伸ばしましょう！
         </p>
+        {!isOnline && (
+          <div className="mt-4 px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+            📡 オフライン中 - 過去の記録があればここで復習できます
+          </div>
+        )}
         <button
           onClick={() => window.history.back()}
           className="mt-6 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 text-white rounded-xl font-medium hover:from-cyan-600 hover:to-teal-600 transition-all shadow-sm"
@@ -73,14 +98,21 @@ export default function ReviewList({ mistakes, onUpdate, onStartDrill }: ReviewL
       <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-100 rounded-2xl p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex-1">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1 flex items-center gap-2 flex-wrap">
               📚 復習リスト 
-              <span className="ml-2 text-teal-600 bg-teal-100 px-2.5 py-0.5 rounded-full text-sm font-semibold">
+              <span className="text-teal-600 bg-teal-100 px-2.5 py-0.5 rounded-full text-sm font-semibold">
                 {mistakes.length}件
               </span>
+              {!isOnline && (
+                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-normal">
+                  📡 オフライン
+                </span>
+              )}
             </h3>
             <p className="text-xs sm:text-sm text-gray-600">
-              間違えた表現をまとめて復習できます
+              {isOnline 
+                ? '間違えた表現をまとめて復習できます' 
+                : 'ローカルデータから復習できます'}
             </p>
           </div>
           {mistakes.length > 0 && (
