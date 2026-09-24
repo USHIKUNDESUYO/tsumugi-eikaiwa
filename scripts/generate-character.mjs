@@ -70,18 +70,28 @@ const BASE_PROMPT = `${CHARACTER}, calm gentle closed-mouth smile, ${FRAMING}, $
 
 /** 差分。key がファイル名になる。 */
 const EXPRESSIONS = {
-  neutral: 'Change her expression to calm and neutral with a very slight soft smile, lips closed.',
+  neutral:
+    'Make her expression completely neutral: her lips closed in a flat straight line with no smile at all, ' +
+    'eyes open and relaxed, eyebrows level, barely any blush.',
   smile: 'Change her expression to a warm gentle smile, lips closed, eyes open and kind.',
   happy:
     'Change her expression to bright joyful laughter, eyes closed in happy upward arcs, open smiling mouth, cheeks flushed.',
-  shy: 'Change her expression to bashful and shy, eyes half-lidded looking slightly away, strong blush on both cheeks, small awkward smile.',
+  shy:
+    'Make her intensely embarrassed and flustered: both cheeks flushed deep red across the nose, ' +
+    'her eyes half-lidded and glancing away to the side, eyebrows angled upward in the middle, ' +
+    'mouth a small wavering awkward line.',
   surprised: 'Change her expression to surprised, eyes wide open, eyebrows raised, small round open mouth.',
   thinking:
-    'Change her expression to thoughtful, eyes looking up and to the side, one eyebrow slightly raised, lips closed.',
-  sad: 'Change her expression to gently sad, eyebrows angled up in the middle, eyes downcast, small frown.',
+    'Make her look puzzled and deep in thought: both of her eyes clearly looking upward to the upper left corner, ' +
+    'one eyebrow raised much higher than the other, lips pressed together and pushed to one side.',
+  sad:
+    'Make her clearly sad and close to tears: eyebrows sharply angled up in the middle, ' +
+    'eyes glistening and looking downward, mouth turned down into a small frown, cheeks pale with no blush.',
   wink: 'Change her expression to a playful wink, her left eye closed, right eye open, cheerful open smile.',
   sleepy: 'Change her expression to sleepy, both eyes nearly closed into soft lines, relaxed small smile.',
-  love: 'Change her expression to deeply affectionate, soft loving eyes, tender closed-mouth smile, heavy blush.',
+  love:
+    'Make her look lovestruck: her eyes wide open and sparkling with large bright highlights, ' +
+    'cheeks deeply flushed red, a soft tender closed-mouth smile, head tilted slightly to one side.',
   // まばたき・口パク用の差分
   blink: 'Close both of her eyes completely into gentle downward curved lines, keep her expression otherwise identical.',
   talk: 'Open her mouth as if speaking a word, keep her eyes open and her expression otherwise identical.',
@@ -177,12 +187,18 @@ async function stepBase() {
   console.log('   気に入ったら: node scripts/generate-character.mjs variants');
 }
 
-async function stepVariants() {
+async function stepVariants(only = []) {
   if (!state.baseUrl) throw new Error('先に base を実行してください。');
-  const jobs = [
+  let jobs = [
     ...Object.entries(EXPRESSIONS).map(([k, v]) => [`expr-${k}`, v]),
     ...Object.entries(OUTFITS).map(([k, v]) => [`outfit-${k}`, v]),
   ];
+  // 名前を渡すとその分だけ作り直す: variants expr-shy expr-love
+  if (only.length > 0) {
+    jobs = jobs.filter(([name]) => only.includes(name));
+    for (const [name] of jobs) delete state.raw[name];
+    saveState();
+  }
 
   console.log(`${jobs.length} 枚を生成します（すでにあるものは飛ばします）`);
   for (const [name, instruction] of jobs) {
@@ -231,7 +247,7 @@ async function stepCutout() {
 const step = process.argv[2] ?? 'base';
 try {
   if (step === 'base' || step === 'all') await stepBase();
-  if (step === 'variants' || step === 'all') await stepVariants();
+  if (step === 'variants' || step === 'all') await stepVariants(process.argv.slice(3));
   if (step === 'cutout' || step === 'all') await stepCutout();
   if (!['base', 'variants', 'cutout', 'all'].includes(step)) {
     console.error('使い方: node scripts/generate-character.mjs [base|variants|cutout|all]');

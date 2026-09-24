@@ -13,7 +13,7 @@ import {
 } from '@/lib/storage';
 import { getScenarioIntro, getClosingLine, getPraise, inferExpression } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech, unlockIOSAudio, initializeTTSVoices, probeCloudTTS } from '@/lib/ttsVoice';
-import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import MicButton from '@/components/tsumugi/MicButton';
 import type { LevelUpEvent } from '@/components/TsumugiApp';
 
@@ -288,7 +288,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
         }}
       >
         <div style={{ marginBottom: -30 }}>
-          <TsumugiCharacter
+          <TsumugiArt
             expression={expression}
             outfit={state.bond.currentOutfit}
             speaking={speaking}
@@ -578,7 +578,7 @@ function SessionSummary({
           </p>
         )}
 
-        <TsumugiCharacter
+        <TsumugiArt
           expression={line.expression}
           outfit={outfit}
           size={170}

@@ -6,7 +6,7 @@ import { getDueCards, onCorrect, onWrong, masteryRatio, MAX_BOX } from '@/lib/sr
 import { updateMistake, deleteMistake, addBondPoints } from '@/lib/storage';
 import { getPraise, getEncouragement } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
-import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 
 export default function ReviewScreen({ state, now }: { state: AppState; now: number }) {
@@ -102,7 +102,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-4 py-6">
-        <TsumugiCharacter
+        <TsumugiArt
           expression={expression}
           outfit={state.bond.currentOutfit}
           size={150}
@@ -223,7 +223,7 @@ function EmptyState({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-8 text-center safe-top">
       <div className="anim-float">
-        <TsumugiCharacter expression={expression} outfit={outfit} size={200} reduceMotion={reduceMotion} />
+        <TsumugiArt expression={expression} outfit={outfit} size={200} reduceMotion={reduceMotion} />
       </div>
       <h2 className="text-[19px] font-extrabold" style={{ color: 'var(--text)' }}>
         {title}

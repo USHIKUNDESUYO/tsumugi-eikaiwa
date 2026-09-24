@@ -52,3 +52,6 @@ next-env.d.ts
 *.keystore
 *.jks
 .tsumugi-gen.json
+
+# 生成イラストの中間ファイル（配信するのは .webp だけ）
+/public/tsumugi/*.png

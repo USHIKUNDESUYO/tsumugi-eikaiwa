@@ -6,7 +6,7 @@ import { OUTFIT_UNLOCKS, updateSettings, resetAll, exportState, bondProgress } f
 import { MAX_BOX } from '@/lib/srs';
 import { festivalScenarioOrder, getEssentialPhrases } from '@/lib/festivalScenarios';
 import { apiUrl } from '@/lib/apiBase';
-import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 
 const SETTING_ROWS: Array<{ key: keyof Settings; label: string; hint: string }> = [
   { key: 'autoSpeak', label: '紬の声を自動再生', hint: '返事が来たら自動で読み上げます' },
@@ -164,7 +164,7 @@ export default function ProgressScreen({
                   opacity: unlocked ? 1 : 0.45,
                 }}
               >
-                <TsumugiCharacter
+                <TsumugiArt
                   expression={active ? 'happy' : 'smile'}
                   outfit={u.outfit}
                   size={104}

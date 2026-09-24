@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from 'react';
 import type { LanguageLevel } from '@/types';
 import { updateProfile } from '@/lib/storage';
 import { FESTIVAL_INFO, getCountdown } from '@/lib/festivalScenarios';
-import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 
 const LEVELS: Array<{ id: LanguageLevel; label: string; desc: string; emoji: string }> = [
@@ -54,7 +54,7 @@ export default function OnboardingScreen() {
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-6 safe-top">
       <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10">
         <div className="anim-float">
-          <TsumugiCharacter
+          <TsumugiArt
             expression={step === 0 ? 'shy' : step === 1 ? 'thinking' : 'happy'}
             size={230}
             reduceMotion={prefersReducedMotion}

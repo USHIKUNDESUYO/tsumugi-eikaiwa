@@ -5,12 +5,14 @@ import type { FestivalScenarioId, Outfit } from '@/types';
 import { touchStreak, setOutfit } from '@/lib/storage';
 import { useAppState, useHydrated } from '@/lib/useAppState';
 import { initPurchases } from '@/lib/purchases';
+import { preloadArt } from '@/lib/tsumugiArt';
 import { usePurchases } from '@/lib/usePurchases';
 import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { getLevelUpLine } from '@/lib/tsumugiVoice';
 import BottomNav, { type Screen } from '@/components/BottomNav';
 import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import OnboardingScreen from '@/components/screens/OnboardingScreen';
 import HomeScreen from '@/components/screens/HomeScreen';
 import ScenarioListScreen from '@/components/screens/ScenarioListScreen';
@@ -41,6 +43,8 @@ export default function TsumugiApp() {
   useEffect(() => {
     touchStreak();
     void initPurchases();
+    // 表情を切り替えた瞬間に読み込みが走ると一瞬消えるので、先に温めておく
+    preloadArt();
   }, []);
 
   const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
@@ -185,7 +189,7 @@ function LevelUpOverlay({
             className="anim-ring absolute inset-0 m-auto h-28 w-28 rounded-full"
             style={{ border: '3px solid var(--tsu-pink-300)' }}
           />
-          <TsumugiCharacter
+          <TsumugiArt
             expression={event.unlocked ? 'happy' : line.expression}
             outfit={event.unlocked?.outfit ?? outfit}
             size={190}

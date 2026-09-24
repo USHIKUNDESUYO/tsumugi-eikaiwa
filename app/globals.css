@@ -262,6 +262,15 @@ body {
   animation: tsu-sparkle 1.9s ease-in-out infinite;
 }
 
+/* イラスト版のきらきら（SVGのviewBox座標に依存しない版） */
+@keyframes tsu-twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}
+.art-twinkle {
+  animation: tsu-twinkle 1.9s ease-in-out infinite;
+}
+
 /* ==========================  UIアニメ  ========================== */
 
 @keyframes tsu-pop {

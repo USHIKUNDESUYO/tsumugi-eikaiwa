@@ -6,7 +6,7 @@ import { festivalScenarioOrder, festivalScenarios, getEssentialPhrases } from '@
 import { FREE_SCENARIOS, LOCKED_SCENARIO_COUNT, isScenarioFree, lockedPhraseCount } from '@/lib/entitlements';
 import { usePurchases } from '@/lib/usePurchases';
 import { purchase, restore, clearPurchaseError, type SimplePackage } from '@/lib/purchases';
-import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 
 const KIND_LABEL: Record<SimplePackage['kind'], string> = {
@@ -67,7 +67,7 @@ export default function PaywallScreen({
       </header>
 
       <div className="flex flex-col items-center pt-1">
-        <TsumugiCharacter
+        <TsumugiArt
           expression="shy"
           outfit={state.bond.currentOutfit}
           size={190}

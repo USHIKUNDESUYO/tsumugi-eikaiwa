@@ -13,7 +13,7 @@ import { getGreeting } from '@/lib/tsumugiVoice';
 import { isScenarioUnlocked, LOCKED_SCENARIO_COUNT } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
-import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
+import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 import BondMeter from '@/components/tsumugi/BondMeter';
 import HeartBurst from '@/components/tsumugi/HeartBurst';
@@ -116,7 +116,7 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
           aria-label="紬をなでる"
           className="tsu-btn !rounded-full"
         >
-          <TsumugiCharacter
+          <TsumugiArt
             expression={expression}
             outfit={state.bond.currentOutfit}
             speaking={speaking}
