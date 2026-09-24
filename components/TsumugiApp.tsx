@@ -7,6 +7,8 @@ import { useAppState, useHydrated } from '@/lib/useAppState';
 import { initPurchases } from '@/lib/purchases';
 import { preloadArt } from '@/lib/tsumugiArt';
 import { unlockVoice, speakJa, stopVoice } from '@/lib/tsumugiSpeech';
+import { unlockSfx, setSfxEnabled, playSfx } from '@/lib/sfx';
+import { setHapticsEnabled, hapticCelebrate, haptic } from '@/lib/haptics';
 import { usePurchases } from '@/lib/usePurchases';
 import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
@@ -45,7 +47,10 @@ export default function TsumugiApp() {
     touchStreak();
     void initPurchases();
     // ブラウザは最初のユーザー操作より前に音を鳴らせない。一度だけ解禁しておく。
-    const unlock = () => unlockVoice();
+    const unlock = () => {
+      unlockVoice();
+      unlockSfx();
+    };
     window.addEventListener('pointerdown', unlock, { once: true });
     return () => window.removeEventListener('pointerdown', unlock);
   }, []);
@@ -55,9 +60,17 @@ export default function TsumugiApp() {
     preloadArt(state.bond.currentOutfit);
   }, [state.bond.currentOutfit]);
 
+  // 効果音と振動は React の外で鳴るので、設定を単純に流し込む
+  useEffect(() => {
+    setSfxEnabled(state.settings.soundEffects);
+    setHapticsEnabled(state.settings.haptics);
+  }, [state.settings.soundEffects, state.settings.haptics]);
+
   const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
 
   const navigate = useCallback((next: Screen) => {
+    playSfx('tap');
+    haptic('light');
     if (next === 'review') setReviewOpenedAt(Date.now());
     setScreen(next);
   }, []);
@@ -135,7 +148,11 @@ export default function TsumugiApp() {
           <ProgressScreen
             state={state}
             isPremium={isPremium}
-            onChangeOutfit={setOutfit}
+            onChangeOutfit={(o) => {
+              playSfx('unlock');
+              haptic('light');
+              setOutfit(o);
+            }}
             onOpenPaywall={() => setShowPaywall(true)}
           />
         )}
@@ -176,6 +193,8 @@ function LevelUpOverlay({
   const [line] = useState(() => getLevelUpLine(event.level));
 
   useEffect(() => {
+    playSfx('levelup');
+    hapticCelebrate();
     if (jaVoice) speakJa(line.id);
     return () => stopVoice();
   }, [jaVoice, line.id]);

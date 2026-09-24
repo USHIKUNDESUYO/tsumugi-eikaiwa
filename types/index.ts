@@ -151,6 +151,10 @@ export interface Settings {
   autoSpeak: boolean;
   /** 紬の日本語ボイスを鳴らすか */
   jaVoice: boolean;
+  /** UIの効果音を鳴らすか */
+  soundEffects: boolean;
+  /** 触覚フィードバックを出すか */
+  haptics: boolean;
   reduceMotion: boolean;
   sfxEnabled: boolean;
 }

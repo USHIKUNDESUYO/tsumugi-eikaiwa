@@ -15,6 +15,8 @@ import {
 import { getScenarioIntro, getClosingLine, getPraise, inferExpression } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech, unlockIOSAudio, initializeTTSVoices, probeCloudTTS } from '@/lib/ttsVoice';
 import { speakJa, stopVoice } from '@/lib/tsumugiSpeech';
+import { playSfx } from '@/lib/sfx';
+import { haptic } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import MicButton from '@/components/tsumugi/MicButton';
 import type { LevelUpEvent } from '@/components/TsumugiApp';
@@ -119,6 +121,8 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
       unlockIOSAudio();
       stopAllSpeech();
       setSpeaking(false);
+      playSfx('send');
+      haptic('light');
 
       const userMsg: Message = {
         id: `u-${Date.now()}`,
@@ -163,6 +167,9 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           },
         ]);
         setExpression(expr);
+
+        // 直されたときは受信音ではなく、やわらかい音にする
+        playSfx(correction ? 'soft' : 'receive');
 
         if (correction) {
           corrections.current += 1;
@@ -579,9 +586,13 @@ function SessionSummary({
   const [line] = useState(() => getClosingLine(bondLevel, corrections));
 
   useEffect(() => {
+    if (cleared) {
+      playSfx('unlock');
+      haptic('medium');
+    }
     if (jaVoice) speakJa(line.id);
     return () => stopVoice();
-  }, [jaVoice, line.id]);
+  }, [cleared, jaVoice, line.id]);
 
   return (
     <div

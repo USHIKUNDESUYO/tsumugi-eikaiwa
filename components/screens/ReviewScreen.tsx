@@ -7,6 +7,8 @@ import { updateMistake, deleteMistake, addBondPoints } from '@/lib/storage';
 import { getPraise, getEncouragement } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 import { speakJa } from '@/lib/tsumugiSpeech';
+import { playSfx } from '@/lib/sfx';
+import { haptic } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 
@@ -31,12 +33,15 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
     if (!card) return;
     updateMistake(card.id, correct ? onCorrect(card) : onWrong(card));
     if (correct) {
+      playSfx('correct');
+      haptic('medium');
       addBondPoints(2);
       const praise = getPraise(state.bond.level);
       setExpression('cheer');
       setLine(praise.text);
       if (state.settings.jaVoice) speakJa(praise.id);
     } else {
+      playSfx('soft');
       const enc = getEncouragement();
       setExpression(enc.expression);
       setLine(enc.text);
@@ -152,7 +157,10 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
           ) : (
             <button
               type="button"
-              onClick={() => setRevealed(true)}
+              onClick={() => {
+                playSfx('tap');
+                setRevealed(true);
+              }}
               className="tsu-btn tsu-btn-ghost w-full py-3.5 text-[14px]"
             >
               答えを見る

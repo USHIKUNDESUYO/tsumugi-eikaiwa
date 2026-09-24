@@ -54,6 +54,8 @@ export function getDefaultSettings(): Settings {
   return {
     autoSpeak: true,
     jaVoice: true,
+    soundEffects: true,
+    haptics: true,
     reduceMotion: false,
     sfxEnabled: true,
   };

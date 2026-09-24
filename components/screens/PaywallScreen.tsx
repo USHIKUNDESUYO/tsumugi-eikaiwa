@@ -6,6 +6,8 @@ import { festivalScenarioOrder, festivalScenarios, getEssentialPhrases } from '@
 import { FREE_SCENARIOS, LOCKED_SCENARIO_COUNT, isScenarioFree, lockedPhraseCount } from '@/lib/entitlements';
 import { usePurchases } from '@/lib/usePurchases';
 import { purchase, restore, clearPurchaseError, type SimplePackage } from '@/lib/purchases';
+import { playSfx } from '@/lib/sfx';
+import { hapticCelebrate } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 
@@ -35,7 +37,11 @@ export default function PaywallScreen({
   const buy = async () => {
     if (!current) return;
     const ok = await purchase(current);
-    if (ok) onClose();
+    if (ok) {
+      playSfx('unlock');
+      hapticCelebrate();
+      onClose();
+    }
   };
 
   const doRestore = async () => {

@@ -5,6 +5,8 @@ import type { AppState, FestivalScenarioId } from '@/types';
 import { festivalScenarios, festivalScenarioOrder } from '@/lib/festivalScenarios';
 import { togglePhraseMastered } from '@/lib/storage';
 import { isScenarioUnlocked } from '@/lib/entitlements';
+import { playSfx } from '@/lib/sfx';
+import { haptic } from '@/lib/haptics';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 
 export default function PhrasebookScreen({
@@ -119,7 +121,9 @@ export default function PhrasebookScreen({
                   <button
                     type="button"
                     onClick={() => {
-                      togglePhraseMastered(p.en);
+                      const nowMastered = togglePhraseMastered(p.en);
+                      playSfx(nowMastered ? 'correct' : 'tap');
+                      haptic('light');
                     }}
                     aria-label={mastered ? '覚えたを取り消す' : '覚えた'}
                     aria-pressed={mastered}

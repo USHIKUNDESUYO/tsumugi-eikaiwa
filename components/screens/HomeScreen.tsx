@@ -14,6 +14,8 @@ import { isScenarioUnlocked, LOCKED_SCENARIO_COUNT } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 import { speakJa } from '@/lib/tsumugiSpeech';
+import { playSfx } from '@/lib/sfx';
+import { haptic } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 import BondMeter from '@/components/tsumugi/BondMeter';
@@ -72,6 +74,8 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
   /** なでるほど照れが深くなる: 照れる → 顔を隠す → 甘える */
   const PAT_REACTIONS: Expression[] = ['shy', 'hide', 'love'];
   const pat = () => {
+    playSfx('pop');
+    haptic('light');
     setPats((p) => p + 1);
     setExpression(PAT_REACTIONS[pats % PAT_REACTIONS.length]);
     setTimeout(() => setExpression('smile'), 1900);
