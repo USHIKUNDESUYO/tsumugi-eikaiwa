@@ -11,7 +11,7 @@
     "cap:open": "npx cap open android",
     "cap:sync": "npx cap sync android",
     "gen:character": "node scripts/generate-character.mjs",
-    "gen:voice": "node scripts/generate-voice.mjs",
+    "gen:voice": "npx tsx scripts/export-voice-lines.ts && python3 scripts/generate-voice-qwen.py",
     "gen:scenes": "node scripts/generate-scenes.mjs"
   },
   "dependencies": {

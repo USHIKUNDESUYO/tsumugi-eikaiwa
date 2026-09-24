@@ -59,3 +59,6 @@ next-env.d.ts
 
 # BGMの元WAV（配信するのは加工済みMP3だけ）
 /public/bgm/_raw/
+
+# Python（scripts/generate-voice-qwen.py）
+__pycache__/

@@ -141,9 +141,12 @@ components/
   screens/                 各画面
 capacitor.config.ts        Android アプリの設定（appId はアップロード後は変更不可）
 scripts/build-mobile.mjs   静的書き出し → cap sync android
-scripts/generate-voice.mjs 紬の日本語ボイスを生成（fal.ai Kokoro → MP3）
+scripts/export-voice-lines.ts   事前に音声化するセリフの一覧を書き出す（npx tsx で実行）
+scripts/generate-voice-qwen.py  紬の声（Qwen3-TTS「元気」）で音声化。書き起こしと話者照合で1本ずつ確かめる
+scripts/voice/                  声の手本（tsumugi-ref.wav）と生成記録
 lib/
-  tsumugiSpeech.ts         ボイス再生（自動再生ブロックは黙って諦める）
+  tsumugiSpeech.ts         ボイス再生（日本語のセリフと、事前に作った英文を同じ要素で鳴らす）
+  englishVoiceLines.ts     英文 → 同梱音声の表（自動生成）
   purchases.ts             RevenueCat ラッパー（Webでは購入なしにフォールバック）
   entitlements.ts          無料シナリオと解放判定
   festivalScenarios.ts     13シナリオ + フレーズ + ロールプレイ用プロンプト

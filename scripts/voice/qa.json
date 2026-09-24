@@ -1,0 +1,1402 @@
+{
+  "02f2c962e04e": {
+    "heard": "This was the best part of my year.",
+    "passed": true,
+    "seconds": 2.24,
+    "speaker": 0.9123846292495728,
+    "text": 1.0
+  },
+  "069a0f83774c": {
+    "heard": "Thanks for everything.",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8959859013557434,
+    "text": 1.0
+  },
+  "0847e633d874": {
+    "heard": "Let's go closer to the stage.",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.869473934173584,
+    "text": 1.0
+  },
+  "08aeae0670aa": {
+    "heard": "Sorry, what was your name again?",
+    "passed": true,
+    "seconds": 1.84,
+    "speaker": 0.8813421726226807,
+    "text": 1.0
+  },
+  "08b3c532e635": {
+    "heard": "I'd love to show you my app when it's ready.",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9106532335281372,
+    "text": 1.0
+  },
+  "0c9bf9e96f6c": {
+    "heard": "Let me know when you're back in Japan!",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.9148460626602173,
+    "text": 1.0
+  },
+  "0dd5a15a2674": {
+    "heard": "Can I still join?",
+    "passed": true,
+    "seconds": 0.88,
+    "speaker": 0.869942843914032,
+    "text": 1.0
+  },
+  "0f3c57c91512": {
+    "heard": "Are you on Instagram?",
+    "passed": true,
+    "seconds": 1.04,
+    "speaker": 0.8912630081176758,
+    "text": 1.0
+  },
+  "11a0db73bb20": {
+    "heard": "What about you?",
+    "passed": true,
+    "seconds": 0.96,
+    "speaker": 0.8579667806625366,
+    "text": 1.0
+  },
+  "13e11f5f95d3": {
+    "heard": "Can I ask you something personal?",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.8806662559509277,
+    "text": 1.0
+  },
+  "148a8b89bf5e": {
+    "heard": "Sorry, I'm a bit lost. Can we go back a step?",
+    "passed": true,
+    "seconds": 3.04,
+    "speaker": 0.9406259059906006,
+    "text": 1.0
+  },
+  "14d80271562e": {
+    "heard": "Hey, neighbor, need a hand with that tent?",
+    "passed": false,
+    "seconds": 2.56,
+    "speaker": 0.7648715972900391,
+    "text": 0.875
+  },
+  "157c66e801fb": {
+    "heard": "Do you need a hand?",
+    "passed": true,
+    "seconds": 0.96,
+    "speaker": 0.8880476951599121,
+    "text": 1.0
+  },
+  "164caa75f64e": {
+    "heard": "Can I pay by card?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8692166805267334,
+    "text": 1.0
+  },
+  "16f7b99fdde5": {
+    "heard": "That went way too fast!",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.927819013595581,
+    "text": 1.0
+  },
+  "1bba6e0bfda3": {
+    "heard": "Could I get a map of the site?",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.9307417869567871,
+    "text": 1.0
+  },
+  "1cd7ffb3bae6": {
+    "heard": "I have four more days here. Where should I go?",
+    "passed": true,
+    "seconds": 2.56,
+    "speaker": 0.9371321201324463,
+    "text": 1.0
+  },
+  "1dbaaba577d3": {
+    "heard": "So that's it! Three days went way too fast.",
+    "passed": true,
+    "seconds": 2.88,
+    "speaker": 0.9652101993560791,
+    "text": 1.0
+  },
+  "1eeb336209cf": {
+    "heard": "Let's grab a drink later if you're around.",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9037072658538818,
+    "text": 1.0
+  },
+  "20356af147dc": {
+    "heard": "sauna, then cold bath, then rest. That's one round!",
+    "passed": true,
+    "seconds": 4.16,
+    "speaker": 0.9472806453704834,
+    "text": 1.0
+  },
+  "20ffaad2fba7": {
+    "heard": "It was really nice meeting you.",
+    "passed": true,
+    "seconds": 1.84,
+    "speaker": 0.9006869792938232,
+    "text": 1.0
+  },
+  "215ccbb61587": {
+    "heard": "I can write it down for you!",
+    "passed": true,
+    "seconds": 2.24,
+    "speaker": 0.889439582824707,
+    "text": 1.0
+  },
+  "22aa95b4bf05": {
+    "heard": "Is this your first time at Synapse?",
+    "passed": true,
+    "seconds": 1.84,
+    "speaker": 0.9005798101425171,
+    "text": 1.0
+  },
+  "22b76015c88c": {
+    "heard": "Could you speak a little slower, please?",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.889574408531189,
+    "text": 1.0
+  },
+  "25c1321594bd": {
+    "heard": "I'm more into deep house than techno.",
+    "passed": true,
+    "seconds": 2.0,
+    "speaker": 0.942405104637146,
+    "text": 1.0
+  },
+  "27f0b6e82a08": {
+    "heard": "Sorry, one more thing. Where are the showers?",
+    "passed": true,
+    "seconds": 2.72,
+    "speaker": 0.9093785285949707,
+    "text": 1.0
+  },
+  "2d63e271d130": {
+    "heard": "If you ever come to Fukuoka, you have a place to stay.",
+    "passed": true,
+    "seconds": 3.28,
+    "speaker": 0.9152663946151733,
+    "text": 1.0
+  },
+  "33224c361c9a": {
+    "heard": "Cheers!",
+    "passed": false,
+    "seconds": 0.56,
+    "speaker": 0.8390218615531921,
+    "text": 1.0
+  },
+  "393cb8a6ac1c": {
+    "heard": "Are you in the Synapse Discord?",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.9532952308654785,
+    "text": 1.0
+  },
+  "3a731507c106": {
+    "heard": "Sorry, could you say that again?",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.9238632917404175,
+    "text": 1.0
+  },
+  "3b1c23082343": {
+    "heard": "What time are you heading to the stage tomorrow?",
+    "passed": true,
+    "seconds": 2.08,
+    "speaker": 0.9119023084640503,
+    "text": 1.0
+  },
+  "3d1ce1a65f8e": {
+    "heard": "That's a big question.",
+    "passed": true,
+    "seconds": 1.28,
+    "speaker": 0.8996374607086182,
+    "text": 1.0
+  },
+  "3e82652bfe01": {
+    "heard": "Could I get one of these, please?",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.9091525077819824,
+    "text": 1.0
+  },
+  "3f3d1381c108": {
+    "heard": "How do you spell that?",
+    "passed": true,
+    "seconds": 1.36,
+    "speaker": 0.9180790781974792,
+    "text": 1.0
+  },
+  "402b1b29a11a": {
+    "heard": "This is the kind of conversation I came here for.",
+    "passed": true,
+    "seconds": 2.72,
+    "speaker": 0.9248937368392944,
+    "text": 1.0
+  },
+  "418a24ea9d5f": {
+    "heard": "Do you want to try some?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.883776068687439,
+    "text": 1.0
+  },
+  "41c4cb5b36bd": {
+    "heard": "Do I need to sign up in advance?",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.9156486988067627,
+    "text": 1.0
+  },
+  "420f7b0fa98e": {
+    "heard": "Hey! What can I get you?",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.8617295026779175,
+    "text": 1.0
+  },
+  "46aa65e52d69": {
+    "heard": "I want to build something people actually use.",
+    "passed": true,
+    "seconds": 2.4,
+    "speaker": 0.9118291139602661,
+    "text": 1.0
+  },
+  "49cade70cd7f": {
+    "heard": "See you, for real this time.",
+    "passed": true,
+    "seconds": 2.08,
+    "speaker": 0.9256762862205505,
+    "text": 1.0
+  },
+  "4b58b064cdf6": {
+    "heard": "I've never heard of them, but I'll check them out.",
+    "passed": true,
+    "seconds": 2.32,
+    "speaker": 0.9231237173080444,
+    "text": 1.0
+  },
+  "4bdb3b1e2355": {
+    "heard": "It's going to get cold tonight.",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.9476230144500732,
+    "text": 1.0
+  },
+  "4c05e4eacb70": {
+    "heard": "You should definitely check out the Atai.",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9429839849472046,
+    "text": 0.8571428571428571
+  },
+  "4c1b3c665ca1": {
+    "heard": "Totonu means your body and mind click into place.",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.9130007028579712,
+    "text": 0.8888888888888888
+  },
+  "5194b830325d": {
+    "heard": "That's a beautiful idea!",
+    "passed": true,
+    "seconds": 1.28,
+    "speaker": 0.9091960191726685,
+    "text": 1.0
+  },
+  "5377e1dbc2f1": {
+    "heard": "I'm still learning English, so please speak slowly.",
+    "passed": true,
+    "seconds": 2.96,
+    "speaker": 0.9249148368835449,
+    "text": 1.0
+  },
+  "54047a7c89b2": {
+    "heard": "That's really cool! How does it work?",
+    "passed": true,
+    "seconds": 2.32,
+    "speaker": 0.8976315855979919,
+    "text": 1.0
+  },
+  "5551613647dd": {
+    "heard": "What time does the first act start?",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.8765413165092468,
+    "text": 1.0
+  },
+  "55d4c7649cda": {
+    "heard": "I've never thought about it that way.",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.9035929441452026,
+    "text": 1.0
+  },
+  "56c708349015": {
+    "heard": "I guess I'm afraid of making something nobody needs.",
+    "passed": true,
+    "seconds": 2.48,
+    "speaker": 0.9087270498275757,
+    "text": 1.0
+  },
+  "57a3a2c9e942": {
+    "heard": "Same time next year!",
+    "passed": true,
+    "seconds": 1.36,
+    "speaker": 0.8550165891647339,
+    "text": 1.0
+  },
+  "593ee5bbbd75": {
+    "heard": "Sorry, my English isn't great.",
+    "passed": true,
+    "seconds": 2.16,
+    "speaker": 0.888638973236084,
+    "text": 1.0
+  },
+  "59660cb89e69": {
+    "heard": "Oh man, this track is so good! Do you know who's playing right now?",
+    "passed": true,
+    "seconds": 4.24,
+    "speaker": 0.9639816284179688,
+    "text": 1.0
+  },
+  "5bd1fda9c61f": {
+    "heard": "Are you doing it full time?",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.8579400777816772,
+    "text": 1.0
+  },
+  "5d8c85c98e7a": {
+    "heard": "Can I touch it?",
+    "passed": true,
+    "seconds": 0.72,
+    "speaker": 0.8745357990264893,
+    "text": 1.0
+  },
+  "61c6672012fe": {
+    "heard": "Let me know if you come to Fukuoka again.",
+    "passed": true,
+    "seconds": 2.16,
+    "speaker": 0.8888537883758545,
+    "text": 1.0
+  },
+  "623d29c59df6": {
+    "heard": "Nokenoshima is a small island with flower fields. It's beautiful.",
+    "passed": true,
+    "seconds": 4.24,
+    "speaker": 0.9198462963104248,
+    "text": 0.9
+  },
+  "63aad872ea62": {
+    "heard": "That must have been hard.",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.9318236112594604,
+    "text": 1.0
+  },
+  "640cb2ff8b0d": {
+    "heard": "Is it okay to take a photo?",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.8712249398231506,
+    "text": 1.0
+  },
+  "65504613eb45": {
+    "heard": "Drink lots of water!",
+    "passed": true,
+    "seconds": 1.28,
+    "speaker": 0.860649824142456,
+    "text": 1.0
+  },
+  "67513f261c1e": {
+    "heard": "It's about 30 minutes from here by train.",
+    "passed": true,
+    "seconds": 2.16,
+    "speaker": 0.8871599435806274,
+    "text": 1.0
+  },
+  "67852b7141d8": {
+    "heard": "It's still a side project, but I'm hoping to launch it soon.",
+    "passed": true,
+    "seconds": 3.2,
+    "speaker": 0.9709092378616333,
+    "text": 1.0
+  },
+  "67a2d8bc4a7c": {
+    "heard": "Hey! This line is insane, right? Have you tried the food here before?",
+    "passed": true,
+    "seconds": 4.32,
+    "speaker": 0.9781011939048767,
+    "text": 1.0
+  },
+  "6b1b1860c466": {
+    "heard": "Sorry, I didn't catch that.",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.8861644268035889,
+    "text": 1.0
+  },
+  "6da9e996613c": {
+    "heard": "How long did it take to make?",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.9068508148193359,
+    "text": 1.0
+  },
+  "714b262d3e3d": {
+    "heard": "I have a three-day pass.",
+    "passed": true,
+    "seconds": 1.28,
+    "speaker": 0.858296275138855,
+    "text": 1.0
+  },
+  "7291cf58c7de": {
+    "heard": "I'd love to show you sometime.",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.9030747413635254,
+    "text": 1.0
+  },
+  "75eff0333083": {
+    "heard": "I've never done this before.",
+    "passed": true,
+    "seconds": 1.44,
+    "speaker": 0.9420175552368164,
+    "text": 1.0
+  },
+  "75fe7dc5bd85": {
+    "heard": "You have to try Tonkotsu Ramen while you're here!",
+    "passed": true,
+    "seconds": 2.96,
+    "speaker": 0.9097469449043274,
+    "text": 1.0
+  },
+  "7624042614cb": {
+    "heard": "I love this vibe.",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.9120756387710571,
+    "text": 1.0
+  },
+  "77bfd1944d46": {
+    "heard": "Usually three rounds is enough.",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.9328108429908752,
+    "text": 1.0
+  },
+  "77d7239662c7": {
+    "heard": "This track is amazing!",
+    "passed": true,
+    "seconds": 1.44,
+    "speaker": 0.9024585485458374,
+    "text": 1.0
+  },
+  "79a010dc4fb1": {
+    "heard": "I'm really glad we met.",
+    "passed": true,
+    "seconds": 1.36,
+    "speaker": 0.9175868034362793,
+    "text": 1.0
+  },
+  "7b7fa29b9e98": {
+    "heard": "I'll send you a message later.",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.9213579297065735,
+    "text": 1.0
+  },
+  "7bc5e7f6b591": {
+    "heard": "Where are you from?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8671965599060059,
+    "text": 1.0
+  },
+  "7d36ec26e036": {
+    "heard": "What's the hardest part?",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.8672388195991516,
+    "text": 1.0
+  },
+  "7da47557f101": {
+    "heard": "I'm vegetarian. Is there anything I can eat?",
+    "passed": true,
+    "seconds": 2.96,
+    "speaker": 0.8973867893218994,
+    "text": 1.0
+  },
+  "7e67657d75f7": {
+    "heard": "So what do you do? Or what are you working on these days?",
+    "passed": true,
+    "seconds": 3.68,
+    "speaker": 0.9343199729919434,
+    "text": 1.0
+  },
+  "804f3ff12c85": {
+    "heard": "Sleep well, see you tomorrow!",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.884758710861206,
+    "text": 1.0
+  },
+  "8297bb17c6aa": {
+    "heard": "Got it!",
+    "passed": false,
+    "seconds": 0.64,
+    "speaker": 0.7372853755950928,
+    "text": 1.0
+  },
+  "84e5517292f4": {
+    "heard": "The bass is hitting so hard!",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.8884864449501038,
+    "text": 1.0
+  },
+  "84ed4609f097": {
+    "heard": "Hi! Welcome to Synapse! Do you have a ticket with you?",
+    "passed": true,
+    "seconds": 3.12,
+    "speaker": 0.966814398765564,
+    "text": 1.0
+  },
+  "87071c9bb397": {
+    "heard": "There's no perfect translation, but it feels like being reset.",
+    "passed": true,
+    "seconds": 3.6,
+    "speaker": 0.9432724714279175,
+    "text": 1.0
+  },
+  "88883e15bdee": {
+    "heard": "Let me get this one.",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.9149951338768005,
+    "text": 1.0
+  },
+  "89980b6dcf58": {
+    "heard": "Okay, I've never done this properly. How does this actually work?",
+    "passed": true,
+    "seconds": 3.44,
+    "speaker": 0.906719446182251,
+    "text": 1.0
+  },
+  "8a65d8c9c83d": {
+    "heard": "I know exactly what you mean.",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.9469626545906067,
+    "text": 1.0
+  },
+  "8b14aa3fafa4": {
+    "heard": "I learned a lot from you!",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.9428737163543701,
+    "text": 1.0
+  },
+  "8dd82f3160a6": {
+    "heard": "How long does it take?",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.8735182285308838,
+    "text": 1.0
+  },
+  "8e5908091a08": {
+    "heard": "Give me a second.",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8665038347244263,
+    "text": 1.0
+  },
+  "8ec046edb58f": {
+    "heard": "Do you mean?",
+    "passed": true,
+    "seconds": 1.04,
+    "speaker": 0.8961724042892456,
+    "text": 1.0
+  },
+  "8f41f0427a2e": {
+    "heard": "Same here.",
+    "passed": false,
+    "seconds": 0.88,
+    "speaker": 0.8014830946922302,
+    "text": 1.0
+  },
+  "9b9305684d25": {
+    "heard": "Take it easy on your first time.",
+    "passed": true,
+    "seconds": 1.84,
+    "speaker": 0.8741110563278198,
+    "text": 1.0
+  },
+  "9c0c25fa2a60": {
+    "heard": "Let me find you. How do you spell your handle?",
+    "passed": true,
+    "seconds": 2.56,
+    "speaker": 0.9124456644058228,
+    "text": 1.0
+  },
+  "9ff826ad418d": {
+    "heard": "What inspired you to make this?",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9227516651153564,
+    "text": 1.0
+  },
+  "a0d6fe6fc33c": {
+    "heard": "Let's keep in touch.",
+    "passed": true,
+    "seconds": 1.12,
+    "speaker": 0.9026787281036377,
+    "text": 1.0
+  },
+  "a2538c7c52f4": {
+    "heard": "Take the subway to Tengen, then walk about 10 minutes.",
+    "passed": false,
+    "seconds": 2.88,
+    "speaker": 0.9673385620117188,
+    "text": 0.8
+  },
+  "a51ca5dd23b4": {
+    "heard": "I also booked a tent site.",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.9223527908325195,
+    "text": 1.0
+  },
+  "a57d36dd7547": {
+    "heard": "What does that mean?",
+    "passed": true,
+    "seconds": 0.96,
+    "speaker": 0.8944483399391174,
+    "text": 1.0
+  },
+  "a84576f42e62": {
+    "heard": "Yatai are open-air food stalls along the river. They open at night.",
+    "passed": true,
+    "seconds": 4.08,
+    "speaker": 0.9526428580284119,
+    "text": 1.0
+  },
+  "aa6aa5db5f63": {
+    "heard": "What's this piece about?",
+    "passed": true,
+    "seconds": 1.28,
+    "speaker": 0.8695566058158875,
+    "text": 1.0
+  },
+  "ac9913f790c3": {
+    "heard": "Nice! That sounds fun!",
+    "passed": true,
+    "seconds": 2.16,
+    "speaker": 0.9126670360565186,
+    "text": 1.0
+  },
+  "acdd9cf363e6": {
+    "heard": "Are you staying for the late set?",
+    "passed": true,
+    "seconds": 1.6,
+    "speaker": 0.8578265309333801,
+    "text": 1.0
+  },
+  "af486880f803": {
+    "heard": "What made you come all the way to Fukuoka?",
+    "passed": true,
+    "seconds": 2.48,
+    "speaker": 0.9237090349197388,
+    "text": 1.0
+  },
+  "b0075943bc02": {
+    "heard": "Do you have any artists you'd recommend?",
+    "passed": true,
+    "seconds": 1.84,
+    "speaker": 0.9235920310020447,
+    "text": 1.0
+  },
+  "b059091c985d": {
+    "heard": "Is reentry allowed?",
+    "passed": false,
+    "seconds": 1.52,
+    "speaker": 0.9122035503387451,
+    "text": 0.5714285714285714
+  },
+  "b0d54bc02875": {
+    "heard": "How do you like Japan so far?",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.8911439180374146,
+    "text": 1.0
+  },
+  "b1acbaf93b19": {
+    "heard": "Let's do one more round.",
+    "passed": true,
+    "seconds": 1.36,
+    "speaker": 0.9075452089309692,
+    "text": 1.0
+  },
+  "b37ce0c2da83": {
+    "heard": "How are you feeling?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8868159651756287,
+    "text": 1.0
+  },
+  "b87be823b2c2": {
+    "heard": "It gets pretty crowded on weekends.",
+    "passed": true,
+    "seconds": 1.84,
+    "speaker": 0.9295192956924438,
+    "text": 1.0
+  },
+  "ba327cd99585": {
+    "heard": "Where can we get coffee in the morning?",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9074652194976807,
+    "text": 1.0
+  },
+  "bf76f18208e1": {
+    "heard": "I'm working on an English conversation app right now.",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.9483392238616943,
+    "text": 1.0
+  },
+  "c2ef1ae01dc6": {
+    "heard": "This is called Mosunabe. It's a Fukuoka specialty.",
+    "passed": true,
+    "seconds": 3.52,
+    "speaker": 0.9306737184524536,
+    "text": 0.875
+  },
+  "c368bd7db034": {
+    "heard": "How did you get into that?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8762193322181702,
+    "text": 1.0
+  },
+  "c6eb2ad166af": {
+    "heard": "Is there anywhere I can leave my luggage?",
+    "passed": true,
+    "seconds": 2.24,
+    "speaker": 0.9368119239807129,
+    "text": 1.0
+  },
+  "c7f7c9b9e13c": {
+    "heard": "Actually, yes, please. Could you hold this?",
+    "passed": true,
+    "seconds": 2.72,
+    "speaker": 0.9305210709571838,
+    "text": 1.0
+  },
+  "c80136561eee": {
+    "heard": "Let me think. How do I say this?",
+    "passed": true,
+    "seconds": 2.0,
+    "speaker": 0.9261972904205322,
+    "text": 1.0
+  },
+  "c810ca77c1b6": {
+    "heard": "First you wash, then you go in.",
+    "passed": true,
+    "seconds": 2.0,
+    "speaker": 0.9445610046386719,
+    "text": 1.0
+  },
+  "cb0ec3777b3d": {
+    "heard": "Where can I find my tent site?",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.9002108573913574,
+    "text": 1.0
+  },
+  "cd691b3bd329": {
+    "heard": "Who's playing right now?",
+    "passed": true,
+    "seconds": 1.28,
+    "speaker": 0.904701828956604,
+    "text": 1.0
+  },
+  "cdd1f44fd1d3": {
+    "heard": "Is it spicy?",
+    "passed": true,
+    "seconds": 1.04,
+    "speaker": 0.8550890684127808,
+    "text": 1.0
+  },
+  "ce7969ff92cb": {
+    "heard": "Are you here with friends or solo?",
+    "passed": true,
+    "seconds": 2.0,
+    "speaker": 0.9227956533432007,
+    "text": 1.0
+  },
+  "close-few-polite": {
+    "heard": "お疲れ様でした。着実に伸びていますよ。",
+    "passed": true,
+    "seconds": 3.68,
+    "speaker": 0.8770463466644287,
+    "text": 1.0
+  },
+  "close-few-warm": {
+    "heard": "お疲れ様 ちゃんと前に進んでるよ",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.8593666553497314,
+    "text": 1.0
+  },
+  "close-many-polite": {
+    "heard": "たくさん練習しましたね!間違いは伸びる材料です",
+    "passed": true,
+    "seconds": 3.84,
+    "speaker": 0.9310068488121033,
+    "text": 1.0
+  },
+  "close-many-warm": {
+    "heard": "いっぱい間違えた日ほど伸びる日だからね",
+    "passed": true,
+    "seconds": 3.04,
+    "speaker": 0.9175798892974854,
+    "text": 1.0
+  },
+  "close-perfect-polite": {
+    "heard": "今日は治すところがありませんでした 素晴らしいです",
+    "passed": false,
+    "seconds": 3.28,
+    "speaker": 0.843658447265625,
+    "text": 1.0
+  },
+  "close-perfect-warm": {
+    "heard": "今日一度も治すとこなかった 本気ですごいよ",
+    "passed": true,
+    "seconds": 4.56,
+    "speaker": 0.8674157857894897,
+    "text": 1.0
+  },
+  "d5e4081fb805": {
+    "heard": "Can I just scan your QR code?",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.916093647480011,
+    "text": 1.0
+  },
+  "d722a847d3a3": {
+    "heard": "Hey, this was really fun! Are you on Instagram?",
+    "passed": true,
+    "seconds": 3.12,
+    "speaker": 0.9559977054595947,
+    "text": 1.0
+  },
+  "d9807e3311c9": {
+    "heard": "What kind of music are you into?",
+    "passed": true,
+    "seconds": 1.76,
+    "speaker": 0.9228361248970032,
+    "text": 1.0
+  },
+  "d9d868255f99": {
+    "heard": "Do you have a spare peg by any chance?",
+    "passed": true,
+    "seconds": 2.0,
+    "speaker": 0.9371426701545715,
+    "text": 1.0
+  },
+  "de48db0328e2": {
+    "heard": "Don't leave without trying Tonkotsu Ramen.",
+    "passed": true,
+    "seconds": 2.32,
+    "speaker": 0.9359440803527832,
+    "text": 1.0
+  },
+  "de5587be5f4d": {
+    "heard": "Thanks for sharing that.",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8901554346084595,
+    "text": 1.0
+  },
+  "deee28664f8f": {
+    "heard": "The cold plunge is the best part, I promise.",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.9334911108016968,
+    "text": 1.0
+  },
+  "e3e7cc971c6e": {
+    "heard": "Thanks so much! You saved me!",
+    "passed": true,
+    "seconds": 2.08,
+    "speaker": 0.9042646288871765,
+    "text": 1.0
+  },
+  "e7495ce41509": {
+    "heard": "If you like temples, does Ifu is worth a day trip?",
+    "passed": true,
+    "seconds": 2.88,
+    "speaker": 0.9139266014099121,
+    "text": 0.8571428571428571
+  },
+  "e77a97095ade": {
+    "heard": "Take care and safe travels.",
+    "passed": true,
+    "seconds": 1.52,
+    "speaker": 0.9151852130889893,
+    "text": 1.0
+  },
+  "e786041160f5": {
+    "heard": "How long have you been doing that?",
+    "passed": true,
+    "seconds": 1.44,
+    "speaker": 0.9315989017486572,
+    "text": 1.0
+  },
+  "e9561f0c21ea": {
+    "heard": "Is this your first time camping in Japan?",
+    "passed": true,
+    "seconds": 2.16,
+    "speaker": 0.9221222400665283,
+    "text": 1.0
+  },
+  "e9906ee48e7c": {
+    "heard": "It's quiet now. Can I ask you something? Why do you do what you do?",
+    "passed": true,
+    "seconds": 4.72,
+    "speaker": 0.9566296339035034,
+    "text": 1.0
+  },
+  "eb9d998fdbae": {
+    "heard": "Hi! Come closer! Are you interested in joining?",
+    "passed": true,
+    "seconds": 3.28,
+    "speaker": 0.9371830224990845,
+    "text": 1.0
+  },
+  "ee820212e310": {
+    "heard": "Honestly, I'm still figuring it out.",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9233385920524597,
+    "text": 1.0
+  },
+  "enc-0": {
+    "heard": "ゆっくりで大丈夫待ってるよ",
+    "passed": true,
+    "seconds": 2.72,
+    "speaker": 0.8898743391036987,
+    "text": 1.0
+  },
+  "enc-1": {
+    "heard": "完璧じゃなくていいのまず行ってみよう",
+    "passed": true,
+    "seconds": 2.88,
+    "speaker": 0.8891534805297852,
+    "text": 0.9743589743589743
+  },
+  "enc-2": {
+    "heard": "間違えても誰も怒らないから",
+    "passed": true,
+    "seconds": 2.08,
+    "speaker": 0.8570519685745239,
+    "text": 1.0
+  },
+  "enc-3": {
+    "heard": "単語だけでも伝わるよ本当に",
+    "passed": true,
+    "seconds": 2.48,
+    "speaker": 0.8564685583114624,
+    "text": 0.9696969696969697
+  },
+  "f11aba27777b": {
+    "heard": "Here's my QR code.",
+    "passed": true,
+    "seconds": 1.44,
+    "speaker": 0.883428692817688,
+    "text": 1.0
+  },
+  "f17b65db329a": {
+    "heard": "Hey, I'm in the tent right next to you.",
+    "passed": true,
+    "seconds": 2.24,
+    "speaker": 0.9344142079353333,
+    "text": 1.0
+  },
+  "f2ad10e405c6": {
+    "heard": "Text me if you get lost.",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.9080721735954285,
+    "text": 1.0
+  },
+  "f2f0e60701df": {
+    "heard": "What's in it?",
+    "passed": true,
+    "seconds": 0.88,
+    "speaker": 0.8755252361297607,
+    "text": 1.0
+  },
+  "f4d13cbea0b7": {
+    "heard": "I work at a company and I build my own things on the side.",
+    "passed": true,
+    "seconds": 2.96,
+    "speaker": 0.9333690404891968,
+    "text": 1.0
+  },
+  "f6d1cb864666": {
+    "heard": "How do you spell that? I want to look it up later.",
+    "passed": true,
+    "seconds": 2.72,
+    "speaker": 0.9543610215187073,
+    "text": 1.0
+  },
+  "f6e4d8b999eb": {
+    "heard": "I'm a developer. I build apps.",
+    "passed": true,
+    "seconds": 2.08,
+    "speaker": 0.9108939170837402,
+    "text": 1.0
+  },
+  "f7b36ec1f2a8": {
+    "heard": "What would you recommend?",
+    "passed": true,
+    "seconds": 1.12,
+    "speaker": 0.88936448097229,
+    "text": 1.0
+  },
+  "fe358a8115ca": {
+    "heard": "Can you write it down?",
+    "passed": true,
+    "seconds": 0.96,
+    "speaker": 0.8514865040779114,
+    "text": 1.0
+  },
+  "fix-1-0": {
+    "heard": "あの一つだけ直していいですか",
+    "passed": true,
+    "seconds": 3.04,
+    "speaker": 0.8597711324691772,
+    "text": 1.0
+  },
+  "fix-1-1": {
+    "heard": "惜しいです もう少しだけ自然にできますよ",
+    "passed": true,
+    "seconds": 4.08,
+    "speaker": 0.9137916564941406,
+    "text": 1.0
+  },
+  "fix-2-0": {
+    "heard": "うん ちょっとだけ直そっか",
+    "passed": false,
+    "seconds": 2.24,
+    "speaker": 0.8151153326034546,
+    "text": 0.96
+  },
+  "fix-2-1": {
+    "heard": "伝わるけどこういうともっといいよ",
+    "passed": true,
+    "seconds": 2.24,
+    "speaker": 0.8527317643165588,
+    "text": 1.0
+  },
+  "fix-3-0": {
+    "heard": "惜しいあとちょっとなんだよね",
+    "passed": false,
+    "seconds": 2.4,
+    "speaker": 0.8168296813964844,
+    "text": 1.0
+  },
+  "fix-3-1": {
+    "heard": "はいここだけ直したら完璧",
+    "passed": true,
+    "seconds": 2.48,
+    "speaker": 0.903107762336731,
+    "text": 1.0
+  },
+  "fix-4-0": {
+    "heard": "ここだけね ほらもう完璧",
+    "passed": false,
+    "seconds": 3.04,
+    "speaker": 0.8469992876052856,
+    "text": 1.0
+  },
+  "fix-4-1": {
+    "heard": "大丈夫私が見てるから間違えていいよ",
+    "passed": true,
+    "seconds": 2.88,
+    "speaker": 0.882361888885498,
+    "text": 1.0
+  },
+  "greet-1-0": {
+    "heard": "こんにちは今日も来てくれたんですね",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.8576405048370361,
+    "text": 1.0
+  },
+  "greet-1-2": {
+    "heard": "今日はどのくらい話せそうですか",
+    "passed": false,
+    "seconds": 2.64,
+    "speaker": 0.8102222084999084,
+    "text": 0.8
+  },
+  "greet-2-0": {
+    "heard": "おかえりなさい ちゃんと続いてるねえらい",
+    "passed": true,
+    "seconds": 3.84,
+    "speaker": 0.8670231699943542,
+    "text": 1.0
+  },
+  "greet-2-1": {
+    "heard": "あ、来た!今日も一緒に練習しよう",
+    "passed": true,
+    "seconds": 3.36,
+    "speaker": 0.8799488544464111,
+    "text": 0.9743589743589743
+  },
+  "greet-2-2": {
+    "heard": "実はちょっと待ってました",
+    "passed": false,
+    "seconds": 2.24,
+    "speaker": 0.8069639205932617,
+    "text": 1.0
+  },
+  "greet-3-0": {
+    "heard": "おかえり今日はどこから話す",
+    "passed": false,
+    "seconds": 2.64,
+    "speaker": 0.8412989974021912,
+    "text": 1.0
+  },
+  "greet-3-1": {
+    "heard": "ふっふっ顔を見たら安心した（large-v3-turbo）",
+    "passed": true,
+    "seconds": 3.36,
+    "speaker": 0.83,
+    "text": 1.0
+  },
+  "greet-3-2": {
+    "heard": "あのね、昨日の練習すごく良かったよ",
+    "passed": true,
+    "seconds": 3.12,
+    "speaker": 0.9471559524536133,
+    "text": 1.0
+  },
+  "greet-4-0": {
+    "heard": "もう、遅い、ずっと待ってたんだからね",
+    "passed": false,
+    "seconds": 3.52,
+    "speaker": 0.793255090713501,
+    "text": 0.9411764705882353
+  },
+  "greet-4-1": {
+    "heard": "おかえり!うん、やっぱりこの時間が一番好き",
+    "passed": false,
+    "seconds": 3.84,
+    "speaker": 0.8492948412895203,
+    "text": 1.0
+  },
+  "greet-4-2": {
+    "heard": "来てくれるとそれだけで今日が良い日になる",
+    "passed": true,
+    "seconds": 3.36,
+    "speaker": 0.934553325176239,
+    "text": 0.9545454545454546
+  },
+  "greet-morning-polite": {
+    "heard": "おはようございます 朝からえらいですね",
+    "passed": false,
+    "seconds": 3.12,
+    "speaker": 0.8470411896705627,
+    "text": 1.0
+  },
+  "greet-morning-warm": {
+    "heard": "おはよう!朝の英語、頭に入りやすいんだよ!",
+    "passed": true,
+    "seconds": 4.4,
+    "speaker": 0.8895198106765747,
+    "text": 0.9777777777777777
+  },
+  "greet-night-polite": {
+    "heard": "夜不可思ですね少しだけやりましょうか",
+    "passed": true,
+    "seconds": 3.68,
+    "speaker": 0.8674281239509583,
+    "text": 0.9047619047619048
+  },
+  "greet-night-warm": {
+    "heard": "こんな時間まで無理しないでね ちょっとだけにしよう",
+    "passed": false,
+    "seconds": 4.0,
+    "speaker": 0.8077398538589478,
+    "text": 0.9795918367346939
+  },
+  "lvl-10": {
+    "heard": "ここまで一緒に来たね 10月2日絶対大丈夫だよ",
+    "passed": true,
+    "seconds": 4.4,
+    "speaker": 0.8779178857803345,
+    "text": 1.0
+  },
+  "lvl-2": {
+    "heard": "ああ、なんだろう、ちょっと話しやすくなった気がする",
+    "passed": true,
+    "seconds": 3.6,
+    "speaker": 0.8774269819259644,
+    "text": 0.9787234042553191
+  },
+  "lvl-3": {
+    "heard": "ねえ稽古やめてもいい その方が自然だから",
+    "passed": true,
+    "seconds": 4.72,
+    "speaker": 0.9305274486541748,
+    "text": 0.9545454545454546
+  },
+  "lvl-4": {
+    "heard": "フェス用の服選んでみたの似合う",
+    "passed": false,
+    "seconds": 3.04,
+    "speaker": 0.849210262298584,
+    "text": 1.0
+  },
+  "lvl-5": {
+    "heard": "毎日会ってるね嬉しい",
+    "passed": true,
+    "seconds": 2.56,
+    "speaker": 0.8720036745071411,
+    "text": 1.0
+  },
+  "lvl-6": {
+    "heard": "サオナの話、私もできるようになったよ。と、トノーって英語で説明できる?",
+    "passed": true,
+    "seconds": 6.48,
+    "speaker": 0.8514841794967651,
+    "text": 0.9473684210526315
+  },
+  "lvl-7": {
+    "heard": "あのねもう先生とか生徒とかどうでもよくなってきた",
+    "passed": false,
+    "seconds": 4.08,
+    "speaker": 0.8210515975952148,
+    "text": 1.0
+  },
+  "lvl-8": {
+    "heard": "ゆかた来てみたよ笑わないでね",
+    "passed": true,
+    "seconds": 2.72,
+    "speaker": 0.8549050688743591,
+    "text": 1.0
+  },
+  "lvl-9": {
+    "heard": "本番ついていけたらいいのになんてね",
+    "passed": true,
+    "seconds": 3.2,
+    "speaker": 0.9016029834747314,
+    "text": 1.0
+  },
+  "lvl-default": {
+    "heard": "また一歩近づいた気がする",
+    "passed": true,
+    "seconds": 2.4,
+    "speaker": 0.914238691329956,
+    "text": 1.0
+  },
+  "praise-1-0": {
+    "heard": "今のすごく綺麗な英語でした",
+    "passed": true,
+    "seconds": 3.12,
+    "speaker": 0.8735615015029907,
+    "text": 1.0
+  },
+  "praise-1-1": {
+    "heard": "ちゃんと伝わってますよ その調子です",
+    "passed": true,
+    "seconds": 2.48,
+    "speaker": 0.9031308889389038,
+    "text": 1.0
+  },
+  "praise-1-2": {
+    "heard": "わっ 上手",
+    "passed": false,
+    "seconds": 1.44,
+    "speaker": 0.8171957731246948,
+    "text": 0.9090909090909091
+  },
+  "praise-2-0": {
+    "heard": "いいね今の言い方すごく自然だった",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.9039905071258545,
+    "text": 1.0
+  },
+  "praise-2-1": {
+    "heard": "え、うまい ちょっとびっくりした",
+    "passed": true,
+    "seconds": 3.44,
+    "speaker": 0.9022209048271179,
+    "text": 1.0
+  },
+  "praise-2-2": {
+    "heard": "その調子本当に伸びてるよ",
+    "passed": true,
+    "seconds": 2.56,
+    "speaker": 0.85789555311203,
+    "text": 0.967741935483871
+  },
+  "praise-3-0": {
+    "heard": "ちょっとかっこよかった今の",
+    "passed": false,
+    "seconds": 2.72,
+    "speaker": 0.820410966873169,
+    "text": 1.0
+  },
+  "praise-3-1": {
+    "heard": "うん、完璧、もう私いらないかも",
+    "passed": true,
+    "seconds": 3.12,
+    "speaker": 0.9307206869125366,
+    "text": 1.0
+  },
+  "praise-3-2": {
+    "heard": "すごいねぇちゃんと自分でも気付いてる",
+    "passed": true,
+    "seconds": 3.68,
+    "speaker": 0.8575618863105774,
+    "text": 0.9473684210526315
+  },
+  "praise-4-0": {
+    "heard": "うん やっぱり好きだな そういうとこ",
+    "passed": true,
+    "seconds": 2.8,
+    "speaker": 0.9087620973587036,
+    "text": 1.0
+  },
+  "praise-4-1": {
+    "heard": "はぁまた上手くなってる悔しいくらい",
+    "passed": true,
+    "seconds": 3.52,
+    "speaker": 0.9208600521087646,
+    "text": 1.0
+  },
+  "praise-4-2": {
+    "heard": "本番でも絶対大丈夫!保証する!",
+    "passed": false,
+    "seconds": 3.2,
+    "speaker": 0.7887712717056274,
+    "text": 1.0
+  }
+}
