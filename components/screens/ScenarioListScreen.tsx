@@ -3,14 +3,17 @@
 import { useState } from 'react';
 import type { AppState, FestivalScenarioId } from '@/types';
 import { festivalScenarios, festivalScenarioOrder } from '@/lib/festivalScenarios';
+import { isScenarioUnlocked } from '@/lib/entitlements';
 
 const DIFF_LABEL = ['', 'やさしい', 'ふつう', 'ちょい難'];
 
 export default function ScenarioListScreen({
   state,
+  isPremium,
   onStart,
 }: {
   state: AppState;
+  isPremium: boolean;
   onStart: (id: FestivalScenarioId) => void;
 }) {
   const [open, setOpen] = useState<FestivalScenarioId | null>(null);
@@ -32,6 +35,7 @@ export default function ScenarioListScreen({
         {festivalScenarioOrder.map((id, i) => {
           const s = festivalScenarios[id];
           const cleared = state.clearedScenarios.includes(id);
+          const unlocked = isScenarioUnlocked(id, isPremium);
           const expanded = open === id;
 
           return (
@@ -44,11 +48,17 @@ export default function ScenarioListScreen({
               >
                 <span
                   className="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-[24px]"
-                  style={{ background: cleared ? 'var(--tsu-pink-200)' : 'var(--tsu-pink-100)' }}
+                  style={{
+                    background: cleared ? 'var(--tsu-pink-200)' : 'var(--tsu-pink-100)',
+                    opacity: unlocked ? 1 : 0.55,
+                  }}
                   aria-hidden
                 >
                   {s.emoji}
-                  {cleared && (
+                  {!unlocked && (
+                    <span className="absolute -right-1 -top-1 text-[13px]">🔒</span>
+                  )}
+                  {unlocked && cleared && (
                     <span
                       className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full text-[11px] text-white"
                       style={{ background: 'var(--tsu-pink-600)' }}
@@ -59,16 +69,24 @@ export default function ScenarioListScreen({
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-[15.5px] font-extrabold" style={{ color: 'var(--text)' }}>
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate text-[15.5px] font-extrabold" style={{ color: 'var(--text)' }}>
                       {s.title}
                     </span>
                     <span
-                      className="rounded-full px-1.5 py-[1px] text-[9.5px] font-extrabold"
+                      className="shrink-0 whitespace-nowrap rounded-full px-1.5 py-[1px] text-[9.5px] font-extrabold"
                       style={{ background: 'var(--tsu-lav-100)', color: 'var(--tsu-lav-400)' }}
                     >
                       {DIFF_LABEL[s.difficulty]}
                     </span>
+                    {!unlocked && (
+                      <span
+                        className="shrink-0 whitespace-nowrap rounded-full px-1.5 py-[1px] text-[9.5px] font-extrabold text-white"
+                        style={{ background: 'var(--tsu-pink-400)' }}
+                      >
+                        有料
+                      </span>
+                    )}
                   </span>
                   <span
                     className="mt-0.5 block truncate text-[12px] font-semibold"
@@ -130,7 +148,7 @@ export default function ScenarioListScreen({
                     onClick={() => onStart(id)}
                     className="tsu-btn tsu-btn-primary mt-3.5 w-full py-3.5 text-[15px]"
                   >
-                    {cleared ? 'もう一度はなす' : 'このシーンをはなす'}
+                    {!unlocked ? '🔒 このシーンを解放する' : cleared ? 'もう一度はなす' : 'このシーンをはなす'}
                   </button>
                 </div>
               )}

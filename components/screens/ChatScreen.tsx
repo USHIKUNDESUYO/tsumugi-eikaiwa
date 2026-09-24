@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message } from '@/types';
 import { festivalScenarios } from '@/lib/festivalScenarios';
+import { apiUrl } from '@/lib/apiBase';
 import {
   addMistake,
   addBondPoints,
@@ -130,7 +131,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
       setExpression('thinking');
 
       try {
-        const res = await fetch('/api/chat', {
+        const res = await fetch(apiUrl('/api/chat'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

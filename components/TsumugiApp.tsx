@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FestivalScenarioId, Outfit } from '@/types';
 import { touchStreak, setOutfit } from '@/lib/storage';
 import { useAppState, useHydrated } from '@/lib/useAppState';
+import { initPurchases } from '@/lib/purchases';
+import { usePurchases } from '@/lib/usePurchases';
+import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { getLevelUpLine } from '@/lib/tsumugiVoice';
 import BottomNav, { type Screen } from '@/components/BottomNav';
@@ -15,6 +18,7 @@ import ChatScreen from '@/components/screens/ChatScreen';
 import PhrasebookScreen from '@/components/screens/PhrasebookScreen';
 import ReviewScreen from '@/components/screens/ReviewScreen';
 import ProgressScreen from '@/components/screens/ProgressScreen';
+import PaywallScreen from '@/components/screens/PaywallScreen';
 
 export interface LevelUpEvent {
   level: number;
@@ -24,15 +28,19 @@ export interface LevelUpEvent {
 export default function TsumugiApp() {
   const state = useAppState();
   const hydrated = useHydrated();
+  const purchases = usePurchases();
+  const isPremium = purchases.isPremium;
 
   const [screen, setScreen] = useState<Screen>('home');
   const [activeScenario, setActiveScenario] = useState<FestivalScenarioId | null>(null);
   const [levelUp, setLevelUp] = useState<LevelUpEvent | null>(null);
   /** 復習の出題は「画面を開いた時刻」で確定させる（開いている間に増減しない） */
   const [reviewOpenedAt, setReviewOpenedAt] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     touchStreak();
+    void initPurchases();
   }, []);
 
   const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
@@ -41,6 +49,15 @@ export default function TsumugiApp() {
     if (next === 'review') setReviewOpenedAt(Date.now());
     setScreen(next);
   }, []);
+
+  /** 未解放のシナリオを踏んだら、会話ではなくペイウォールを開く */
+  const startScenario = useCallback(
+    (id: FestivalScenarioId) => {
+      if (isScenarioUnlocked(id, isPremium)) setActiveScenario(id);
+      else setShowPaywall(true);
+    },
+    [isPremium]
+  );
 
   /* --------------------------- 初回ロード中 --------------------------- */
   if (!hydrated) {
@@ -61,6 +78,11 @@ export default function TsumugiApp() {
     return <OnboardingScreen />;
   }
 
+  /* ----------------------------- ペイウォール ----------------------------- */
+  if (showPaywall) {
+    return <PaywallScreen state={state} onClose={() => setShowPaywall(false)} />;
+  }
+
   /* ------------------------------ 会話中 ------------------------------ */
   if (activeScenario) {
     return (
@@ -78,12 +100,33 @@ export default function TsumugiApp() {
     <div className="relative mx-auto flex min-h-screen w-full max-w-lg flex-col">
       <main className="flex-1 pb-[calc(var(--nav-h)+var(--safe-bottom)+8px)]">
         {screen === 'home' && (
-          <HomeScreen state={state} onStart={setActiveScenario} onNavigate={navigate} />
+          <HomeScreen
+            state={state}
+            isPremium={isPremium}
+            onStart={startScenario}
+            onNavigate={navigate}
+            onOpenPaywall={() => setShowPaywall(true)}
+          />
         )}
-        {screen === 'scenarios' && <ScenarioListScreen state={state} onStart={setActiveScenario} />}
-        {screen === 'phrases' && <PhrasebookScreen state={state} />}
+        {screen === 'scenarios' && (
+          <ScenarioListScreen state={state} isPremium={isPremium} onStart={startScenario} />
+        )}
+        {screen === 'phrases' && (
+          <PhrasebookScreen
+            state={state}
+            isPremium={isPremium}
+            onOpenPaywall={() => setShowPaywall(true)}
+          />
+        )}
         {screen === 'review' && <ReviewScreen key={reviewOpenedAt} state={state} now={reviewOpenedAt} />}
-        {screen === 'progress' && <ProgressScreen state={state} onChangeOutfit={setOutfit} />}
+        {screen === 'progress' && (
+          <ProgressScreen
+            state={state}
+            isPremium={isPremium}
+            onChangeOutfit={setOutfit}
+            onOpenPaywall={() => setShowPaywall(true)}
+          />
+        )}
       </main>
 
       <BottomNav current={screen} onChange={navigate} dueCount={dueCount} />

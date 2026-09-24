@@ -4,9 +4,18 @@ import { useMemo, useState } from 'react';
 import type { AppState, FestivalScenarioId } from '@/types';
 import { festivalScenarios, festivalScenarioOrder } from '@/lib/festivalScenarios';
 import { togglePhraseMastered } from '@/lib/storage';
+import { isScenarioUnlocked } from '@/lib/entitlements';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 
-export default function PhrasebookScreen({ state }: { state: AppState }) {
+export default function PhrasebookScreen({
+  state,
+  isPremium,
+  onOpenPaywall,
+}: {
+  state: AppState;
+  isPremium: boolean;
+  onOpenPaywall: () => void;
+}) {
   const [scenarioId, setScenarioId] = useState<FestivalScenarioId>(festivalScenarioOrder[0]);
   const [starOnly, setStarOnly] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);
@@ -38,17 +47,21 @@ export default function PhrasebookScreen({ state }: { state: AppState }) {
 
       {/* シーン切り替え */}
       <div className="tsu-scroll mt-3 flex gap-2 overflow-x-auto px-5 pb-1">
-        {festivalScenarioOrder.map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setScenarioId(id)}
-            data-active={id === scenarioId}
-            className="tsu-chip tsu-btn shrink-0 px-3.5 py-2 text-[12.5px]"
-          >
-            {festivalScenarios[id].emoji} {festivalScenarios[id].title}
-          </button>
-        ))}
+        {festivalScenarioOrder.map((id) => {
+          const unlocked = isScenarioUnlocked(id, isPremium);
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => (unlocked ? setScenarioId(id) : onOpenPaywall())}
+              data-active={id === scenarioId}
+              className="tsu-chip tsu-btn shrink-0 px-3.5 py-2 text-[12.5px]"
+              style={{ opacity: unlocked ? 1 : 0.6 }}
+            >
+              {unlocked ? festivalScenarios[id].emoji : '🔒'} {festivalScenarios[id].title}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-3 flex items-center justify-between px-5">

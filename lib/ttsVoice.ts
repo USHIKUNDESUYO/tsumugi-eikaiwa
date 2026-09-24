@@ -4,6 +4,8 @@
  * Includes soft female English voice selection for device TTS
  */
 
+import { apiUrl } from './apiBase';
+
 export interface TTSOptions {
   onStart?: () => void;
   onEnd?: () => void;
@@ -294,7 +296,7 @@ export async function probeCloudTTS(): Promise<void> {
   }
   
   try {
-    const response = await fetch('/api/tts', {
+    const response = await fetch(apiUrl('/api/tts'), {
       method: 'HEAD',
       signal: AbortSignal.timeout(2000),
     });
@@ -313,7 +315,7 @@ export async function speakWithCloudTTS(
   options: TTSOptions = {}
 ): Promise<boolean> {
   try {
-    const response = await fetch('/api/tts', {
+    const response = await fetch(apiUrl('/api/tts'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

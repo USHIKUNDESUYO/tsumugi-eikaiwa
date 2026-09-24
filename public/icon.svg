@@ -1,6 +1,72 @@
-<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
-  <rect width="192" height="192" fill="#FF6B9D" rx="40"/>
-  <circle cx="96" cy="80" r="35" fill="white" opacity="0.9"/>
-  <text x="96" y="150" font-size="60" text-anchor="middle" fill="white" font-family="sans-serif"><8</text>
-  <text x="96" y="95" font-size="48" text-anchor="middle" fill="#FF6B9D" font-family="sans-serif" font-weight="bold">d</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF9BC0"/>
+      <stop offset="55%" stop-color="#FF5C8F"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#D9A87E"/>
+      <stop offset="45%" stop-color="#B9805C"/>
+      <stop offset="100%" stop-color="#8E5B42"/>
+    </linearGradient>
+    <linearGradient id="hairBack" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#A9724F"/>
+      <stop offset="100%" stop-color="#6F452F"/>
+    </linearGradient>
+    <radialGradient id="skin" cx="0.5" cy="0.35" r="0.75">
+      <stop offset="0%" stop-color="#FFF3EA"/>
+      <stop offset="100%" stop-color="#FCDFCE"/>
+    </radialGradient>
+    <filter id="blush" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <rect width="192" height="192" rx="42" fill="url(#bg)"/>
+
+  <g transform="translate(-5.8 17) scale(0.636)">
+    <!-- 後ろ髪 -->
+    <path d="M160 46 C102 46 68 88 66 142 C64 196 54 250 46 300 C70 312 96 320 118 322 C104 268 102 214 106 176 C118 196 142 204 160 204 C178 204 202 196 214 176 C218 214 216 268 202 322 C224 320 250 312 274 300 C266 250 256 196 254 142 C252 88 218 46 160 46 Z" fill="url(#hairBack)"/>
+
+    <!-- 顔 -->
+    <path d="M160 58 C207 58 233 93 233 141 C233 173 225 197 209 215 C196 230 178 240 160 240 C142 240 124 230 111 215 C95 197 87 173 87 141 C87 93 113 58 160 58 Z" fill="url(#skin)"/>
+    <ellipse cx="88" cy="152" rx="9" ry="14" fill="#FBDCCB"/>
+    <ellipse cx="232" cy="152" rx="9" ry="14" fill="#FBDCCB"/>
+
+    <!-- チーク -->
+    <g filter="url(#blush)" opacity="0.7">
+      <ellipse cx="114" cy="196" rx="20" ry="11.5" fill="#FF8FB1"/>
+      <ellipse cx="206" cy="196" rx="20" ry="11.5" fill="#FF8FB1"/>
+    </g>
+
+    <!-- にこにこの目 -->
+    <path d="M107 168 C116 150 141 150 150 167" stroke="#4A3138" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M213 168 C204 150 179 150 170 167" stroke="#4A3138" stroke-width="7" stroke-linecap="round" fill="none"/>
+
+    <!-- 口 -->
+    <path d="M145 199 Q160 194 175 199 Q172 221 160 223 Q148 221 145 199 Z" fill="#8A3348"/>
+    <ellipse cx="160" cy="215" rx="8" ry="5" fill="#F58AAA"/>
+
+    <!-- 前髪 -->
+    <path d="M160 34 C100 34 64 76 70 150 C76 134 85 121 97 113 C101 134 109 150 120 160 C126 141 130 120 132 98 C140 120 149 134 160 141 C171 134 180 120 188 98 C190 120 194 141 200 160 C211 150 219 134 223 113 C235 121 244 134 250 150 C256 76 220 34 160 34 Z" fill="url(#hair)"/>
+    <path d="M108 92 C124 70 150 60 176 64 C176 70 174 74 170 76 C146 78 124 88 112 104 Z" fill="#FFEEDC" opacity="0.5"/>
+
+    <!-- サイドの髪 -->
+    <path d="M96 84 C74 104 66 152 66 202 C66 232 70 254 76 268 C88 278 102 278 110 270 C98 226 94 176 100 136 C100 114 98 98 96 84 Z" fill="url(#hair)"/>
+    <path d="M224 84 C246 104 254 152 254 202 C254 232 250 254 244 268 C232 278 218 278 210 270 C222 226 226 176 220 136 C220 114 222 98 224 84 Z" fill="url(#hair)"/>
+
+    <!-- アホ毛 -->
+    <path d="M154 44 C144 20 156 2 178 0 C162 8 156 20 166 30 C156 28 150 34 154 44 Z" fill="#C89366"/>
+
+    <!-- 髪飾り -->
+    <g transform="translate(224 96)">
+      <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" fill="#FFB3CC"/>
+      <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" fill="#FFB3CC" transform="rotate(72)"/>
+      <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" fill="#FFB3CC" transform="rotate(144)"/>
+      <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" fill="#FFB3CC" transform="rotate(216)"/>
+      <ellipse cx="0" cy="-9" rx="5.5" ry="8.5" fill="#FFB3CC" transform="rotate(288)"/>
+      <circle cx="0" cy="0" r="3.6" fill="#FFF1B8"/>
+    </g>
+  </g>
 </svg>

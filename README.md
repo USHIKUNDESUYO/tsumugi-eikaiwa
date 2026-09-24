@@ -56,8 +56,13 @@ SYNAPSE FESTIVAL は「音楽を入口に、人・文化・地域がつながる
 - **連続学習日数** / セッション記録 / 必修フレーズの暗記率
 - **データ書き出し**：全学習データを JSON でバックアップ
 
+### 無料と有料
+無料で「聞き取れない時」「はじめましての一言」「受付・チェックイン」の3場面が遊べます。
+残り10場面と実用フレーズ104個（うち必修42個）は買い切りで解放。課金は RevenueCat 経由です。
+
 ### 技術面
 - Next.js 16 (App Router) / React 19 / TypeScript / Tailwind CSS v4
+- Android アプリ版は Capacitor。画面は端末内の静的ファイル、AI会話だけサーバーを叩くハイブリッド
 - 状態は `useSyncExternalStore` で localStorage を購読（サーバー不要・完全ローカル）
 - PWA対応（オフラインでも復習とフレーズ帳が使える）
 - `next build` / `eslint` ともにクリーン
@@ -90,7 +95,23 @@ TTS_VOICE=nova
 
 ---
 
-## スマホにインストール
+## Android アプリとしてビルドする
+
+```bash
+NEXT_PUBLIC_API_BASE=https://your-app.vercel.app \
+NEXT_PUBLIC_REVENUECAT_ANDROID_KEY=goog_xxxxxxxx \
+npm run build:mobile
+
+npx cap open android   # Android Studio で署名付き AAB を作成
+```
+
+`build:mobile` は静的書き出し（`out/`）を作って `android/` に同期します。
+静的書き出しでは POST の Route Handler を扱えないため、スクリプトが
+ビルド中だけ `app/api` を退避し、終わったら必ず元に戻します。
+
+Google Play への提出手順は **[docs/RELEASE.md](docs/RELEASE.md)** にまとめてあります。
+
+## スマホにインストール（PWA）
 
 PWA対応なので、ホーム画面に追加するとアプリのように起動します。
 会場は電波が不安定なこともあるので、**当日までに一度開いてキャッシュしておく**のがおすすめ。
@@ -114,7 +135,11 @@ components/
     BondMeter.tsx          親密度メーター
     MicButton.tsx          音声入力
   screens/                 各画面
+capacitor.config.ts        Android アプリの設定（appId はアップロード後は変更不可）
+scripts/build-mobile.mjs   静的書き出し → cap sync android
 lib/
+  purchases.ts             RevenueCat ラッパー（Webでは購入なしにフォールバック）
+  entitlements.ts          無料シナリオと解放判定
   festivalScenarios.ts     13シナリオ + フレーズ + ロールプレイ用プロンプト
   tsumugiVoice.ts          紬の日本語セリフ（親密度で変化）
   srs.ts                   間隔反復スケジューラ
