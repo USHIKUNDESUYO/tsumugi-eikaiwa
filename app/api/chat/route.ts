@@ -44,7 +44,6 @@ interface AIResult {
   text: string;
   live: boolean;
   reason?: string;
-  usage?: unknown;
 }
 
 async function getAIResponse(body: ChatRequest): Promise<AIResult> {
@@ -115,7 +114,7 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
         `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
       );
     }
-    return { text, live: true, usage: data.usage };
+    return { text, live: true };
   } catch (error) {
     console.error('AI API error:', error);
     const reason = error instanceof Error ? error.message : String(error);
@@ -231,8 +230,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400, headers });
     }
 
-    const { text, live, reason, usage } = await getAIResponse(body);
-    return NextResponse.json({ response: text, live, reason, usage }, { headers });
+    const { text, live, reason } = await getAIResponse(body);
+    return NextResponse.json({ response: text, live, reason }, { headers });
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers });
