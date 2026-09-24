@@ -155,6 +155,8 @@ export interface Settings {
   soundEffects: boolean;
   /** 触覚フィードバックを出すか */
   haptics: boolean;
+  /** BGMを流すか */
+  bgm: boolean;
   reduceMotion: boolean;
   sfxEnabled: boolean;
 }

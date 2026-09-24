@@ -50,7 +50,11 @@ export default function PaywallScreen({
   };
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col px-5 safe-top">
+    <div
+      className={`mx-auto flex min-h-screen w-full max-w-lg flex-col px-5 safe-top ${
+        state.settings.reduceMotion ? '' : 'anim-enter-deep'
+      }`}
+    >
       <header className="flex items-center justify-between pt-3">
         <button
           type="button"

@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import type { Expression, Outfit } from '@/types';
-import { artSrc, blinkSrc, talkSrc, canBlink, canTalk, ART_ASPECT } from '@/lib/tsumugiArt';
+import {
+  artSrc,
+  blinkSrc,
+  talkSrc,
+  canBlink,
+  canTalk,
+  fullBodySrc,
+  ART_ASPECT,
+  FULL_ASPECT,
+} from '@/lib/tsumugiArt';
 import TsumugiCharacter from './TsumugiCharacter';
 
 interface TsumugiArtProps {
@@ -14,6 +23,8 @@ interface TsumugiArtProps {
   size?: number;
   reduceMotion?: boolean;
   effects?: boolean;
+  /** 全身立ち絵で表示する。用意が無ければ自動でバストアップに落ちる。 */
+  fullBody?: boolean;
   className?: string;
 }
 
@@ -34,15 +45,21 @@ export default function TsumugiArt({
   size = 220,
   reduceMotion = false,
   effects = true,
+  fullBody = false,
   className = '',
 }: TsumugiArtProps) {
   const [blinking, setBlinking] = useState(false);
   const [mouthOpen, setMouthOpen] = useState(false);
   const [failed, setFailed] = useState(false);
+  /** 全身立ち絵が無い衣装はバストアップに落とす */
+  const [noFullBody, setNoFullBody] = useState(false);
 
-  const base = artSrc(expression, outfit);
-  const blink = canBlink(expression) ? blinkSrc(outfit) : null;
-  const talk = canTalk(expression) ? talkSrc(outfit) : null;
+  const showFull = fullBody && !noFullBody;
+
+  const base = showFull ? fullBodySrc(outfit) : artSrc(expression, outfit);
+  // 全身立ち絵はまばたきや口パクの差分を持っていない
+  const blink = !showFull && canBlink(expression) ? blinkSrc(outfit) : null;
+  const talk = !showFull && canTalk(expression) ? talkSrc(outfit) : null;
   const blinkable = Boolean(blink) && !reduceMotion && !speaking;
 
   /* まばたき: 2.6〜6秒ごとに130msだけ閉じる */
@@ -100,7 +117,15 @@ export default function TsumugiArt({
       src={src}
       alt={alt}
       draggable={false}
-      onError={isBase ? () => setFailed(true) : undefined}
+      onError={
+        isBase
+          ? () => {
+              // 全身が無いだけならバストアップへ。それも無ければSVGへ。
+              if (showFull) setNoFullBody(true);
+              else setFailed(true);
+            }
+          : undefined
+      }
       className={isBase ? 'block h-full w-full' : 'absolute inset-0 h-full w-full'}
       style={{
         objectFit: 'contain',
@@ -115,7 +140,7 @@ export default function TsumugiArt({
   return (
     <div
       className={`relative select-none ${reduceMotion ? '' : 'tsumugi-breathe'} ${className}`}
-      style={{ height: size, width: size * ART_ASPECT }}
+      style={{ height: size, width: size * (showFull ? FULL_ASPECT : ART_ASPECT) }}
     >
       {layer(base, !showBlink && !showTalk, `紬（${expression}）`, true)}
       {blink && layer(blink, showBlink, '', false)}

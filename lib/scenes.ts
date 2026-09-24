@@ -8,3 +8,18 @@ import type { FestivalScenarioId } from '@/types';
 export function sceneSrc(id: FestivalScenarioId): string {
   return `/scenes/${id}.webp`;
 }
+
+/** 夜・夕方の場面。BGMを落ち着いたトラックに切り替える。 */
+const NIGHT_SCENES: FestivalScenarioId[] = [
+  'music-talk',
+  'food-drinks',
+  'camping-tent',
+  'sauna-totonou',
+  'bonfire-deeptalk',
+  'swap-contacts',
+  'fukuoka-guide',
+];
+
+export function sceneIsNight(id: FestivalScenarioId): boolean {
+  return NIGHT_SCENES.includes(id);
+}

@@ -356,6 +356,53 @@ async function stepOutfitExpressions(only = []) {
   }
 }
 
+/**
+ * 全身立ち絵。
+ * バストアップから下半身を推測させることになるが、Kontext は破綻せずに描ける。
+ * 衣装を見せる画面（クローゼット）と、解放の演出で使う。
+ */
+async function stepFullBody(only = []) {
+  const bases = [
+    ['casual', state.baseUrl, 'a simple pleated skirt and plain flat shoes'],
+    ['hoodie', state.raw['outfit-hoodie'], 'relaxed shorts and sneakers'],
+    ['festival', state.raw['outfit-festival'], 'denim shorts and boots'],
+    ['sauna', state.raw['outfit-sauna'], 'bare legs and simple sandals'],
+    ['yukata', state.raw['outfit-yukata'], 'the yukata reaching her ankles and geta sandals'],
+  ];
+
+  const jobs = bases
+    .filter(([, url]) => url)
+    .map(([outfit, url, lower]) => [`full-${outfit}`, url, lower]);
+  const filtered = only.length > 0 ? jobs.filter(([n]) => only.includes(n)) : jobs;
+  if (only.length > 0) {
+    for (const [name] of filtered) delete state.raw[name];
+    saveState();
+  }
+
+  for (const [name, baseUrl, lower] of filtered) {
+    if (state.raw[name]) continue;
+    process.stdout.write(`${name} `);
+    const result = await falRun(MODEL.edit, {
+      prompt:
+        EYE_LOCK +
+        'Zoom out to show her complete full body from head to toe, standing upright and facing the viewer, ' +
+        `both feet visible on the ground, wearing ${lower} below her existing top. ` +
+        'Full body shot with generous empty space above her head and below her feet.' +
+        KEEP,
+      image_url: baseUrl,
+      guidance_scale: 3.5,
+      num_images: 1,
+      output_format: 'png',
+      aspect_ratio: '9:16',
+      safety_tolerance: '2',
+    });
+    state.raw[name] = firstImageUrl(result);
+    saveState();
+    await download(state.raw[name], resolve(OUT_DIR, `${name}.png`));
+    console.log(' ok');
+  }
+}
+
 async function stepCutout() {
   const names = Object.keys(state.raw);
   if (names.length === 0) throw new Error('先に variants を実行してください。');
@@ -384,9 +431,10 @@ try {
   if (step === 'outfit-expressions' || step === 'all')
     await stepOutfitExpressions(process.argv.slice(3));
   if (step === 'poses' || step === 'all') await stepPoses(process.argv.slice(3));
+  if (step === 'fullbody' || step === 'all') await stepFullBody(process.argv.slice(3));
   if (step === 'cutout' || step === 'all') await stepCutout();
-  if (!['base', 'variants', 'outfit-expressions', 'poses', 'cutout', 'all'].includes(step)) {
-    console.error('使い方: node scripts/generate-character.mjs [base|variants|outfit-expressions|poses|cutout|all]');
+  if (!['base', 'variants', 'outfit-expressions', 'poses', 'fullbody', 'cutout', 'all'].includes(step)) {
+    console.error('使い方: node scripts/generate-character.mjs [base|variants|outfit-expressions|poses|fullbody|cutout|all]');
     process.exit(1);
   }
 } catch (error) {

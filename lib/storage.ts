@@ -56,6 +56,7 @@ export function getDefaultSettings(): Settings {
     jaVoice: true,
     soundEffects: true,
     haptics: true,
+    bgm: true,
     reduceMotion: false,
     sfxEnabled: true,
   };

@@ -11,6 +11,7 @@ import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 const SETTING_ROWS: Array<{ key: keyof Settings; label: string; hint: string }> = [
   { key: 'jaVoice', label: '紬の声（日本語）', hint: '紬のひとことを声で再生します' },
   { key: 'autoSpeak', label: '英語を自動で読み上げ', hint: '返事が来たら自動で読み上げます' },
+  { key: 'bgm', label: 'BGM', hint: '小さな音で流れます。声が鳴る間は自動で下がります' },
   { key: 'soundEffects', label: '効果音', hint: 'タップや正解のときに音が鳴ります' },
   { key: 'haptics', label: '振動', hint: '節目でそっと震えます' },
   { key: 'sfxEnabled', label: '画面の演出', hint: 'ハートやきらきらを表示します' },
@@ -170,8 +171,9 @@ export default function ProgressScreen({
                 <TsumugiArt
                   expression={active ? 'happy' : 'smile'}
                   outfit={u.outfit}
-                  size={104}
+                  size={132}
                   reduceMotion
+                  fullBody
                 />
                 <span className="mt-0.5 block text-[11.5px] font-extrabold" style={{ color: 'var(--text)' }}>
                   {u.label}

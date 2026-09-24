@@ -271,6 +271,25 @@ body {
   animation: tsu-twinkle 1.9s ease-in-out infinite;
 }
 
+/* 画面の切り替え。下から短く持ち上げながら現れる。
+   長いと操作の邪魔になるので 0.26s までにしている。 */
+@keyframes tsu-screen-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.anim-screen {
+  animation: tsu-screen-in 0.26s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+/* 会話・ペイウォールのような「入り込む」画面は少し奥から来る */
+@keyframes tsu-enter-deep {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.anim-enter-deep {
+  animation: tsu-enter-deep 0.3s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
 /* ==========================  UIアニメ  ========================== */
 
 @keyframes tsu-pop {

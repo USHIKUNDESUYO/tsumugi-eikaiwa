@@ -52,6 +52,17 @@ export function canTalk(expression: Expression): boolean {
 /** イラストの縦横比（生成時の 880x1184） */
 export const ART_ASPECT = 880 / 1184;
 
+/** 全身立ち絵の縦横比（9:16 で生成している） */
+export const FULL_ASPECT = 9 / 16;
+
+/**
+ * 全身立ち絵。衣装を見せたい場面で使う。
+ * まだ用意できていない衣装があるので、読めなければバストアップに落とす。
+ */
+export function fullBodySrc(outfit: Outfit): string {
+  return `${BASE}/full-${outfit}.webp`;
+}
+
 const ALL_EXPRESSIONS: Expression[] = [
   'neutral',
   'smile',

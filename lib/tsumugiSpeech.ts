@@ -10,8 +10,24 @@
  * 再生に失敗しても黙って諦める。画面が壊れるほうが困る。
  */
 
+import { duckBgm, unduckBgm } from './bgm';
+
 let audio: HTMLAudioElement | null = null;
 let unlocked = false;
+/** ダッキングの解除漏れを防ぐ（同じ再生で2回 unduck しない） */
+let ducking = false;
+
+function startDuck(): void {
+  if (ducking) return;
+  ducking = true;
+  duckBgm();
+}
+
+function endDuck(): void {
+  if (!ducking) return;
+  ducking = false;
+  unduckBgm();
+}
 
 function getAudio(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null;
@@ -44,6 +60,7 @@ export function unlockVoice(): void {
 }
 
 export function stopVoice(): void {
+  endDuck();
   const el = getAudio();
   if (!el) return;
   el.pause();
@@ -63,17 +80,28 @@ export function speakJa(id: string, options: SpeakOptions = {}): void {
   const el = getAudio();
   if (!el || !id) return;
 
+  endDuck();
   el.pause();
   el.currentTime = 0;
   el.onended = null;
   el.onerror = null;
 
   el.src = `/voice/${id}.mp3`;
-  el.onended = () => options.onEnd?.();
-  el.onerror = () => options.onEnd?.();
+  el.onended = () => {
+    endDuck();
+    options.onEnd?.();
+  };
+  el.onerror = () => {
+    endDuck();
+    options.onEnd?.();
+  };
 
+  startDuck();
   el.play()
     .then(() => options.onStart?.())
     // 自動再生がブロックされた / ファイルが無い。どちらも致命的ではない。
-    .catch(() => options.onEnd?.());
+    .catch(() => {
+      endDuck();
+      options.onEnd?.();
+    });
 }

@@ -9,6 +9,8 @@ import { preloadArt } from '@/lib/tsumugiArt';
 import { unlockVoice, speakJa, stopVoice } from '@/lib/tsumugiSpeech';
 import { unlockSfx, setSfxEnabled, playSfx } from '@/lib/sfx';
 import { setHapticsEnabled, hapticCelebrate, haptic } from '@/lib/haptics';
+import { setBgmEnabled, playBgm } from '@/lib/bgm';
+import { sceneIsNight } from '@/lib/scenes';
 import { usePurchases } from '@/lib/usePurchases';
 import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
@@ -50,6 +52,8 @@ export default function TsumugiApp() {
     const unlock = () => {
       unlockVoice();
       unlockSfx();
+      // 自動再生の制限があるので、BGMも最初のタップで鳴らし始める
+      playBgm('day');
     };
     window.addEventListener('pointerdown', unlock, { once: true });
     return () => window.removeEventListener('pointerdown', unlock);
@@ -64,7 +68,13 @@ export default function TsumugiApp() {
   useEffect(() => {
     setSfxEnabled(state.settings.soundEffects);
     setHapticsEnabled(state.settings.haptics);
-  }, [state.settings.soundEffects, state.settings.haptics]);
+    setBgmEnabled(state.settings.bgm);
+  }, [state.settings.soundEffects, state.settings.haptics, state.settings.bgm]);
+
+  // 夜の場面に入ったら落ち着いたトラックへ。抜けたら戻す。
+  useEffect(() => {
+    playBgm(activeScenario && sceneIsNight(activeScenario) ? 'night' : 'day');
+  }, [activeScenario]);
 
   const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
 
@@ -123,7 +133,12 @@ export default function TsumugiApp() {
   /* ------------------------------ 通常画面 ----------------------------- */
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-lg flex-col">
-      <main className="flex-1 pb-[calc(var(--nav-h)+var(--safe-bottom)+8px)]">
+      <main
+        key={screen}
+        className={`flex-1 pb-[calc(var(--nav-h)+var(--safe-bottom)+8px)] ${
+          state.settings.reduceMotion ? '' : 'anim-screen'
+        }`}
+      >
         {screen === 'home' && (
           <HomeScreen
             state={state}

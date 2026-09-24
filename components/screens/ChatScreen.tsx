@@ -224,7 +224,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
   /* ------------------------------ 画面 ------------------------------ */
 
   return (
-    <div className="mx-auto flex h-[100dvh] w-full max-w-lg flex-col">
+    <div
+      className={`mx-auto flex h-[100dvh] w-full max-w-lg flex-col ${
+        state.settings.reduceMotion ? '' : 'anim-enter-deep'
+      }`}
+    >
       {/* --------------------------- ヘッダー --------------------------- */}
       <header
         className="safe-top shrink-0 px-4 pb-2.5 pt-2"

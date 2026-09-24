@@ -5,6 +5,7 @@
  */
 
 import { apiUrl } from './apiBase';
+import { duckBgm, unduckBgm } from './bgm';
 
 export interface TTSOptions {
   onStart?: () => void;
@@ -450,6 +451,36 @@ export function speakText(
   options: TTSOptions = {}
 ): void {
   stopAllSpeech();
+
+  // 読み上げ中はBGMを下げる。英語を聞き取る邪魔をしない。
+  let ducked = false;
+  const duck = () => {
+    if (ducked) return;
+    ducked = true;
+    duckBgm();
+  };
+  const unduck = () => {
+    if (!ducked) return;
+    ducked = false;
+    unduckBgm();
+  };
+  const wrapped: TTSOptions = {
+    ...options,
+    onStart: () => {
+      duck();
+      options.onStart?.();
+    },
+    onEnd: () => {
+      unduck();
+      options.onEnd?.();
+    },
+    onError: (error) => {
+      unduck();
+      options.onError?.(error);
+    },
+  };
+  duck();
+  options = wrapped;
 
   // Synchronous check - no network calls before speaking
   if (isCloudTTSEnabled()) {
