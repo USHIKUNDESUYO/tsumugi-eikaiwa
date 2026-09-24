@@ -43,9 +43,12 @@ export default function TsumugiApp() {
   useEffect(() => {
     touchStreak();
     void initPurchases();
-    // 表情を切り替えた瞬間に読み込みが走ると一瞬消えるので、先に温めておく
-    preloadArt();
   }, []);
+
+  // 着ている衣装のイラストを先に温めておく（着替えたら新しいぶんを読む）
+  useEffect(() => {
+    preloadArt(state.bond.currentOutfit);
+  }, [state.bond.currentOutfit]);
 
   const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
 

@@ -73,7 +73,9 @@ const EXPRESSIONS = {
   neutral:
     'Make her expression completely neutral: her lips closed in a flat straight line with no smile at all, ' +
     'eyes open and relaxed, eyebrows level, barely any blush.',
-  smile: 'Change her expression to a warm gentle smile, lips closed, eyes open and kind.',
+  smile:
+    'Give her a soft gentle smile with her lips completely closed and no teeth visible at all, ' +
+    'eyes open, kind and calm. A quiet smile, not a laugh.',
   happy:
     'Change her expression to bright joyful laughter, eyes closed in happy upward arcs, open smiling mouth, cheeks flushed.',
   shy:
@@ -105,9 +107,18 @@ const OUTFITS = {
   yukata: 'Change her top to a navy blue summer yukata with a pink obi sash and a white collar.',
 };
 
+/**
+ * 瞳の色は末尾に書いても効かない。モデルが「日本人の女の子＝茶色の瞳」に
+ * 引っ張られて勝手に変えてしまうので、指示の先頭に単独で置く。
+ */
+const EYE_LOCK =
+  'Her irises are bright violet-purple fading to pink. Keep that exact eye colour. ';
+
 const KEEP =
   ' Keep the same character, the exact same face, the same hairstyle and hair colour, ' +
-  'the same art style, the same framing and the same plain background. Do not change anything else.';
+  'the same violet-to-pink gradient eye colour, the same clothing, the same art style, ' +
+  'the same framing and the same plain background. Do not change anything else. ' +
+  'Never change her eye colour to brown or amber.';
 
 /* ------------------------------------------------------------------ */
 /*  fal の queue API                                                    */
@@ -223,6 +234,54 @@ async function stepVariants(only = []) {
   console.log('→ 次: node scripts/generate-character.mjs cutout');
 }
 
+/**
+ * 衣装ごとの表情差分。
+ *
+ * 衣装画像そのものを土台にして表情を変える。こうしないと、衣装を着替えた
+ * 瞬間に紬が無表情のまま固定されてしまう（SVG版は全組み合わせを描けていた）。
+ */
+async function stepOutfitExpressions(only = []) {
+  const outfits = Object.keys(OUTFITS);
+  const jobs = [];
+  for (const outfit of outfits) {
+    const baseKey = `outfit-${outfit}`;
+    if (!state.raw[baseKey]) {
+      console.warn(`${baseKey} がまだありません。先に variants を実行してください。`);
+      continue;
+    }
+    for (const [expr, instruction] of Object.entries(EXPRESSIONS)) {
+      jobs.push([`${baseKey}-expr-${expr}`, instruction, state.raw[baseKey]]);
+    }
+  }
+
+  const filtered = only.length > 0 ? jobs.filter(([n]) => only.includes(n)) : jobs;
+  // 名前を指定したときは作り直したいはずなので、覚えているURLを捨てる
+  if (only.length > 0) {
+    for (const [name] of filtered) delete state.raw[name];
+    saveState();
+  }
+  console.log(`${filtered.length} 枚（すでにあるものは飛ばします）`);
+
+  for (const [name, instruction, baseUrl] of filtered) {
+    if (state.raw[name]) {
+      continue;
+    }
+    process.stdout.write(`${name} `);
+    const result = await falRun(MODEL.edit, {
+      prompt: EYE_LOCK + instruction + KEEP,
+      image_url: baseUrl,
+      guidance_scale: 3.5,
+      num_images: 1,
+      output_format: 'png',
+      safety_tolerance: '2',
+    });
+    state.raw[name] = firstImageUrl(result);
+    saveState();
+    await download(state.raw[name], resolve(OUT_DIR, `${name}.png`));
+    console.log(' ok');
+  }
+}
+
 async function stepCutout() {
   const names = Object.keys(state.raw);
   if (names.length === 0) throw new Error('先に variants を実行してください。');
@@ -248,9 +307,11 @@ const step = process.argv[2] ?? 'base';
 try {
   if (step === 'base' || step === 'all') await stepBase();
   if (step === 'variants' || step === 'all') await stepVariants(process.argv.slice(3));
+  if (step === 'outfit-expressions' || step === 'all')
+    await stepOutfitExpressions(process.argv.slice(3));
   if (step === 'cutout' || step === 'all') await stepCutout();
-  if (!['base', 'variants', 'cutout', 'all'].includes(step)) {
-    console.error('使い方: node scripts/generate-character.mjs [base|variants|cutout|all]');
+  if (!['base', 'variants', 'outfit-expressions', 'cutout', 'all'].includes(step)) {
+    console.error('使い方: node scripts/generate-character.mjs [base|variants|outfit-expressions|cutout|all]');
     process.exit(1);
   }
 } catch (error) {

@@ -41,8 +41,8 @@ export default function TsumugiArt({
   const [failed, setFailed] = useState(false);
 
   const base = artSrc(expression, outfit);
-  const blink = canBlink(expression, outfit) ? blinkSrc(outfit) : null;
-  const talk = canTalk(expression, outfit) ? talkSrc(outfit) : null;
+  const blink = canBlink(expression) ? blinkSrc(outfit) : null;
+  const talk = canTalk(expression) ? talkSrc(outfit) : null;
   const blinkable = Boolean(blink) && !reduceMotion && !speaking;
 
   /* まばたき: 2.6〜6秒ごとに130msだけ閉じる */
