@@ -25,6 +25,14 @@ interface ChatRequest {
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.deepseek.com';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'deepseek-v4-flash';
+/** 思考モードを切るパラメータは DeepSeek 独自。ほかの OpenAI 互換 API には送らない。 */
+const IS_DEEPSEEK = (() => {
+  try {
+    return /(^|\.)deepseek\.com$/.test(new URL(OPENAI_BASE_URL).hostname);
+  } catch {
+    return false;
+  }
+})();
 
 /** 直近のやり取りだけ送ってトークンと遅延を抑える */
 const MAX_HISTORY = 16;
@@ -82,6 +90,11 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
         ],
         temperature: 0.9,
         max_tokens: 400,
+        // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
+        // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
+        // 途中で切れたりしていた。会話は返事の速さが命で、思考モードでは
+        // temperature も効かないので、思考は切る。
+        ...(IS_DEEPSEEK ? { thinking: { type: 'disabled' } } : {}),
       }),
     }).finally(() => clearTimeout(timeout));
 
