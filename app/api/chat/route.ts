@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSystemPrompt } from '@/lib/prompts';
 import { festivalScenarios } from '@/lib/festivalScenarios';
+import { corsHeaders, preflight } from '@/app/api/cors';
 import type {
   ChatMode,
   LanguageLevel,
@@ -186,22 +187,28 @@ function escapeJson(s: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  const headers = corsHeaders(request);
   try {
     const body: ChatRequest = await request.json();
 
     if (!body?.messages || !Array.isArray(body.messages)) {
-      return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid messages format' }, { status: 400, headers });
     }
 
     const { text, live } = await getAIResponse(body);
-    return NextResponse.json({ response: text, live });
+    return NextResponse.json({ response: text, live }, { headers });
   } catch (error) {
     console.error('Chat API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers });
   }
 }
 
 /** クライアントが「AIが本当に繋がっているか」を確認するため */
-export async function GET() {
-  return NextResponse.json({ configured: Boolean(OPENAI_API_KEY) });
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ configured: Boolean(OPENAI_API_KEY) }, { headers: corsHeaders(request) });
+}
+
+/** アプリ版（Capacitor）からのプリフライト */
+export function OPTIONS(request: NextRequest) {
+  return preflight(request);
 }
