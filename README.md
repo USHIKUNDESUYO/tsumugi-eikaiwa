@@ -48,6 +48,7 @@ SYNAPSE FESTIVAL は「音楽を入口に、人・文化・地域がつながる
 ### 紬というキャラクター
 - **イラスト85枚**：5衣装 × （表情12種 + ポーズ5種）。まばたきと口パクは差分画像の差し替えで表現
 - **場面ごとに動く**：開けば手を振り、なでれば照れて顔を隠し、直すときは指を差し、ほめるときは喜ぶ
+- **日本語ボイス56本**：挨拶・ほめ言葉・励まし・レベルアップ・セッションの締め。事前に音声ファイル化してあるので、オフラインでも鳴って遅延もない
 - **親密度システム**：話すほどハートが貯まり、Lv.1→10 で口調が変化（ていねい → 打ち解ける → 甘える）
 - **衣装の解放**：いつもの私服／ゆるパーカー／フェスコーデ／サウナタオル／浴衣
 
@@ -138,7 +139,9 @@ components/
   screens/                 各画面
 capacitor.config.ts        Android アプリの設定（appId はアップロード後は変更不可）
 scripts/build-mobile.mjs   静的書き出し → cap sync android
+scripts/generate-voice.mjs 紬の日本語ボイスを生成（fal.ai Kokoro → MP3）
 lib/
+  tsumugiSpeech.ts         ボイス再生（自動再生ブロックは黙って諦める）
   purchases.ts             RevenueCat ラッパー（Webでは購入なしにフォールバック）
   entitlements.ts          無料シナリオと解放判定
   festivalScenarios.ts     13シナリオ + フレーズ + ロールプレイ用プロンプト

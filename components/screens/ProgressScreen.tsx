@@ -9,7 +9,8 @@ import { apiUrl } from '@/lib/apiBase';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 
 const SETTING_ROWS: Array<{ key: keyof Settings; label: string; hint: string }> = [
-  { key: 'autoSpeak', label: '紬の声を自動再生', hint: '返事が来たら自動で読み上げます' },
+  { key: 'jaVoice', label: '紬の声（日本語）', hint: '紬のひとことを声で再生します' },
+  { key: 'autoSpeak', label: '英語を自動で読み上げ', hint: '返事が来たら自動で読み上げます' },
   { key: 'sfxEnabled', label: '演出を出す', hint: 'ハートやきらきらを表示します' },
   { key: 'reduceMotion', label: 'アニメを減らす', hint: '動きを止めて電池を節約します' },
 ];

@@ -13,6 +13,7 @@ import {
 } from '@/lib/storage';
 import { getScenarioIntro, getClosingLine, getPraise, inferExpression } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech, unlockIOSAudio, initializeTTSVoices, probeCloudTTS } from '@/lib/ttsVoice';
+import { speakJa, stopVoice } from '@/lib/tsumugiSpeech';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import MicButton from '@/components/tsumugi/MicButton';
 import type { LevelUpEvent } from '@/components/TsumugiApp';
@@ -477,6 +478,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           outfit={state.bond.currentOutfit}
           cleared={summary.turns >= TURNS_TO_CLEAR}
           reduceMotion={state.settings.reduceMotion}
+          jaVoice={state.settings.jaVoice}
           onClose={() => {
             setSummary(null);
             onExit();
@@ -547,6 +549,7 @@ function SessionSummary({
   outfit,
   cleared,
   reduceMotion,
+  jaVoice,
   onClose,
 }: {
   scenarioTitle: string;
@@ -557,9 +560,15 @@ function SessionSummary({
   outfit: AppState['bond']['currentOutfit'];
   cleared: boolean;
   reduceMotion: boolean;
+  jaVoice: boolean;
   onClose: () => void;
 }) {
-  const line = getClosingLine(bondLevel, corrections);
+  const [line] = useState(() => getClosingLine(bondLevel, corrections));
+
+  useEffect(() => {
+    if (jaVoice) speakJa(line.id);
+    return () => stopVoice();
+  }, [jaVoice, line.id]);
 
   return (
     <div

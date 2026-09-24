@@ -13,6 +13,7 @@ import { getGreeting } from '@/lib/tsumugiVoice';
 import { isScenarioUnlocked, LOCKED_SCENARIO_COUNT } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
+import { speakJa } from '@/lib/tsumugiSpeech';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 import BondMeter from '@/components/tsumugi/BondMeter';
@@ -41,10 +42,14 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
     return () => clearInterval(t);
   }, []);
 
+  // 手を振り終えたところで、挨拶のひとことを声に出す
   useEffect(() => {
-    const t = setTimeout(() => setExpression(greeting.expression), 2200);
+    const t = setTimeout(() => {
+      setExpression(greeting.expression);
+      if (state.settings.jaVoice) speakJa(greeting.id);
+    }, 2200);
     return () => clearTimeout(t);
-  }, [greeting.expression]);
+  }, [greeting.expression, greeting.id, state.settings.jaVoice]);
 
   const dueCount = getDueCards(state.mistakes).length;
   const cleared = state.clearedScenarios.length;

@@ -6,6 +6,7 @@ import { getDueCards, onCorrect, onWrong, masteryRatio, MAX_BOX } from '@/lib/sr
 import { updateMistake, deleteMistake, addBondPoints } from '@/lib/storage';
 import { getPraise, getEncouragement } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
+import { speakJa } from '@/lib/tsumugiSpeech';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
 
@@ -34,10 +35,12 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
       const praise = getPraise(state.bond.level);
       setExpression('cheer');
       setLine(praise.text);
+      if (state.settings.jaVoice) speakJa(praise.id);
     } else {
       const enc = getEncouragement();
       setExpression(enc.expression);
       setLine(enc.text);
+      if (state.settings.jaVoice) speakJa(enc.id);
     }
     setDone((d) => d + 1);
 

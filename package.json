@@ -10,7 +10,8 @@
     "build:mobile": "BUILD_TARGET=mobile node scripts/build-mobile.mjs",
     "cap:open": "npx cap open android",
     "cap:sync": "npx cap sync android",
-    "gen:character": "node scripts/generate-character.mjs"
+    "gen:character": "node scripts/generate-character.mjs",
+    "gen:voice": "node scripts/generate-voice.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
@@ -21,6 +22,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "@capacitor/cli": "^8.5.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

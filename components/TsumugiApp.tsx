@@ -6,6 +6,7 @@ import { touchStreak, setOutfit } from '@/lib/storage';
 import { useAppState, useHydrated } from '@/lib/useAppState';
 import { initPurchases } from '@/lib/purchases';
 import { preloadArt } from '@/lib/tsumugiArt';
+import { unlockVoice, speakJa, stopVoice } from '@/lib/tsumugiSpeech';
 import { usePurchases } from '@/lib/usePurchases';
 import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
@@ -43,6 +44,10 @@ export default function TsumugiApp() {
   useEffect(() => {
     touchStreak();
     void initPurchases();
+    // ブラウザは最初のユーザー操作より前に音を鳴らせない。一度だけ解禁しておく。
+    const unlock = () => unlockVoice();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    return () => window.removeEventListener('pointerdown', unlock);
   }, []);
 
   // 着ている衣装のイラストを先に温めておく（着替えたら新しいぶんを読む）
@@ -143,6 +148,7 @@ export default function TsumugiApp() {
           event={levelUp}
           outfit={state.bond.currentOutfit}
           reduceMotion={state.settings.reduceMotion}
+          jaVoice={state.settings.jaVoice}
           onClose={() => setLevelUp(null)}
         />
       )}
@@ -158,14 +164,21 @@ function LevelUpOverlay({
   event,
   outfit,
   reduceMotion,
+  jaVoice,
   onClose,
 }: {
   event: LevelUpEvent;
   outfit: Outfit;
   reduceMotion: boolean;
+  jaVoice: boolean;
   onClose: () => void;
 }) {
-  const line = getLevelUpLine(event.level);
+  const [line] = useState(() => getLevelUpLine(event.level));
+
+  useEffect(() => {
+    if (jaVoice) speakJa(line.id);
+    return () => stopVoice();
+  }, [jaVoice, line.id]);
 
   return (
     <div

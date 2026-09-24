@@ -53,6 +53,7 @@ export function getDefaultStreak(): Streak {
 export function getDefaultSettings(): Settings {
   return {
     autoSpeak: true,
+    jaVoice: true,
     reduceMotion: false,
     sfxEnabled: true,
   };

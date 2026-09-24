@@ -147,7 +147,10 @@ export interface Streak {
 }
 
 export interface Settings {
+  /** 英語の返答を自動で読み上げるか */
   autoSpeak: boolean;
+  /** 紬の日本語ボイスを鳴らすか */
+  jaVoice: boolean;
   reduceMotion: boolean;
   sfxEnabled: boolean;
 }
