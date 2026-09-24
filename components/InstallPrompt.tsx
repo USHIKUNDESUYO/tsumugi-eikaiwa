@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -14,6 +15,34 @@ interface IOSNavigator extends Navigator {
 const DISMISS_KEY = 'tsumugi-install-dismissed';
 const subscribeNoop = () => () => {};
 
+/*
+ * バナーは下部ナビのある画面でしか出さない（オンボーディングや会話中に出すと
+ * 下端のボタンや最新の返事に被る）。ただ beforeinstallprompt は読み込み直後に
+ * 一度しか飛ばず、初回はオンボーディング中に来てしまう。
+ * 取りこぼさないよう、イベントはモジュールの読み込み時点から拾っておく。
+ */
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+const promptListeners = new Set<() => void>();
+
+function setDeferredPrompt(e: BeforeInstallPromptEvent | null) {
+  deferredPrompt = e;
+  promptListeners.forEach((l) => l());
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    setDeferredPrompt(e as BeforeInstallPromptEvent);
+  });
+}
+
+function subscribePrompt(listener: () => void) {
+  promptListeners.add(listener);
+  return () => {
+    promptListeners.delete(listener);
+  };
+}
+
 function detectPlatform(): 'ios' | 'android' | 'other' {
   if (typeof navigator === 'undefined') return 'other';
   if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return 'ios';
@@ -21,47 +50,36 @@ function detectPlatform(): 'ios' | 'android' | 'other' {
   return 'other';
 }
 
-function isStandalone(): boolean {
+/** すでにアプリとして開いているか（ホーム画面から起動した PWA か、Android アプリ本体） */
+function isInstalled(): boolean {
   if (typeof window === 'undefined') return true;
   return (
+    // Capacitor の WebView は standalone を名乗らないので、ネイティブかどうかを別に見る
+    Capacitor.isNativePlatform() ||
     window.matchMedia('(display-mode: standalone)').matches ||
     (navigator as IOSNavigator).standalone === true
   );
 }
 
-export default function InstallPrompt() {
-  const standalone = useSyncExternalStore(subscribeNoop, isStandalone, () => true);
-  const platform = useSyncExternalStore(subscribeNoop, detectPlatform, () => 'other' as const);
+function wasDismissed(): boolean {
+  try {
+    return localStorage.getItem(DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+export default function InstallPrompt() {
+  const installed = useSyncExternalStore(subscribeNoop, isInstalled, () => true);
+  const platform = useSyncExternalStore(subscribeNoop, detectPlatform, () => 'other' as const);
+  const deferred = useSyncExternalStore(subscribePrompt, () => deferredPrompt, () => null);
+
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener('beforeinstallprompt', onPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
-  }, []);
-
-  const hidden =
-    standalone ||
-    dismissed ||
-    (typeof window !== 'undefined' && localStorage.getItem(DISMISS_KEY) === '1');
+  const hidden = installed || dismissed || (typeof window !== 'undefined' && wasDismissed());
 
   if (hidden || platform === 'other') return null;
-
-  const install = async () => {
-    if (!deferred) {
-      setOpen(true);
-      return;
-    }
-    await deferred.prompt();
-    const { outcome } = await deferred.userChoice;
-    if (outcome === 'accepted') setDeferred(null);
-  };
 
   const dismiss = () => {
     try {
@@ -72,10 +90,22 @@ export default function InstallPrompt() {
     setDismissed(true);
   };
 
+  const install = async () => {
+    if (!deferred) {
+      setOpen(true);
+      return;
+    }
+    // prompt() はひとつのイベントにつき一度しか呼べない。次に押されたら手順を案内する。
+    setDeferredPrompt(null);
+    await deferred.prompt();
+    const { outcome } = await deferred.userChoice;
+    if (outcome === 'accepted') dismiss();
+  };
+
   return (
     <>
       <div
-        className="anim-up fixed inset-x-3 z-[55] safe-bottom"
+        className="anim-up fixed inset-x-3 z-[45] safe-bottom"
         style={{ bottom: 'calc(var(--nav-h) + 10px)' }}
       >
         <div className="tsu-card-solid mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
@@ -97,7 +127,7 @@ export default function InstallPrompt() {
             type="button"
             onClick={dismiss}
             aria-label="閉じる"
-            className="tsu-btn shrink-0 px-1.5 text-[15px]"
+            className="tsu-btn -mr-2 grid h-10 w-10 shrink-0 place-items-center text-[15px]"
             style={{ color: 'var(--text-faint)' }}
           >
             ×

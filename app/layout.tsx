@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
-import InstallPrompt from "@/components/InstallPrompt";
 import OfflineIndicator from "@/components/OfflineIndicator";
 
 /**
@@ -69,7 +68,6 @@ export default function RootLayout({
       </head>
       <body className="min-h-full">
         <ServiceWorkerRegistration />
-        <InstallPrompt />
         <OfflineIndicator />
         {children}
       </body>

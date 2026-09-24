@@ -16,6 +16,7 @@ import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { getLevelUpLine } from '@/lib/tsumugiVoice';
 import BottomNav, { type Screen } from '@/components/BottomNav';
+import InstallPrompt from '@/components/InstallPrompt';
 import TsumugiCharacter from '@/components/tsumugi/TsumugiCharacter';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import OnboardingScreen from '@/components/screens/OnboardingScreen';
@@ -174,6 +175,8 @@ export default function TsumugiApp() {
       </main>
 
       <BottomNav current={screen} onChange={navigate} dueCount={dueCount} />
+      {/* ナビの真上に出すバナーなので、ナビのある画面でだけ出す */}
+      <InstallPrompt />
 
       {levelUp && (
         <LevelUpOverlay
