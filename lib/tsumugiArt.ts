@@ -52,8 +52,13 @@ export function canTalk(expression: Expression): boolean {
 /** イラストの縦横比（生成時の 880x1184） */
 export const ART_ASPECT = 880 / 1184;
 
-/** 全身立ち絵の縦横比（9:16 で生成している） */
-export const FULL_ASPECT = 9 / 16;
+/**
+ * 全身立ち絵の縦横比。
+ * 9:16 で生成しているが、背景を抜いたあとの書き出しは 480x889 になる。
+ * 9/16 のまま枠を作ると枠だけ約4%横長になり、キラキラ演出の位置が絵から
+ * ずれるので、実ファイルの寸法をそのまま使う。
+ */
+export const FULL_ASPECT = 480 / 889;
 
 /**
  * 全身立ち絵。衣装を見せたい場面で使う。
