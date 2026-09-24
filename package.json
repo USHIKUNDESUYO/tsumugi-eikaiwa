@@ -11,7 +11,8 @@
     "cap:open": "npx cap open android",
     "cap:sync": "npx cap sync android",
     "gen:character": "node scripts/generate-character.mjs",
-    "gen:voice": "node scripts/generate-voice.mjs"
+    "gen:voice": "node scripts/generate-voice.mjs",
+    "gen:scenes": "node scripts/generate-scenes.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

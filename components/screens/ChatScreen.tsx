@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message } from '@/types';
 import { festivalScenarios } from '@/lib/festivalScenarios';
 import { apiUrl } from '@/lib/apiBase';
+import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
   addBondPoints,
@@ -280,21 +281,33 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
         </div>
       </header>
 
-      {/* --------------------------- 紬 --------------------------- */}
+      {/* ------------------------ 紬とシーン背景 ------------------------ */}
       <div
         className="relative flex shrink-0 items-end justify-center overflow-hidden"
-        style={{
-          height: 128,
-          background: 'linear-gradient(180deg, var(--bg-soft), var(--tsu-pink-100))',
-          borderBottom: '1px solid var(--border)',
-        }}
+        style={{ height: 172, borderBottom: '1px solid var(--border)' }}
       >
-        <div style={{ marginBottom: -30 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- 装飾用の背景。next/image を挟む意味がない */}
+        <img
+          src={sceneSrc(scenarioId)}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* 立ち絵を浮かせるための薄いスクリム */}
+        <div className="absolute inset-0" style={{ background: 'rgba(30, 14, 26, 0.18)' }} aria-hidden />
+        {/* 下端は会話に向けて溶かす。背景を会話の下まで引っぱると読みにくい。 */}
+        <div
+          className="absolute inset-x-0 bottom-0"
+          style={{ height: 72, background: 'linear-gradient(to bottom, transparent, var(--bg))' }}
+          aria-hidden
+        />
+
+        <div className="relative" style={{ marginBottom: -34 }}>
           <TsumugiArt
             expression={expression}
             outfit={state.bond.currentOutfit}
             speaking={speaking}
-            size={186}
+            size={200}
             reduceMotion={state.settings.reduceMotion}
             effects={state.settings.sfxEnabled}
           />
@@ -302,14 +315,14 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
 
         {remainingToClear > 0 ? (
           <span
-            className="absolute right-3 top-2 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold"
-            style={{ background: 'var(--surface-solid)', color: 'var(--text-faint)' }}
+            className="absolute right-3 top-2.5 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold"
+            style={{ background: 'rgba(0,0,0,0.42)', color: '#fff', backdropFilter: 'blur(4px)' }}
           >
             あと {remainingToClear} 往復でクリア
           </span>
         ) : (
           <span
-            className="absolute right-3 top-2 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold text-white"
+            className="absolute right-3 top-2.5 rounded-full px-2.5 py-1 text-[10.5px] font-extrabold text-white"
             style={{ background: 'var(--tsu-pink-500)' }}
           >
             ✓ クリア条件たっせい

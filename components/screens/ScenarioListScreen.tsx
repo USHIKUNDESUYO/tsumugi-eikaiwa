@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { AppState, FestivalScenarioId } from '@/types';
 import { festivalScenarios, festivalScenarioOrder } from '@/lib/festivalScenarios';
 import { isScenarioUnlocked } from '@/lib/entitlements';
+import { sceneSrc } from '@/lib/scenes';
 
 const DIFF_LABEL = ['', 'やさしい', 'ふつう', 'ちょい難'];
 
@@ -106,7 +107,26 @@ export default function ScenarioListScreen({
               </button>
 
               {expanded && (
-                <div className="anim-up border-t px-4 py-4" style={{ borderColor: 'var(--border)' }}>
+                <div className="anim-up border-t" style={{ borderColor: 'var(--border)' }}>
+                  {/* その場面がどこなのかを一枚で見せる */}
+                  <div className="relative h-28 w-full overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 装飾用の背景 */}
+                    <img
+                      src={sceneSrc(id)}
+                      alt=""
+                      aria-hidden
+                      className="h-full w-full object-cover"
+                      style={{ filter: unlocked ? 'none' : 'grayscale(0.7) brightness(0.8)' }}
+                    />
+                    <span
+                      className="absolute left-3 bottom-2 rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white"
+                      style={{ background: 'rgba(0,0,0,0.42)', backdropFilter: 'blur(4px)' }}
+                    >
+                      {s.when}
+                    </span>
+                  </div>
+
+                  <div className="px-4 py-4">
                   <div
                     className="rounded-2xl px-3.5 py-3"
                     style={{ background: 'var(--tsu-pink-50)', border: '1px solid var(--border)' }}
@@ -150,6 +170,7 @@ export default function ScenarioListScreen({
                   >
                     {!unlocked ? '🔒 このシーンを解放する' : cleared ? 'もう一度はなす' : 'このシーンをはなす'}
                   </button>
+                  </div>
                 </div>
               )}
             </li>

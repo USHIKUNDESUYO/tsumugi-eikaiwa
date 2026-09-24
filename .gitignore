@@ -55,3 +55,4 @@ next-env.d.ts
 
 # 生成イラストの中間ファイル（配信するのは .webp だけ）
 /public/tsumugi/*.png
+.tsumugi-scenes.json
