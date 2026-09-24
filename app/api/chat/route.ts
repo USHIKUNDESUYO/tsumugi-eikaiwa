@@ -29,7 +29,15 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'deepseek-v4-flash';
 /** 直近のやり取りだけ送ってトークンと遅延を抑える */
 const MAX_HISTORY = 16;
 
-async function getAIResponse(body: ChatRequest): Promise<{ text: string; live: boolean }> {
+/** live: false のときは reason に理由を入れる（定型文に落ちた原因を外から測るため） */
+interface AIResult {
+  text: string;
+  live: boolean;
+  reason?: string;
+  usage?: unknown;
+}
+
+async function getAIResponse(body: ChatRequest): Promise<AIResult> {
   const {
     messages,
     mode,
@@ -42,7 +50,7 @@ async function getAIResponse(body: ChatRequest): Promise<{ text: string; live: b
   } = body;
 
   if (!OPENAI_API_KEY) {
-    return { text: getMockResponse(body), live: false };
+    return { text: getMockResponse(body), live: false, reason: 'no-api-key' };
   }
 
   try {
@@ -77,15 +85,24 @@ async function getAIResponse(body: ChatRequest): Promise<{ text: string; live: b
       }),
     }).finally(() => clearTimeout(timeout));
 
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    if (!response.ok) {
+      const detail = (await response.text().catch(() => '')).slice(0, 200);
+      throw new Error(`API error: ${response.status} ${detail}`);
+    }
 
     const data = await response.json();
-    const text = data.choices?.[0]?.message?.content;
-    if (!text) throw new Error('Empty completion');
-    return { text, live: true };
+    const choice = data.choices?.[0];
+    const text = choice?.message?.content;
+    if (!text) {
+      throw new Error(
+        `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
+      );
+    }
+    return { text, live: true, usage: data.usage };
   } catch (error) {
     console.error('AI API error:', error);
-    return { text: getMockResponse(body), live: false };
+    const reason = error instanceof Error ? error.message : String(error);
+    return { text: getMockResponse(body), live: false, reason };
   }
 }
 
@@ -195,8 +212,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400, headers });
     }
 
-    const { text, live } = await getAIResponse(body);
-    return NextResponse.json({ response: text, live }, { headers });
+    const { text, live, reason, usage } = await getAIResponse(body);
+    return NextResponse.json({ response: text, live, reason, usage }, { headers });
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers });
