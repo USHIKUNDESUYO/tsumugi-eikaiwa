@@ -49,6 +49,12 @@ const LOOKS: Record<Expression, Look> = {
   wink:      { eyeL: 'arc-up',   eyeR: 'open',     brow: 'raised',  mouth: 'grin',  blush: 0.65, sparkle: true },
   sleepy:    { eyeL: 'line',     eyeR: 'line',     brow: 'worried', mouth: 'soft',  blush: 0.4 },
   love:      { eyeL: 'open',     eyeR: 'open',     brow: 'raised',  mouth: 'smile', blush: 1, heartEyes: true, sparkle: true },
+  // ポーズつきのカット。SVG版は体を描き分けられないので、表情だけ寄せる。
+  wave:      { eyeL: 'open',     eyeR: 'open',     brow: 'raised',  mouth: 'smile', blush: 0.6, blink: true },
+  cheer:     { eyeL: 'arc-up',   eyeR: 'arc-up',   brow: 'raised',  mouth: 'grin',  blush: 0.8, sparkle: true },
+  point:     { eyeL: 'open',     eyeR: 'open',     brow: 'neutral', mouth: 'smile', blush: 0.5, blink: true },
+  plead:     { eyeL: 'open',     eyeR: 'open',     brow: 'worried', mouth: 'soft',  blush: 0.8, blink: true },
+  hide:      { eyeL: 'wide',     eyeR: 'wide',     brow: 'worried', mouth: 'wavy',  blush: 1 },
 };
 
 /* ------------------------------------------------------------------ */

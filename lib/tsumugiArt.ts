@@ -63,6 +63,11 @@ const ALL_EXPRESSIONS: Expression[] = [
   'wink',
   'sleepy',
   'love',
+  'wave',
+  'cheer',
+  'point',
+  'plead',
+  'hide',
 ];
 
 /**

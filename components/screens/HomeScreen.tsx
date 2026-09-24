@@ -32,13 +32,19 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
   const [greeting] = useState(() => getGreeting(state.bond.level));
   const [countdown, setCountdown] = useState(() => getCountdown());
   const [pats, setPats] = useState(0);
-  const [expression, setExpression] = useState<Expression>(greeting.expression);
+  // 開いた直後は手を振って迎える。少ししたら挨拶の表情に落ち着く。
+  const [expression, setExpression] = useState<Expression>('wave');
   const [speaking, setSpeaking] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setCountdown(getCountdown()), 30_000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setExpression(greeting.expression), 2200);
+    return () => clearTimeout(t);
+  }, [greeting.expression]);
 
   const dueCount = getDueCards(state.mistakes).length;
   const cleared = state.clearedScenarios.length;
@@ -58,10 +64,12 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
     return all[day % all.length];
   });
 
+  /** なでるほど照れが深くなる: 照れる → 顔を隠す → 甘える */
+  const PAT_REACTIONS: Expression[] = ['shy', 'hide', 'love'];
   const pat = () => {
     setPats((p) => p + 1);
-    setExpression(pats % 3 === 2 ? 'love' : 'shy');
-    setTimeout(() => setExpression('smile'), 1800);
+    setExpression(PAT_REACTIONS[pats % PAT_REACTIONS.length]);
+    setTimeout(() => setExpression('smile'), 1900);
   };
 
   const speak = (text: string) => {

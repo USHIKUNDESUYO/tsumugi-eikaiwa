@@ -41,8 +41,10 @@ const MODEL = {
   base: 'fal-ai/flux/dev',
   // 表情・衣装の差分（画像→画像、キャラを保ったまま編集）
   edit: 'fal-ai/flux-pro/kontext',
-  // 背景抜き
-  cutout: 'fal-ai/imageutils/rembg',
+  // 背景抜き。
+  // rembg は淡い肌色が画面端にあると背景と誤判定し、上げた手を丸ごと消した。
+  // BiRefNet は手も細い髪も残せるので、多少遅くてもこちらを使う。
+  cutout: 'fal-ai/birefnet/v2',
 };
 
 /* ------------------------------------------------------------------ */
@@ -99,6 +101,33 @@ const EXPRESSIONS = {
   talk: 'Open her mouth as if speaking a word, keep her eyes open and her expression otherwise identical.',
 };
 
+/**
+ * ポーズ差分。
+ * 表情だけだと「同じ絵が表情だけ変わる」状態になるので、
+ * 場面ごとに体の動きが変わるカットを用意する。
+ * 手は生成が崩れやすいので、指示で位置と形を細かく指定する。
+ */
+const POSES = {
+  wave:
+    'Raise her right hand up beside her head and wave at the viewer with an open palm, ' +
+    'fingers relaxed and clearly separated, five fingers, with a cheerful smile. ' +
+    'Zoom out slightly so her whole raised hand is inside the frame.',
+  cheer:
+    'Raise both of her hands up in front of her chest as small gentle fists in a happy ' +
+    'celebratory gesture, her eyes closed in joyful upward arcs and a big open smile. ' +
+    'Zoom out slightly so both hands are inside the frame.',
+  point:
+    'Raise her right index finger up beside her face in a gentle teaching gesture, ' +
+    'one finger extended and the rest curled, with a kind helpful smile and open eyes.',
+  plead:
+    'Bring both of her hands together in front of her chest as if politely asking a favour, ' +
+    'head tilted slightly to one side, eyes looking up at the viewer, ' +
+    'a small hopeful closed-mouth smile with a blush.',
+  hide:
+    'Raise both of her hands to her cheeks, palms touching her face, ' +
+    'her cheeks flushed deep red, eyes wide and embarrassed, mouth a small wavering line.',
+};
+
 const OUTFITS = {
   hoodie: 'Change her top to a soft pink oversized hoodie with white drawstrings.',
   festival:
@@ -113,6 +142,14 @@ const OUTFITS = {
  */
 const EYE_LOCK =
   'Her irises are bright violet-purple fading to pink. Keep that exact eye colour. ';
+
+/**
+ * 腕を上げるポーズを作らせると、モデルが勝手に袖丈を変えてしまう。
+ * クリーム色のセーターは半袖に、フェスのタンクトップは逆に袖付きに化けた。
+ * 衣装ごとに文言を変えると破綻するので、「今の服のまま」とだけ言う。
+ */
+const SLEEVE_LOCK =
+  'Keep her top exactly as it already is, including its sleeve length, its neckline and its colour. ';
 
 const KEEP =
   ' Keep the same character, the exact same face, the same hairstyle and hair colour, ' +
@@ -240,6 +277,43 @@ async function stepVariants(only = []) {
  * 衣装画像そのものを土台にして表情を変える。こうしないと、衣装を着替えた
  * 瞬間に紬が無表情のまま固定されてしまう（SVG版は全組み合わせを描けていた）。
  */
+/** ポーズ差分。衣装ごとに、その衣装の絵を土台にして作る。 */
+async function stepPoses(only = []) {
+  const bases = [['casual', state.baseUrl], ...Object.keys(OUTFITS).map((o) => [o, state.raw[`outfit-${o}`]])];
+  const jobs = [];
+  for (const [outfit, baseUrl] of bases) {
+    if (!baseUrl) continue;
+    for (const [pose, instruction] of Object.entries(POSES)) {
+      const name = outfit === 'casual' ? `expr-${pose}` : `outfit-${outfit}-expr-${pose}`;
+      jobs.push([name, instruction, baseUrl]);
+    }
+  }
+
+  const filtered = only.length > 0 ? jobs.filter(([n]) => only.includes(n)) : jobs;
+  if (only.length > 0) {
+    for (const [name] of filtered) delete state.raw[name];
+    saveState();
+  }
+  console.log(`${filtered.length} 枚（すでにあるものは飛ばします）`);
+
+  for (const [name, instruction, baseUrl] of filtered) {
+    if (state.raw[name]) continue;
+    process.stdout.write(`${name} `);
+    const result = await falRun(MODEL.edit, {
+      prompt: EYE_LOCK + SLEEVE_LOCK + instruction + KEEP,
+      image_url: baseUrl,
+      guidance_scale: 3.5,
+      num_images: 1,
+      output_format: 'png',
+      safety_tolerance: '2',
+    });
+    state.raw[name] = firstImageUrl(result);
+    saveState();
+    await download(state.raw[name], resolve(OUT_DIR, `${name}.png`));
+    console.log(' ok');
+  }
+}
+
 async function stepOutfitExpressions(only = []) {
   const outfits = Object.keys(OUTFITS);
   const jobs = [];
@@ -309,9 +383,10 @@ try {
   if (step === 'variants' || step === 'all') await stepVariants(process.argv.slice(3));
   if (step === 'outfit-expressions' || step === 'all')
     await stepOutfitExpressions(process.argv.slice(3));
+  if (step === 'poses' || step === 'all') await stepPoses(process.argv.slice(3));
   if (step === 'cutout' || step === 'all') await stepCutout();
-  if (!['base', 'variants', 'outfit-expressions', 'cutout', 'all'].includes(step)) {
-    console.error('使い方: node scripts/generate-character.mjs [base|variants|outfit-expressions|cutout|all]');
+  if (!['base', 'variants', 'outfit-expressions', 'poses', 'cutout', 'all'].includes(step)) {
+    console.error('使い方: node scripts/generate-character.mjs [base|variants|outfit-expressions|poses|cutout|all]');
     process.exit(1);
   }
 } catch (error) {

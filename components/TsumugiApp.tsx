@@ -193,7 +193,7 @@ function LevelUpOverlay({
             style={{ border: '3px solid var(--tsu-pink-300)' }}
           />
           <TsumugiArt
-            expression={event.unlocked ? 'happy' : line.expression}
+            expression={event.unlocked ? 'cheer' : line.expression}
             outfit={event.unlocked?.outfit ?? outfit}
             size={190}
             reduceMotion={reduceMotion}

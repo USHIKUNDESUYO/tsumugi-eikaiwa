@@ -32,7 +32,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
     if (correct) {
       addBondPoints(2);
       const praise = getPraise(state.bond.level);
-      setExpression(praise.expression);
+      setExpression('cheer');
       setLine(praise.text);
     } else {
       const enc = getEncouragement();

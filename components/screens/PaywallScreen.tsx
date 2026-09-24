@@ -68,7 +68,7 @@ export default function PaywallScreen({
 
       <div className="flex flex-col items-center pt-1">
         <TsumugiArt
-          expression="shy"
+          expression="plead"
           outfit={state.bond.currentOutfit}
           size={190}
           reduceMotion={state.settings.reduceMotion}

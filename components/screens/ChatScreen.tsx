@@ -146,7 +146,8 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
 
         const data = await res.json();
         const { text: reply, correction } = parseReply(data.response ?? '');
-        const expr = correction ? 'thinking' : inferExpression(reply);
+        // 直してくれる場面は、考え顔より指差しのほうが意図が伝わる
+        const expr: Expression = correction ? 'point' : inferExpression(reply);
 
         setMessages((prev) => [
           ...prev,
@@ -579,7 +580,7 @@ function SessionSummary({
         )}
 
         <TsumugiArt
-          expression={line.expression}
+          expression={cleared ? 'cheer' : line.expression}
           outfit={outfit}
           size={170}
           reduceMotion={reduceMotion}

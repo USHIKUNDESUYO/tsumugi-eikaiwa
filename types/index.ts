@@ -31,7 +31,11 @@ export type BusinessScenario =
 
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
-/** 紬の表情。キャラクターSVGと感情ロジックの共通言語。 */
+/**
+ * 紬の表情とポーズ。
+ * 後半5つは体の動きを伴うカットで、場面の節目（挨拶・ほめる・訂正・
+ * お願い・照れ）で使う。表情と同じ仕組みに乗せておくと扱いが楽になる。
+ */
 export type Expression =
   | 'neutral'
   | 'smile'
@@ -42,7 +46,12 @@ export type Expression =
   | 'sad'
   | 'wink'
   | 'sleepy'
-  | 'love';
+  | 'love'
+  | 'wave'
+  | 'cheer'
+  | 'point'
+  | 'plead'
+  | 'hide';
 
 /** 解放できる衣装 */
 export type Outfit = 'casual' | 'festival' | 'yukata' | 'hoodie' | 'sauna';

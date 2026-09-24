@@ -55,7 +55,7 @@ export default function OnboardingScreen() {
       <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10">
         <div className="anim-float">
           <TsumugiArt
-            expression={step === 0 ? 'shy' : step === 1 ? 'thinking' : 'happy'}
+            expression={step === 0 ? 'wave' : step === 1 ? 'thinking' : 'cheer'}
             size={230}
             reduceMotion={prefersReducedMotion}
           />
