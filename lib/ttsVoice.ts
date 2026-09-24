@@ -464,6 +464,9 @@ export function speakText(
     ducked = false;
     unduckBgm();
   };
+  // 呼び出し元のコールバックは options から呼ぶ。options を wrapped に差し替えると
+  // 各コールバックが自分自身を呼び続けてスタックが溢れ、onEnd が画面に届かない
+  // （読み上げが終わっても紬の口パクが止まらなかった）。
   const wrapped: TTSOptions = {
     ...options,
     onStart: () => {
@@ -480,27 +483,26 @@ export function speakText(
     },
   };
   duck();
-  options = wrapped;
 
   // Synchronous check - no network calls before speaking
   if (isCloudTTSEnabled()) {
     // Cloud TTS is explicitly configured - try it asynchronously
     speakWithCloudTTS(text, {
-      ...options,
+      ...wrapped,
       onError: (error) => {
         console.error('Cloud TTS failed, falling back to device:', error);
         // Fallback to device TTS on error
-        speakWithDeviceTTS(text, options);
+        speakWithDeviceTTS(text, wrapped);
       }
     }).catch((error) => {
       console.error('Cloud TTS error, falling back to device:', error);
-      speakWithDeviceTTS(text, options);
+      speakWithDeviceTTS(text, wrapped);
     });
     return;
   }
-  
+
   // Use device TTS (default path, synchronous)
-  speakWithDeviceTTS(text, options);
+  speakWithDeviceTTS(text, wrapped);
 }
 
 /**
