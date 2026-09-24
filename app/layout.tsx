@@ -9,11 +9,21 @@ import OfflineIndicator from "@/components/OfflineIndicator";
  * 英字は M PLUS Rounded 1c（丸ゴシック）を自己ホスト。
  * 日本語はヒラギノ丸ゴ等のシステム丸ゴにフォールバックさせて、
  * 数MBの日本語ウェブフォントを読み込まずに「まるっこさ」を出す。
+ *
+ * preload は必ず false のままにすること。
+ * この書体は日本語ぶんも含めて500個近いサブセットに分割されていて、
+ * subsets:["latin"] を指定しても preload が既定の true だと、その大半に
+ * <link rel="preload"> が張られる。実測で初回読み込みが 358リクエスト
+ * 4.7MB になり、全体の約7割がフォントだった。false にすると
+ * unicode-range に一致したサブセットだけを遅延で取りに行くので、
+ * 実際に使う2つしか落ちてこない。display:"swap" があるので、
+ * その間の文字はフォールバックの丸ゴで出る。
  */
 const rounded = M_PLUS_Rounded_1c({
   weight: ["400", "500", "700", "800"],
   subsets: ["latin"],
   display: "swap",
+  preload: false,
   variable: "--font-rounded",
 });
 
