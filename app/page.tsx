@@ -1,11 +1,5 @@
-"use client";
-
-import ChatInterface from "@/components/ChatInterface";
+import TsumugiApp from "@/components/TsumugiApp";
 
 export default function Home() {
-  return (
-    <main className="h-screen overflow-hidden">
-      <ChatInterface />
-    </main>
-  );
+  return <TsumugiApp />;
 }

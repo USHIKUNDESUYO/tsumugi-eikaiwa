@@ -1,182 +1,152 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+interface IOSNavigator extends Navigator {
+  standalone?: boolean;
+}
+
+const DISMISS_KEY = 'tsumugi-install-dismissed';
+const subscribeNoop = () => () => {};
+
+function detectPlatform(): 'ios' | 'android' | 'other' {
+  if (typeof navigator === 'undefined') return 'other';
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return 'ios';
+  if (/Android/.test(navigator.userAgent)) return 'android';
+  return 'other';
+}
+
+function isStandalone(): boolean {
+  if (typeof window === 'undefined') return true;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as IOSNavigator).standalone === true
+  );
+}
+
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
+  const standalone = useSyncExternalStore(subscribeNoop, isStandalone, () => true);
+  const platform = useSyncExternalStore(subscribeNoop, detectPlatform, () => 'other' as const);
+
+  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Check if already in standalone mode
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
-    setIsStandalone(isInStandaloneMode);
-
-    // Detect iOS
-    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(ios);
-
-    // Detect Android
-    const android = /Android/.test(navigator.userAgent);
-    setIsAndroid(android);
-
-    // Listen for beforeinstallprompt event (Android Chrome)
-    const handleBeforeInstallPrompt = (e: Event) => {
+    const onPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setDeferred(e as BeforeInstallPromptEvent);
     };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
   }, []);
 
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // No install prompt available, show instructions instead
-      setShowInstructions(true);
+  const hidden =
+    standalone ||
+    dismissed ||
+    (typeof window !== 'undefined' && localStorage.getItem(DISMISS_KEY) === '1');
+
+  if (hidden || platform === 'other') return null;
+
+  const install = async () => {
+    if (!deferred) {
+      setOpen(true);
       return;
     }
+    await deferred.prompt();
+    const { outcome } = await deferred.userChoice;
+    if (outcome === 'accepted') setDeferred(null);
+  };
 
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
+  const dismiss = () => {
+    try {
+      localStorage.setItem(DISMISS_KEY, '1');
+    } catch {
+      /* プライベートモードなど。セッション内だけ閉じれば十分。 */
     }
+    setDismissed(true);
   };
-
-  const handleShowInstructions = () => {
-    setShowInstructions(true);
-  };
-
-  const handleCloseInstructions = () => {
-    setShowInstructions(false);
-  };
-
-  // Don't show anything if already installed
-  if (isStandalone) {
-    return null;
-  }
 
   return (
     <>
-      {/* Minimal install hint - unobtrusive */}
-      <div className="bg-gradient-to-r from-cyan-50/80 to-teal-50/80 border-b border-cyan-100/50 px-3 py-2 safe-area-top">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-base flex-shrink-0">📱</span>
-            <p className="text-xs font-medium text-gray-700 truncate">
-              ホーム画面に追加できます
+      <div
+        className="anim-up fixed inset-x-3 z-[55] safe-bottom"
+        style={{ bottom: 'calc(var(--nav-h) + 10px)' }}
+      >
+        <div className="tsu-card-solid mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
+          <span className="text-[22px]" aria-hidden>
+            📲
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13.5px] font-extrabold" style={{ color: 'var(--text)' }}>
+              ホーム画面に置いておく？
+            </p>
+            <p className="text-[11px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+              アプリみたいに開けて、フェス会場でもすぐ使えます
             </p>
           </div>
+          <button type="button" onClick={install} className="tsu-btn tsu-btn-primary shrink-0 px-3.5 py-2 text-[12px]">
+            入れる
+          </button>
           <button
-            onClick={deferredPrompt ? handleInstallClick : handleShowInstructions}
-            className="px-3 py-1.5 bg-cyan-500 text-white text-xs font-medium rounded-full hover:bg-cyan-600 transition-colors whitespace-nowrap shadow-sm active:scale-95 touch-manipulation"
+            type="button"
+            onClick={dismiss}
+            aria-label="閉じる"
+            className="tsu-btn shrink-0 px-1.5 text-[15px]"
+            style={{ color: 'var(--text-faint)' }}
           >
-            {deferredPrompt ? 'インストール' : '手順'}
+            ×
           </button>
         </div>
       </div>
 
-      {/* Instructions Modal */}
-      {showInstructions && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">
-                📱 ホーム画面に追加
-              </h2>
-              <button
-                onClick={handleCloseInstructions}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {isIOS && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-pink-600 font-semibold">
-                    <span className="text-2xl">🍎</span>
-                    <span>iPhone / iPad (Safari)</span>
-                  </div>
-                  <ol className="space-y-3 list-decimal list-inside text-gray-700">
-                    <li>
-                      画面下の<strong>共有ボタン</strong>（<span className="inline-flex items-center px-1">□↑</span>）をタップ
-                    </li>
-                    <li>
-                      下にスクロールして<strong>「ホーム画面に追加」</strong>を選択
-                    </li>
-                    <li>
-                      右上の<strong>「追加」</strong>をタップ
-                    </li>
-                  </ol>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                    <strong>ヒント：</strong> Safari以外のブラウザ（Chrome等）では追加できません。Safariで開いてください。
-                  </div>
-                </div>
+      {open && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center px-4 pb-6"
+          style={{ background: 'rgba(40, 20, 34, 0.5)' }}
+          onClick={() => setOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="インストール方法"
+        >
+          <div
+            className="tsu-card-solid anim-up w-full max-w-sm px-5 py-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-[16px] font-extrabold" style={{ color: 'var(--text)' }}>
+              ホーム画面への追加のしかた
+            </p>
+            <ol
+              className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-[13.5px] font-semibold leading-relaxed"
+              style={{ color: 'var(--text-soft)' }}
+            >
+              {platform === 'ios' ? (
+                <>
+                  <li>Safari で開く（Chrome では追加できません）</li>
+                  <li>下の共有ボタン（□↑）をタップ</li>
+                  <li>「ホーム画面に追加」を選ぶ</li>
+                  <li>右上の「追加」をタップ</li>
+                </>
+              ) : (
+                <>
+                  <li>Chrome の右上メニュー（⋮）をタップ</li>
+                  <li>「アプリをインストール」を選ぶ</li>
+                  <li>「インストール」をタップ</li>
+                </>
               )}
-
-              {isAndroid && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-green-600 font-semibold">
-                    <span className="text-2xl">🤖</span>
-                    <span>Android (Chrome)</span>
-                  </div>
-                  <ol className="space-y-3 list-decimal list-inside text-gray-700">
-                    <li>
-                      右上の<strong>メニュー</strong>（<span className="inline-flex items-center px-1">⋮</span>）をタップ
-                    </li>
-                    <li>
-                      <strong>「ホーム画面に追加」</strong>または<strong>「アプリをインストール」</strong>を選択
-                    </li>
-                    <li>
-                      <strong>「追加」</strong>または<strong>「インストール」</strong>をタップ
-                    </li>
-                  </ol>
-                </div>
-              )}
-
-              {!isIOS && !isAndroid && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-purple-600 font-semibold">
-                    <span className="text-2xl">💻</span>
-                    <span>デスクトップ</span>
-                  </div>
-                  <p className="text-gray-700">
-                    ブラウザのアドレスバー右側にインストールアイコンが表示されます。クリックしてインストールしてください。
-                  </p>
-                </div>
-              )}
-
-              <div className="bg-pink-50 border border-pink-200 rounded-lg p-4 space-y-2">
-                <p className="font-semibold text-pink-800">
-                  ✨ インストールのメリット
-                </p>
-                <ul className="text-sm text-pink-700 space-y-1 list-disc list-inside">
-                  <li>ホーム画面からワンタップで起動</li>
-                  <li>オフラインでも基本機能が使える</li>
-                  <li>全画面で没入感のある学習体験</li>
-                  <li>音声機能がスムーズに動作</li>
-                </ul>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-                <strong>⚠️ 注意：</strong> 音声機能とPWAインストールはHTTPS環境（Vercel等）で最大限活用できます。
-              </div>
-            </div>
+            </ol>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="tsu-btn tsu-btn-primary mt-4 w-full py-3 text-[14px]"
+            >
+              わかった
+            </button>
           </div>
         </div>
       )}

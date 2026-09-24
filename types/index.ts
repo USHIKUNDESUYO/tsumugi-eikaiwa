@@ -1,6 +1,10 @@
+import type { FestivalScenarioId } from '@/lib/festivalScenarios';
+
+export type { FestivalScenarioId };
+
 export type LanguageLevel = 'elementary' | 'intermediate' | 'business';
 
-export type ChatMode = 
+export type ChatMode =
   | 'free-chat'
   | 'daily-life'
   | 'travel'
@@ -9,7 +13,8 @@ export type ChatMode =
   | 'email'
   | 'presentation'
   | 'vocab-drill'
-  | 'business'; // New umbrella mode
+  | 'business'
+  | 'festival';
 
 export type BusinessScenario =
   | 'meeting-basics'
@@ -26,18 +31,36 @@ export type BusinessScenario =
 
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
+/** 紬の表情。キャラクターSVGと感情ロジックの共通言語。 */
+export type Expression =
+  | 'neutral'
+  | 'smile'
+  | 'happy'
+  | 'shy'
+  | 'surprised'
+  | 'thinking'
+  | 'sad'
+  | 'wink'
+  | 'sleepy'
+  | 'love';
+
+/** 解放できる衣装 */
+export type Outfit = 'casual' | 'festival' | 'yukata' | 'hoodie' | 'sauna';
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
   correction?: CorrectionCard;
+  /** このメッセージを喋ったときの紬の表情 */
+  expression?: Expression;
 }
 
 export interface CorrectionCard {
   said: string;
   better: string;
-  why: string; // in Japanese
+  why: string;
   severity: 'minor' | 'moderate' | 'important';
 }
 
@@ -52,21 +75,29 @@ export interface MistakeRecord {
   timesSeen: number;
   timesMastered: number;
   lastReviewed?: number;
+  /** SRS: 次に出題する時刻 (epoch ms) */
+  dueAt?: number;
+  /** SRS: 現在の間隔インデックス */
+  box?: number;
 }
 
 export interface UserProfile {
   nativeLanguage: 'ja';
+  displayName: string;
   currentLevel: LanguageLevel;
   goalLevel: LanguageLevel;
   totalSessions: number;
   lastSessionDate?: string;
+  /** オンボーディング完了フラグ */
+  onboarded: boolean;
 }
 
 export interface SessionStats {
   messagesCount: number;
   correctionsCount: number;
-  duration: number; // milliseconds
+  duration: number;
   mode: ChatMode;
+  scenarioId?: FestivalScenarioId;
   date: string;
 }
 
@@ -84,14 +115,53 @@ export interface BusinessScenarioInfo {
   phrases: Phrase[];
 }
 
+/** 紬との親密度。萌えの中核。 */
+export interface Bond {
+  /** 累積ハート */
+  points: number;
+  /** 現在のレベル (1..10) */
+  level: number;
+  /** 解放済み衣装 */
+  unlockedOutfits: Outfit[];
+  /** 現在着ている衣装 */
+  currentOutfit: Outfit;
+}
+
+/** 連続学習日数 */
+export interface Streak {
+  current: number;
+  longest: number;
+  /** YYYY-MM-DD */
+  lastActiveDate?: string;
+  /** 今日すでにカウント済みか判定用 */
+  totalDays: number;
+}
+
+export interface Settings {
+  voiceEnabled: boolean;
+  autoSpeak: boolean;
+  showFurigana: boolean;
+  reduceMotion: boolean;
+  sfxEnabled: boolean;
+}
+
 export interface AppState {
   profile: UserProfile;
   currentMode: ChatMode;
   businessScenario?: BusinessScenario;
+  festivalScenario?: FestivalScenarioId;
   businessDifficulty: DifficultyLevel;
   messages: Message[];
   sessionStats: SessionStats[];
-  voiceEnabled: boolean;
   mistakes: MistakeRecord[];
-  successfulTurns: number; // For scaffolding
+  successfulTurns: number;
+  bond: Bond;
+  streak: Streak;
+  settings: Settings;
+  /** クリア済みフェスシナリオ */
+  clearedScenarios: FestivalScenarioId[];
+  /** 暗記済み必修フレーズ (en をキーに) */
+  masteredPhrases: string[];
+  /** スキーマバージョン（マイグレーション用） */
+  version: number;
 }

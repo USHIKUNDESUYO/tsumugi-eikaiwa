@@ -7,7 +7,7 @@
 export interface TTSOptions {
   onStart?: () => void;
   onEnd?: () => void;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
 }
 
 type VoiceSelectionResult = {

@@ -1,39 +1,118 @@
-import { AppState, UserProfile, Message, SessionStats, MistakeRecord, CorrectionCard, ChatMode, BusinessScenario, DifficultyLevel } from '@/types';
+import type {
+  AppState,
+  UserProfile,
+  Message,
+  SessionStats,
+  MistakeRecord,
+  CorrectionCard,
+  ChatMode,
+  BusinessScenario,
+  DifficultyLevel,
+  Bond,
+  Streak,
+  Settings,
+  Outfit,
+  FestivalScenarioId,
+} from '@/types';
+import { scheduleNext } from './srs';
 
 const STORAGE_KEY = 'tsumugi-app-state';
+const SCHEMA_VERSION = 2;
+
+/** 親密度レベルごとの必要ハート数 */
+export const BOND_THRESHOLDS = [0, 20, 50, 100, 180, 300, 460, 680, 980, 1400];
+
+/** レベルアップで解放される衣装 */
+export const OUTFIT_UNLOCKS: Array<{ level: number; outfit: Outfit; label: string }> = [
+  { level: 1, outfit: 'casual', label: 'いつもの私服' },
+  { level: 2, outfit: 'hoodie', label: 'ゆるパーカー' },
+  { level: 4, outfit: 'festival', label: 'フェスコーデ' },
+  { level: 6, outfit: 'sauna', label: 'サウナタオル' },
+  { level: 8, outfit: 'yukata', label: '浴衣' },
+];
 
 export function getDefaultProfile(): UserProfile {
   return {
     nativeLanguage: 'ja',
+    displayName: '',
     currentLevel: 'elementary',
-    goalLevel: 'business',
+    goalLevel: 'intermediate',
     totalSessions: 0,
+    onboarded: false,
+  };
+}
+
+export function getDefaultBond(): Bond {
+  return { points: 0, level: 1, unlockedOutfits: ['casual'], currentOutfit: 'casual' };
+}
+
+export function getDefaultStreak(): Streak {
+  return { current: 0, longest: 0, totalDays: 0 };
+}
+
+export function getDefaultSettings(): Settings {
+  return {
+    voiceEnabled: false,
+    autoSpeak: true,
+    showFurigana: true,
+    reduceMotion: false,
+    sfxEnabled: true,
   };
 }
 
 export function getDefaultState(): AppState {
   return {
     profile: getDefaultProfile(),
-    currentMode: 'free-chat',
+    currentMode: 'festival',
     businessScenario: undefined,
+    festivalScenario: undefined,
     businessDifficulty: 'beginner',
     messages: [],
     sessionStats: [],
-    voiceEnabled: false,
     mistakes: [],
     successfulTurns: 0,
+    bond: getDefaultBond(),
+    streak: getDefaultStreak(),
+    settings: getDefaultSettings(),
+    clearedScenarios: [],
+    masteredPhrases: [],
+    version: SCHEMA_VERSION,
   };
+}
+
+/** v1 (旧スキーマ) から安全に引き上げる */
+function migrate(raw: Record<string, unknown>): AppState {
+  const base = getDefaultState();
+  const merged: AppState = {
+    ...base,
+    ...(raw as Partial<AppState>),
+    profile: { ...base.profile, ...((raw.profile as Partial<UserProfile>) ?? {}) },
+    bond: { ...base.bond, ...((raw.bond as Partial<Bond>) ?? {}) },
+    streak: { ...base.streak, ...((raw.streak as Partial<Streak>) ?? {}) },
+    settings: { ...base.settings, ...((raw.settings as Partial<Settings>) ?? {}) },
+    clearedScenarios: (raw.clearedScenarios as FestivalScenarioId[]) ?? [],
+    masteredPhrases: (raw.masteredPhrases as string[]) ?? [],
+    version: SCHEMA_VERSION,
+  };
+
+  // 旧 voiceEnabled をトップレベルから settings へ
+  if (typeof raw.voiceEnabled === 'boolean') {
+    merged.settings.voiceEnabled = raw.voiceEnabled;
+  }
+  // SRS フィールドがない過去の間違い記録を初期化
+  merged.mistakes = (merged.mistakes ?? []).map((m) =>
+    m.dueAt === undefined ? { ...m, ...scheduleNext(m.timesMastered ?? 0, m.timestamp) } : m
+  );
+
+  return merged;
 }
 
 export function loadState(): AppState {
   if (typeof window === 'undefined') return getDefaultState();
-  
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return getDefaultState();
-    
-    const parsed = JSON.parse(stored);
-    return { ...getDefaultState(), ...parsed };
+    return migrate(JSON.parse(stored));
   } catch (error) {
     console.error('Failed to load state:', error);
     return getDefaultState();
@@ -42,58 +121,193 @@ export function loadState(): AppState {
 
 export function saveState(state: AppState): void {
   if (typeof window === 'undefined') return;
-  
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
     console.error('Failed to save state:', error);
   }
+  notify();
 }
 
-export function addSessionStats(stats: SessionStats): void {
-  const state = loadState();
-  state.sessionStats.push(stats);
-  state.profile.totalSessions += 1;
-  state.profile.lastSessionDate = stats.date;
-  saveState(state);
+/* ------------------------------------------------------------------ */
+/*  useSyncExternalStore 用の購読ストア                                  */
+/*  localStorage は React の外にある状態なので、素直に外部ストアとして扱う。 */
+/* ------------------------------------------------------------------ */
+
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+/** getSnapshot は同じ内容なら同じ参照を返す必要がある（無限ループ防止） */
+let cachedSnapshot: AppState | null = null;
+const serverSnapshot = getDefaultState();
+
+function notify(): void {
+  cachedSnapshot = loadState();
+  for (const listener of listeners) listener();
 }
 
-export function updateProfile(updates: Partial<UserProfile>): void {
+export function subscribe(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function getSnapshot(): AppState {
+  if (!cachedSnapshot) cachedSnapshot = loadState();
+  return cachedSnapshot;
+}
+
+export function getServerSnapshot(): AppState {
+  return serverSnapshot;
+}
+
+/** 部分更新して保存し、新しい state を返す */
+export function updateState(patch: (state: AppState) => void): AppState {
   const state = loadState();
-  state.profile = { ...state.profile, ...updates };
+  patch(state);
   saveState(state);
+  return state;
+}
+
+export function updateProfile(updates: Partial<UserProfile>): AppState {
+  return updateState((s) => {
+    s.profile = { ...s.profile, ...updates };
+  });
+}
+
+export function updateSettings(updates: Partial<Settings>): AppState {
+  return updateState((s) => {
+    s.settings = { ...s.settings, ...updates };
+  });
 }
 
 export function saveMessages(messages: Message[]): void {
-  const state = loadState();
-  state.messages = messages;
-  saveState(state);
+  updateState((s) => {
+    s.messages = messages;
+  });
 }
 
 export function clearMessages(): void {
-  const state = loadState();
-  state.messages = [];
-  saveState(state);
+  updateState((s) => {
+    s.messages = [];
+    s.successfulTurns = 0;
+  });
 }
 
+export function addSessionStats(stats: SessionStats): AppState {
+  return updateState((s) => {
+    s.sessionStats.push(stats);
+    s.profile.totalSessions += 1;
+    s.profile.lastSessionDate = stats.date;
+    if (s.sessionStats.length > 200) s.sessionStats = s.sessionStats.slice(-200);
+  });
+}
+
+/* ---------------------------------- 親密度 --------------------------------- */
+
+export function levelForPoints(points: number): number {
+  let level = 1;
+  for (let i = 0; i < BOND_THRESHOLDS.length; i++) {
+    if (points >= BOND_THRESHOLDS[i]) level = i + 1;
+  }
+  return Math.min(level, BOND_THRESHOLDS.length);
+}
+
+export function bondProgress(bond: Bond): { current: number; next: number; ratio: number } {
+  const idx = Math.min(bond.level, BOND_THRESHOLDS.length - 1);
+  const floor = BOND_THRESHOLDS[bond.level - 1] ?? 0;
+  const ceil = BOND_THRESHOLDS[idx] ?? floor + 1;
+  if (bond.level >= BOND_THRESHOLDS.length) {
+    return { current: bond.points, next: bond.points, ratio: 1 };
+  }
+  return {
+    current: bond.points - floor,
+    next: ceil - floor,
+    ratio: Math.min(1, (bond.points - floor) / Math.max(1, ceil - floor)),
+  };
+}
+
+export interface BondGain {
+  points: number;
+  leveledUp: boolean;
+  newLevel: number;
+  unlocked?: { outfit: Outfit; label: string };
+}
+
+export function addBondPoints(amount: number): BondGain {
+  let result: BondGain = { points: 0, leveledUp: false, newLevel: 1 };
+  updateState((s) => {
+    const before = s.bond.level;
+    s.bond.points += amount;
+    s.bond.level = levelForPoints(s.bond.points);
+    const leveledUp = s.bond.level > before;
+
+    let unlocked: BondGain['unlocked'];
+    if (leveledUp) {
+      for (const u of OUTFIT_UNLOCKS) {
+        if (u.level <= s.bond.level && !s.bond.unlockedOutfits.includes(u.outfit)) {
+          s.bond.unlockedOutfits.push(u.outfit);
+          unlocked = { outfit: u.outfit, label: u.label };
+        }
+      }
+    }
+    result = { points: s.bond.points, leveledUp, newLevel: s.bond.level, unlocked };
+  });
+  return result;
+}
+
+export function setOutfit(outfit: Outfit): void {
+  updateState((s) => {
+    if (s.bond.unlockedOutfits.includes(outfit)) s.bond.currentOutfit = outfit;
+  });
+}
+
+/* --------------------------------- ストリーク -------------------------------- */
+
+function todayKey(now = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+export function touchStreak(now = new Date()): { streak: Streak; isNewDay: boolean } {
+  const today = todayKey(now);
+  let isNewDay = false;
+  const state = updateState((s) => {
+    if (s.streak.lastActiveDate === today) return;
+    isNewDay = true;
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yKey = todayKey(yesterday);
+
+    s.streak.current = s.streak.lastActiveDate === yKey ? s.streak.current + 1 : 1;
+    s.streak.longest = Math.max(s.streak.longest, s.streak.current);
+    s.streak.lastActiveDate = today;
+    s.streak.totalDays += 1;
+  });
+  return { streak: state.streak, isNewDay };
+}
+
+/* ---------------------------------- 間違い --------------------------------- */
+
 export function addMistake(correction: CorrectionCard, mode: ChatMode): void {
-  const state = loadState();
-  
-  // Check if this mistake already exists (same said/better pair)
-  const existing = state.mistakes.find(
-    m => m.said.toLowerCase() === correction.said.toLowerCase() && 
-         m.better.toLowerCase() === correction.better.toLowerCase()
-  );
-  
-  if (existing) {
-    // Update existing mistake
-    existing.timesSeen += 1;
-    existing.lastReviewed = Date.now();
-    existing.mode = mode; // Update to latest mode
-  } else {
-    // Add new mistake
-    const newMistake: MistakeRecord = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+  updateState((s) => {
+    const existing = s.mistakes.find(
+      (m) =>
+        m.said.toLowerCase().trim() === correction.said.toLowerCase().trim() &&
+        m.better.toLowerCase().trim() === correction.better.toLowerCase().trim()
+    );
+
+    if (existing) {
+      existing.timesSeen += 1;
+      existing.lastReviewed = Date.now();
+      existing.mode = mode;
+      Object.assign(existing, scheduleNext(0));
+      return;
+    }
+
+    s.mistakes.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       said: correction.said,
       better: correction.better,
       why: correction.why,
@@ -102,73 +316,85 @@ export function addMistake(correction: CorrectionCard, mode: ChatMode): void {
       timestamp: Date.now(),
       timesSeen: 1,
       timesMastered: 0,
-    };
-    state.mistakes.push(newMistake);
-  }
-  
-  saveState(state);
+      ...scheduleNext(0),
+    });
+  });
 }
 
 export function getMistakes(): MistakeRecord[] {
-  const state = loadState();
-  return state.mistakes || [];
+  return loadState().mistakes ?? [];
 }
 
 export function updateMistake(id: string, updates: Partial<MistakeRecord>): void {
-  const state = loadState();
-  const mistake = state.mistakes.find(m => m.id === id);
-  
-  if (mistake) {
-    Object.assign(mistake, updates);
-    saveState(state);
-  }
+  updateState((s) => {
+    const m = s.mistakes.find((x) => x.id === id);
+    if (m) Object.assign(m, updates);
+  });
 }
 
 export function deleteMistake(id: string): void {
-  const state = loadState();
-  state.mistakes = state.mistakes.filter(m => m.id !== id);
-  saveState(state);
+  updateState((s) => {
+    s.mistakes = s.mistakes.filter((m) => m.id !== id);
+  });
 }
 
-export function markMistakeMastered(id: string): void {
-  const state = loadState();
-  const mistake = state.mistakes.find(m => m.id === id);
-  
-  if (mistake) {
-    mistake.timesMastered += 1;
-    mistake.lastReviewed = Date.now();
-    saveState(state);
-  }
+/* ------------------------------- シナリオ進行 ------------------------------- */
+
+export function markScenarioCleared(id: FestivalScenarioId): void {
+  updateState((s) => {
+    if (!s.clearedScenarios.includes(id)) s.clearedScenarios.push(id);
+  });
 }
 
-export function getMistakesSortedForReview(): MistakeRecord[] {
-  const mistakes = getMistakes();
-  
-  // Sort by: least mastered first, then newest first
-  return mistakes.sort((a, b) => {
-    const masteryDiff = a.timesMastered - b.timesMastered;
-    if (masteryDiff !== 0) return masteryDiff;
-    
-    // If same mastery level, newer mistakes first
-    return b.timestamp - a.timestamp;
+export function togglePhraseMastered(en: string): boolean {
+  let mastered = false;
+  updateState((s) => {
+    const idx = s.masteredPhrases.indexOf(en);
+    if (idx >= 0) {
+      s.masteredPhrases.splice(idx, 1);
+      mastered = false;
+    } else {
+      s.masteredPhrases.push(en);
+      mastered = true;
+    }
+  });
+  return mastered;
+}
+
+export function setFestivalScenario(id?: FestivalScenarioId): void {
+  updateState((s) => {
+    s.festivalScenario = id;
+    s.currentMode = 'festival';
   });
 }
 
 export function updateBusinessSettings(scenario?: BusinessScenario, difficulty?: DifficultyLevel): void {
-  const state = loadState();
-  if (scenario !== undefined) state.businessScenario = scenario;
-  if (difficulty !== undefined) state.businessDifficulty = difficulty;
-  saveState(state);
+  updateState((s) => {
+    if (scenario !== undefined) s.businessScenario = scenario;
+    if (difficulty !== undefined) s.businessDifficulty = difficulty;
+  });
 }
 
 export function incrementSuccessfulTurns(): void {
-  const state = loadState();
-  state.successfulTurns += 1;
-  saveState(state);
+  updateState((s) => {
+    s.successfulTurns += 1;
+  });
 }
 
 export function resetSuccessfulTurns(): void {
-  const state = loadState();
-  state.successfulTurns = 0;
-  saveState(state);
+  updateState((s) => {
+    s.successfulTurns = 0;
+  });
+}
+
+/** 設定画面の「データを削除」用 */
+export function resetAll(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(STORAGE_KEY);
+  notify();
+}
+
+/** バックアップ書き出し */
+export function exportState(): string {
+  return JSON.stringify(loadState(), null, 2);
 }
