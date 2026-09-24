@@ -9,7 +9,9 @@ export function getSystemPrompt(
   businessDifficulty?: DifficultyLevel,
   successfulTurns?: number,
   festivalScenario?: FestivalScenarioId,
-  bondLevel = 1
+  bondLevel = 1,
+  /** 学習者の名前（オンボーディングで入れたもの）。フェスの相手役に背景として渡す */
+  learnerName?: string
 ): string {
   const basePersonality = `You are Tsumugi (紬), a gentle companion who helps with English conversation. Your personality is soft, warm, and slightly reserved — like a kind friend who's naturally shy but genuinely wants to help. You're patient and encouraging, never harsh or condescending.
 
@@ -66,7 +68,7 @@ Only correct when truly helpful — don't overwhelm. Focus on mistakes that matt
 
   // Festival roleplay replaces the persona entirely: Tsumugi *plays* the character.
   if (mode === 'festival' && festivalScenario && festivalScenarios[festivalScenario]) {
-    return `${getFestivalScenarioPrompt(festivalScenario)}
+    return `${getFestivalScenarioPrompt(festivalScenario, learnerName)}
 
 Level of the learner: ${levelGuidance[level]}
 

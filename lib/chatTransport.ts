@@ -36,6 +36,8 @@ export interface AskInput {
   festivalScenario?: FestivalScenarioId;
   successfulTurns?: number;
   bondLevel?: number;
+  /** 学習者の名前。相手役に「これはあなたではなく相手の名前」と教えるために渡す */
+  userName?: string;
 }
 
 interface SampleResult {
@@ -77,7 +79,8 @@ function buildPrompt(input: AskInput): string {
     input.businessDifficulty,
     input.successfulTurns,
     input.festivalScenario,
-    input.bondLevel
+    input.bondLevel,
+    input.userName
   );
 }
 

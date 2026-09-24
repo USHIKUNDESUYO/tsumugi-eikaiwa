@@ -5,6 +5,7 @@ import type { AppState, FestivalScenarioId } from '@/types';
 import { festivalScenarios, festivalScenarioOrder } from '@/lib/festivalScenarios';
 import { isScenarioUnlocked } from '@/lib/entitlements';
 import { sceneSrc } from '@/lib/scenes';
+import { fillName } from '@/lib/learnerName';
 
 const DIFF_LABEL = ['', 'やさしい', 'ふつう', 'ちょい難'];
 
@@ -159,7 +160,7 @@ export default function ScenarioListScreen({
                       className="mt-3 rounded-2xl px-3.5 py-2.5 text-[11.5px] font-semibold leading-relaxed"
                       style={{ background: 'var(--tsu-lav-100)', color: 'var(--text-soft)' }}
                     >
-                      💡 {s.culturalTip}
+                      💡 {fillName(s.culturalTip, state.profile.displayName, 'en')}
                     </p>
                   )}
 

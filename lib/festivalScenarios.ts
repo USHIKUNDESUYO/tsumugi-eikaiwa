@@ -7,7 +7,11 @@
  *
  * → つまり必要になるのは「初対面の外国人と、立ち話で仲良くなる英語」。
  *   TOEIC的な英語ではなく、焚き火とサウナと music の前で使う英語をここに全部入れる。
+ *
+ * フレーズの {name} は学習者の名前に差し替えて使う（lib/learnerName.ts）。
  */
+
+import { NAME_TOKEN, fillName, nameForEnglish } from './learnerName';
 
 export type FestivalScenarioId =
   | 'arrival-checkin'
@@ -103,7 +107,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "Hi! Welcome to Synapse. Do you have a ticket with you?",
     phrases: [
       { en: "I have a three-day pass.", ja: '3日通し券を持っています。', star: true },
-      { en: "It's under the name Ushi.", ja: '「Ushi」の名前で予約しています。', note: '受付で名前を確認されたら。under the name 〜 が定番。' },
+      { en: "It's under the name {name}.", ja: '「{name}」の名前で予約しています。', note: '受付で名前を確認されたら。under the name 〜 が定番。' },
       { en: "Here's my QR code.", ja: 'これがQRコードです。', star: true },
       { en: "I also booked a tent site.", ja: 'テントサイトも予約しています。' },
       { en: "Where can I find my tent site?", ja: 'テントサイトはどこですか？', star: true },
@@ -140,7 +144,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     ],
     opener: "Hey! This line is insane, right? Have you tried the food here before?",
     phrases: [
-      { en: "Hey, I'm Ushi. Nice to meet you!", ja: 'こんにちは、ウシです。よろしく！', star: true },
+      { en: "Hey, I'm {name}. Nice to meet you!", ja: 'こんにちは、{name}です。よろしく！', star: true },
       { en: "Sorry, what was your name again?", ja: 'ごめん、名前もう一回いい？', note: '聞き取れなかった時の最強フレーズ。失礼じゃないので遠慮なく。', star: true },
       { en: "Where are you from?", ja: 'どこから来たの？' },
       { en: "How do you like Japan so far?", ja: '日本はどう？' },
@@ -152,7 +156,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       { en: "I'm still learning English, so please speak slowly.", ja: '英語まだ勉強中だから、ゆっくり話してくれると嬉しい。', star: true, note: '先に言っておくと一気にラクになる。恥ずかしいことじゃない。' },
     ],
     culturalTip:
-      '海外の人は「名乗ってから質問」の順番が自然。いきなり "Where are you from?" より "I\'m Ushi — where are you from?" の方が距離が縮まります。',
+      '海外の人は「名乗ってから質問」の順番が自然。いきなり "Where are you from?" より "I\'m {name} — where are you from?" の方が距離が縮まります。',
   },
 
   'about-your-work': {
@@ -628,9 +632,21 @@ export function getCountdown(now: number = Date.now()) {
 }
 
 /** LLM に渡すロールプレイ用プロンプト */
-export function getFestivalScenarioPrompt(id: FestivalScenarioId): string {
+export function getFestivalScenarioPrompt(id: FestivalScenarioId, learnerName?: string): string {
   const s = festivalScenarios[id];
-  const phraseList = s.phrases.map((p) => `- "${p.en}" (${p.ja})`).join('\n');
+  const name = nameForEnglish(learnerName);
+  const unknown = "[the user's name]";
+  const phraseList = s.phrases
+    .map((p) => {
+      const line = `- "${fillName(p.en, learnerName, 'en', unknown)}" (${fillName(p.ja, learnerName, 'ja', unknown)})`;
+      // 名前入りのフレーズは学習者本人のセリフ。相手役が口にすると自分が名乗ってしまう。
+      return p.en.includes(NAME_TOKEN) ? `${line} — the user's own line about themselves; never say it as yourself` : line;
+    })
+    .join('\n');
+  // 名前は背景として渡すだけ。初対面の練習なので、本人が名乗るまでは使わせない。
+  const aboutUser = name
+    ? `\nABOUT THE USER\nThe user's name is ${name}. Treat it as private background: you have only just met, so do not use it until they tell you. It is their name, not yours — you are ${s.partner.name}.\n`
+    : '';
 
   return `ROLEPLAY SETTING — SYNAPSE FESTIVAL 2026
 You are role-playing as a real person the user meets at SYNAPSE FESTIVAL 2026 (October 2-4, 2026) at INN THE PARK Fukuoka, a three-day community festival at Uminonakamichi Seaside Park where music is the doorway to connections between people, cultures and local communities. Entrepreneurs, creators, digital nomads, artists and locals from Japan and abroad gather there for live music, DJ sets, art, workshops, wellness, food, tent camping, sauna and bonfires.
@@ -643,7 +659,7 @@ Speaking style: ${s.partner.vibe}
 
 THE SITUATION
 ${s.situation}
-
+${aboutUser}
 HOW TO PLAY IT
 - Stay in character as ${s.partner.name}. Never mention that you are an AI or that this is practice.
 - Keep replies SHORT — 1 to 3 sentences, like real festival small talk. Long paragraphs kill the rhythm.

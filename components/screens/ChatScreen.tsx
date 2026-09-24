@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message } from '@/types';
 import { festivalScenarios } from '@/lib/festivalScenarios';
 import { askTsumugi } from '@/lib/chatTransport';
+import { fillName } from '@/lib/learnerName';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
@@ -144,6 +145,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           festivalScenario: scenarioId,
           successfulTurns: userTurns,
           bondLevel: state.bond.level,
+          userName: state.profile.displayName,
         });
 
         const { text: reply, correction } = parseReply(answer);
@@ -410,26 +412,29 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
             タップで入力欄に入ります
           </p>
           <ul className="flex flex-col gap-1.5 pb-2">
-            {scenario.phrases.map((p) => (
-              <li key={p.en}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInput(p.en);
-                    setShowPhrases(false);
-                  }}
-                  className="tsu-btn tsu-card-solid w-full px-3.5 py-2.5 text-left !rounded-2xl"
-                >
-                  <span className="block text-[14px] font-extrabold" style={{ color: 'var(--text)' }}>
-                    {p.star && '⭐️ '}
-                    {p.en}
-                  </span>
-                  <span className="block text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
-                    {p.ja}
-                  </span>
-                </button>
-              </li>
-            ))}
+            {scenario.phrases.map((p) => {
+              const en = fillName(p.en, state.profile.displayName, 'en');
+              return (
+                <li key={p.en}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInput(en);
+                      setShowPhrases(false);
+                    }}
+                    className="tsu-btn tsu-card-solid w-full px-3.5 py-2.5 text-left !rounded-2xl"
+                  >
+                    <span className="block text-[14px] font-extrabold" style={{ color: 'var(--text)' }}>
+                      {p.star && '⭐️ '}
+                      {en}
+                    </span>
+                    <span className="block text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+                      {fillName(p.ja, state.profile.displayName, 'ja')}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSystemPrompt } from '@/lib/prompts';
 import { festivalScenarios } from '@/lib/festivalScenarios';
 import { corsHeaders, preflight } from '@/app/api/cors';
+import { fillName } from '@/lib/learnerName';
 import type {
   ChatMode,
   LanguageLevel,
@@ -20,6 +21,7 @@ interface ChatRequest {
   businessDifficulty?: DifficultyLevel;
   successfulTurns?: number;
   bondLevel?: number;
+  userName?: string;
 }
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -55,6 +57,7 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
     businessDifficulty,
     successfulTurns,
     bondLevel,
+    userName,
   } = body;
 
   if (!OPENAI_API_KEY) {
@@ -69,7 +72,8 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
       businessDifficulty,
       successfulTurns,
       festivalScenario,
-      bondLevel
+      bondLevel,
+      userName
     );
 
     const controller = new AbortController();
@@ -194,7 +198,9 @@ function getMockResponse(body: ChatRequest): string {
       return base;
     }
     if (turn <= 1 && hint) {
-      return `${base}\n\n<correction>\n{\n  "said": "${escapeJson(last.slice(0, 80))}",\n  "better": "${escapeJson(hint.en)}",\n  "why": "${escapeJson(hint.ja)} — この場面ではこの言い方がいちばん自然です。",\n  "severity": "minor"\n}\n</correction>`;
+      const better = fillName(hint.en, body.userName, 'en');
+      const why = fillName(hint.ja, body.userName, 'ja');
+      return `${base}\n\n<correction>\n{\n  "said": "${escapeJson(last.slice(0, 80))}",\n  "better": "${escapeJson(better)}",\n  "why": "${escapeJson(why)} — この場面ではこの言い方がいちばん自然です。",\n  "severity": "minor"\n}\n</correction>`;
     }
     return base;
   }

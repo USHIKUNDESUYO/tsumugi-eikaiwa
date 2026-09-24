@@ -13,6 +13,7 @@ import { getGreeting } from '@/lib/tsumugiVoice';
 import { isScenarioUnlocked, LOCKED_SCENARIO_COUNT } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
+import { fillName } from '@/lib/learnerName';
 import { speakJa } from '@/lib/tsumugiSpeech';
 import { playSfx } from '@/lib/sfx';
 import { haptic } from '@/lib/haptics';
@@ -70,6 +71,8 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
     const day = Math.floor(Date.now() / 86_400_000);
     return all[day % all.length];
   });
+  const phraseEn = fillName(phraseOfDay.en, state.profile.displayName, 'en');
+  const phraseJa = fillName(phraseOfDay.ja, state.profile.displayName, 'ja');
 
   /** なでるほど照れが深くなる: 照れる → 顔を隠す → 甘える */
   const PAT_REACTIONS: Expression[] = ['shy', 'hide', 'love'];
@@ -284,10 +287,10 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[16px] font-extrabold leading-snug" style={{ color: 'var(--text)' }}>
-                {phraseOfDay.en}
+                {phraseEn}
               </p>
               <p className="mt-1 text-[12.5px] font-semibold" style={{ color: 'var(--text-soft)' }}>
-                {phraseOfDay.ja}
+                {phraseJa}
               </p>
               {phraseOfDay.note && (
                 <p className="mt-1.5 text-[11.5px] font-semibold leading-relaxed" style={{ color: 'var(--text-faint)' }}>
@@ -297,7 +300,7 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
             </div>
             <button
               type="button"
-              onClick={() => speak(phraseOfDay.en)}
+              onClick={() => speak(phraseEn)}
               aria-label="発音を聞く"
               className="tsu-btn grid h-11 w-11 shrink-0 place-items-center text-[18px]"
               style={{ background: 'var(--tsu-pink-100)' }}

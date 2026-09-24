@@ -8,6 +8,7 @@ import { isScenarioUnlocked } from '@/lib/entitlements';
 import { playSfx } from '@/lib/sfx';
 import { haptic } from '@/lib/haptics';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
+import { fillName } from '@/lib/learnerName';
 
 export default function PhrasebookScreen({
   state,
@@ -30,10 +31,11 @@ export default function PhrasebookScreen({
 
   const masteredCount = scenario.phrases.filter((p) => state.masteredPhrases.includes(p.en)).length;
 
-  const speak = (en: string) => {
+  /** key は元のフレーズ（再生中の表示に使う）、text は名前を入れて読み上げる文 */
+  const speak = (key: string, text: string) => {
     stopAllSpeech();
-    setPlaying(en);
-    speakText(en, { onEnd: () => setPlaying(null), onError: () => setPlaying(null) });
+    setPlaying(key);
+    speakText(text, { onEnd: () => setPlaying(null), onError: () => setPlaying(null) });
   };
 
   return (
@@ -82,7 +84,10 @@ export default function PhrasebookScreen({
 
       <ul className="mt-2.5 flex flex-col gap-2 px-5 pb-6">
         {phrases.map((p, i) => {
+          // 「覚えた」は元のフレーズで記録する（名前を変えても消えないように）
           const mastered = state.masteredPhrases.includes(p.en);
+          const en = fillName(p.en, state.profile.displayName, 'en');
+          const ja = fillName(p.ja, state.profile.displayName, 'ja');
           return (
             <li
               key={p.en}
@@ -96,10 +101,10 @@ export default function PhrasebookScreen({
                 <div className="min-w-0 flex-1">
                   <p className="flex items-start gap-1.5 text-[15.5px] font-extrabold leading-snug" style={{ color: 'var(--text)' }}>
                     {p.star && <span aria-label="必修">⭐️</span>}
-                    <span>{p.en}</span>
+                    <span>{en}</span>
                   </p>
                   <p className="mt-1 text-[12.5px] font-semibold" style={{ color: 'var(--text-soft)' }}>
-                    {p.ja}
+                    {ja}
                   </p>
                   {p.note && (
                     <p className="mt-1.5 text-[11.5px] font-semibold leading-relaxed" style={{ color: 'var(--text-faint)' }}>
@@ -111,8 +116,8 @@ export default function PhrasebookScreen({
                 <div className="flex shrink-0 flex-col gap-1.5">
                   <button
                     type="button"
-                    onClick={() => speak(p.en)}
-                    aria-label={`${p.en} を再生`}
+                    onClick={() => speak(p.en, en)}
+                    aria-label={`${en} を再生`}
                     className="tsu-btn grid h-10 w-10 place-items-center text-[16px]"
                     style={{ background: playing === p.en ? 'var(--tsu-pink-300)' : 'var(--tsu-pink-100)' }}
                   >
