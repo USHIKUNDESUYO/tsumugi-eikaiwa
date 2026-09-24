@@ -15,6 +15,12 @@ export interface VoiceLine {
   id: string;
   text: string;
   expression: Expression;
+  /**
+   * 音声を作るときに読ませる表記。画面には text を出す。
+   * Qwen3-TTS は一部の漢字を読み違える（顔→「あお」、来て→「りて」、上手く→「じゅまく」など）
+   * ので、そういうセリフだけ、かなで書いた読みを添える。
+   */
+  yomi?: string;
 }
 
 /** ID を振る前のセリフ */
@@ -55,7 +61,7 @@ function pick<T>(arr: T[]): T {
 
 const GREETINGS = tierIds('greet', {
   1: [
-    { text: 'こんにちは。今日も来てくれたんですね。', expression: 'smile' },
+    { text: 'こんにちは。今日も来てくれたんですね。', expression: 'smile', yomi: 'こんにちは。きょうも、きてくれたんですね。' },
     { text: 'あ…待ってました。練習、はじめましょうか。', expression: 'shy' },
     { text: 'きょうは、どのくらい話せそうですか？', expression: 'neutral' },
   ],
@@ -66,13 +72,13 @@ const GREETINGS = tierIds('greet', {
   ],
   3: [
     { text: 'おかえり！今日はどこから話す？', expression: 'happy' },
-    { text: 'ふふ、顔見たら安心した。', expression: 'shy' },
+    { text: 'ふふ、顔を見たら安心した。', expression: 'shy', yomi: 'ふふっ。かおを見たら、安心した。' },
     { text: 'あのね、昨日の練習すごく良かったよ。', expression: 'smile' },
   ],
   4: [
     { text: 'もー、遅い。ずっと待ってたんだからね？', expression: 'shy' },
     { text: 'おかえり。…うん、やっぱりこの時間が一番好き。', expression: 'love' },
-    { text: '来てくれると、それだけで今日がいい日になる。', expression: 'love' },
+    { text: '来てくれると、それだけで今日がいい日になる。', expression: 'love', yomi: 'きてくれると、それだけで、きょうがいい日になる。' },
   ],
 });
 
@@ -85,7 +91,7 @@ export function getGreeting(level: number, hour = new Date().getHours()): VoiceL
   }
   if (hour < 10) {
     return tier >= 3
-      ? { id: 'greet-morning-warm', text: 'おはよう！朝の英語、頭に入りやすいんだよ。', expression: 'happy' }
+      ? { id: 'greet-morning-warm', text: 'おはよう！朝の英語、頭に入りやすいんだよ。', expression: 'happy', yomi: 'おはよう！朝の英語、あたまに、はいりやすいんだよ。' }
       : { id: 'greet-morning-polite', text: 'おはようございます。朝からえらいですね。', expression: 'smile' };
   }
   return pick(GREETINGS[tier]);
@@ -111,7 +117,7 @@ const PRAISE = tierIds('praise', {
   ],
   4: [
     { text: '…うん。やっぱり好きだな、そういうとこ。', expression: 'love' },
-    { text: 'はぁ…また上手くなってる。悔しいくらい。', expression: 'shy' },
+    { text: 'はぁ…また上手くなってる。悔しいくらい。', expression: 'shy', yomi: 'はぁ…また、うまくなってる。くやしいくらい。' },
     { text: '本番でも絶対大丈夫。保証する。', expression: 'love' },
   ],
 });
@@ -129,7 +135,7 @@ const GENTLE_FIX = tierIds('fix', {
   ],
   2: [
     { text: 'ん、ちょっとだけ直そっか。', expression: 'smile' },
-    { text: '伝わるけど、こう言うともっといいよ。', expression: 'neutral' },
+    { text: '伝わるけど、こう言うともっといいよ。', expression: 'neutral', yomi: 'つたわるけど、こう言うともっといいよ。' },
   ],
   3: [
     { text: 'おしい！あとちょっとなんだよね。', expression: 'happy' },
@@ -168,7 +174,7 @@ export function getLevelUpLine(newLevel: number): VoiceLine {
     5: { id: 'lvl-5', text: '毎日会ってるね。うれしい。', expression: 'love' },
     6: { id: 'lvl-6', text: 'サウナの話、私もできるようになったよ。ととのう、って英語で説明できる？', expression: 'happy' },
     7: { id: 'lvl-7', text: 'あのね。もう先生とか生徒とか、どうでもよくなってきた。', expression: 'shy' },
-    8: { id: 'lvl-8', text: '浴衣、着てみたよ。…笑わないでね。', expression: 'shy' },
+    8: { id: 'lvl-8', text: '浴衣、着てみたよ。…笑わないでね。', expression: 'shy', yomi: 'ゆかた、きてみたよ。…わらわないでね。' },
     9: { id: 'lvl-9', text: '本番、ついていけたらいいのに。…なんて、ね。', expression: 'love' },
     10: { id: 'lvl-10', text: 'ここまで一緒に来たね。10月2日、ぜったい大丈夫だよ。', expression: 'love' },
   };
@@ -237,7 +243,7 @@ const STATIC_LINES: VoiceLine[] = [
   ...ENCOURAGE,
   { id: 'greet-night-warm', text: 'こんな時間まで…無理しないでね。ちょっとだけにしよ？', expression: 'sleepy' },
   { id: 'greet-night-polite', text: '夜ふかしですね…少しだけ、やりましょうか。', expression: 'sleepy' },
-  { id: 'greet-morning-warm', text: 'おはよう！朝の英語、頭に入りやすいんだよ。', expression: 'happy' },
+  { id: 'greet-morning-warm', text: 'おはよう！朝の英語、頭に入りやすいんだよ。', expression: 'happy', yomi: 'おはよう！朝の英語、あたまに、はいりやすいんだよ。' },
   { id: 'greet-morning-polite', text: 'おはようございます。朝からえらいですね。', expression: 'smile' },
   ...[2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => getLevelUpLine(n)),
   getLevelUpLine(99),
@@ -251,5 +257,6 @@ const STATIC_LINES: VoiceLine[] = [
 
 /** 事前に音声を作っておくセリフの一覧（id が重複しないよう整理済み） */
 export const VOICE_CATALOG: Array<{ id: string; text: string }> = Array.from(
-  new Map(STATIC_LINES.map((l) => [l.id, { id: l.id, text: l.text }])).values()
+  // 音声にするのは読み（yomi）があればそちら
+  new Map(STATIC_LINES.map((l) => [l.id, { id: l.id, text: l.yomi ?? l.text }])).values()
 );

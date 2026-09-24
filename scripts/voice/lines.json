@@ -3,7 +3,7 @@
     {
       "id": "greet-1-0",
       "lang": "ja",
-      "text": "こんにちは。今日も来てくれたんですね。",
+      "text": "こんにちは。きょうも、きてくれたんですね。",
       "out": "public/voice/greet-1-0.mp3"
     },
     {
@@ -93,7 +93,7 @@
     {
       "id": "fix-2-1",
       "lang": "ja",
-      "text": "伝わるけど、こう言うともっといいよ。",
+      "text": "つたわるけど、こう言うともっといいよ。",
       "out": "public/voice/fix-2-1.mp3"
     },
     {
@@ -105,7 +105,7 @@
     {
       "id": "greet-3-1",
       "lang": "ja",
-      "text": "ふふ、顔見たら安心した。",
+      "text": "ふふっ。かおを見たら、安心した。",
       "out": "public/voice/greet-3-1.mp3"
     },
     {
@@ -159,7 +159,7 @@
     {
       "id": "greet-4-2",
       "lang": "ja",
-      "text": "来てくれると、それだけで今日がいい日になる。",
+      "text": "きてくれると、それだけで、きょうがいい日になる。",
       "out": "public/voice/greet-4-2.mp3"
     },
     {
@@ -171,7 +171,7 @@
     {
       "id": "praise-4-1",
       "lang": "ja",
-      "text": "はぁ…また上手くなってる。悔しいくらい。",
+      "text": "はぁ…また、うまくなってる。くやしいくらい。",
       "out": "public/voice/praise-4-1.mp3"
     },
     {
@@ -231,7 +231,7 @@
     {
       "id": "greet-morning-warm",
       "lang": "ja",
-      "text": "おはよう！朝の英語、頭に入りやすいんだよ。",
+      "text": "おはよう！朝の英語、あたまに、はいりやすいんだよ。",
       "out": "public/voice/greet-morning-warm.mp3"
     },
     {
@@ -279,7 +279,7 @@
     {
       "id": "lvl-8",
       "lang": "ja",
-      "text": "浴衣、着てみたよ。…笑わないでね。",
+      "text": "ゆかた、きてみたよ。…わらわないでね。",
       "out": "public/voice/lvl-8.mp3"
     },
     {
