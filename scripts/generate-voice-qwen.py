@@ -6,6 +6,7 @@
     python scripts/generate-voice-qwen.py          # 未生成・文言が変わったものだけ作る
     python scripts/generate-voice-qwen.py --force  # 全部作り直す
     python scripts/generate-voice-qwen.py --only greet-1-0 35ee4bbc9737
+    python scripts/generate-voice-qwen.py --out-root /tmp/stage  # 別の場所に作って、聞いてから差し替える
 
 声の元:
     scripts/voice/tsumugi-ref.wav
@@ -56,6 +57,7 @@ from transformers import AutoFeatureExtractor, WavLMForXVector, pipeline
 ROOT = Path(__file__).resolve().parent.parent
 LINES = ROOT / "scripts/voice/lines.json"
 STAMPS = ROOT / "scripts/voice/generated.json"
+QA = ROOT / "scripts/voice/qa.json"
 ANCHOR = ROOT / "scripts/voice/tsumugi-ref.wav"
 REF = ROOT / "scripts/voice/tsumugi-ref-long.wav"
 REF_TEXT = (
@@ -70,6 +72,7 @@ ATTEMPTS = 3
 BATCH = 4
 PASS_TEXT = 0.85  # 書き起こしと原文の一致
 PASS_SPEAKER = 0.85  # 選んだ声との話者照合（同一人物は 0.90 前後、別人は 0.77〜0.85 だった）
+CODEC_HZ = 12  # 1秒 = 12 ステップ
 
 kks = pykakasi.kakasi()
 
@@ -101,6 +104,15 @@ def duration_ok(seconds, text, lang):
     # 和文はかな、英文は文字で数える。どちらも普通に話す速さのかなり外側で切る。
     low, high = (2.5, 14) if lang == "ja" else (5, 25)
     return low <= per_sec <= high
+
+
+def max_steps(lines):
+    """
+    生成の上限。モデルの既定は 8192 ステップ（11分超）で、まとめて作ると
+    止まらない1本に全員が付き合わされる。ゆっくり話した長さの2.5倍に抑える。
+    """
+    seconds = [len(l["text"]) / (7 if l["lang"] == "ja" else 14) * 2.5 + 2 for l in lines]
+    return int(max(seconds) * CODEC_HZ)
 
 
 def to_mp3(wav, sr):
@@ -148,14 +160,21 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--force", action="store_true", help="記録に関係なく全部作り直す")
     ap.add_argument("--only", nargs="*", help="このIDだけ作る")
+    ap.add_argument("--out-root", help="音声と記録をこのディレクトリの下に書く（既定はリポジトリ）")
     args = ap.parse_args()
 
+    # 音声・記録の書き先。リポジトリと同じ相対パスで置く。
+    out_root = Path(args.out_root).resolve() if args.out_root else ROOT
+    stamps_path = out_root / STAMPS.relative_to(ROOT)
+    qa_path = out_root / QA.relative_to(ROOT)
+    stamps_path.parent.mkdir(parents=True, exist_ok=True)
+
     lines = json.loads(LINES.read_text())["lines"]
-    stamps = json.loads(STAMPS.read_text()) if STAMPS.exists() else {}
+    stamps = json.loads(stamps_path.read_text()) if stamps_path.exists() else {}
     todo = [
         l for l in lines
         if (not args.only or l["id"] in args.only)
-        and (args.force or stamps.get(l["out"]) != stamp_of(l) or not (ROOT / l["out"]).exists())
+        and (args.force or stamps.get(l["out"]) != stamp_of(l) or not (out_root / l["out"]).exists())
     ]
     print(f"{len(todo)} / {len(lines)} 本を作る（声 {VOICE_VERSION}）", flush=True)
     if not todo:
@@ -167,6 +186,7 @@ def main():
     judge = Judge()
 
     best = {}  # id -> (結果, 波形, サンプリング周波数)
+    qa = json.loads(qa_path.read_text()) if qa_path.exists() else {}
     pending = list(todo)
     started = time.time()
     for attempt in range(ATTEMPTS):
@@ -181,15 +201,20 @@ def main():
                 language=["Japanese" if l["lang"] == "ja" else "English" for l in chunk],
                 voice_clone_prompt=prompt * len(chunk),
                 do_sample=True,
+                max_new_tokens=max_steps(chunk),
             )
             for line, wav in zip(chunk, wavs):
                 wav = np.asarray(wav, dtype=np.float32)
                 result = judge.score(wav, sr, line)
                 if line["id"] not in best or result["rank"] > best[line["id"]][0]["rank"]:
                     best[line["id"]] = (result, wav, sr)
-                    out = ROOT / line["out"]
+                    out = out_root / line["out"]
                     out.parent.mkdir(parents=True, exist_ok=True)
                     out.write_bytes(to_mp3(wav, sr))
+                    qa[line["id"]] = {k: result[k] for k in ("heard", "seconds", "text", "speaker", "passed")}
+                # 「作り終えた」と記録するのは、合格したときか最後の回だけ。
+                # 途中で止めても、まだ直せるものは次に作り直される。
+                if best[line["id"]][0]["passed"] or attempt == ATTEMPTS - 1:
                     stamps[line["out"]] = stamp_of(line)
                 mark = "OK" if result["passed"] else "再"
                 print(
@@ -197,14 +222,15 @@ def main():
                     f" 声 {result['speaker']:.2f}  {line['text'][:26]}",
                     flush=True,
                 )
-            STAMPS.write_text(json.dumps(stamps, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+            stamps_path.write_text(json.dumps(stamps, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+            qa_path.write_text(json.dumps(qa, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
             done = start + len(chunk)
             eta = (time.time() - started) / max(done, 1) * (len(pending) - done)
             print(f"  … {done}/{len(pending)}（この回の残り約{eta / 60:.0f}分）", flush=True)
         pending = [l for l in pending if not best[l["id"]][0]["passed"]]
 
     review = [(l, best[l["id"]][0]) for l in todo if not best[l["id"]][0]["passed"]]
-    total = sum((ROOT / l["out"]).stat().st_size for l in todo)
+    total = sum((out_root / l["out"]).stat().st_size for l in todo)
     print(f"\n完了: {len(todo)} 本 / {total / 1024 / 1024:.1f}MB / {(time.time() - started) / 60:.0f}分 / 要確認 {len(review)} 本")
     for line, r in review:
         print(f"  {line['id']}: 「{line['text']}」→「{r['heard']}」 一致 {r['text']:.2f} 声 {r['speaker']:.2f}")
