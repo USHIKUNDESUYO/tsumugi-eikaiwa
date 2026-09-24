@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import type { LanguageLevel } from '@/types';
 import { updateProfile } from '@/lib/storage';
 import { FESTIVAL_INFO, getCountdown } from '@/lib/festivalScenarios';
@@ -13,7 +13,21 @@ const LEVELS: Array<{ id: LanguageLevel; label: string; desc: string; emoji: str
   { id: 'business', label: 'けっこう話せる', desc: '仕事でも英語を使う', emoji: '🌳' },
 ];
 
+/** OS の「視差効果を減らす」を尊重する（まだ設定画面を触れていない段階なので） */
+function usePrefersReducedMotion(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      mq.addEventListener('change', cb);
+      return () => mq.removeEventListener('change', cb);
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false
+  );
+}
+
 export default function OnboardingScreen() {
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [level, setLevel] = useState<LanguageLevel>('elementary');
@@ -43,6 +57,7 @@ export default function OnboardingScreen() {
           <TsumugiCharacter
             expression={step === 0 ? 'shy' : step === 1 ? 'thinking' : 'happy'}
             size={230}
+            reduceMotion={prefersReducedMotion}
           />
         </div>
 

@@ -109,7 +109,7 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
 
       {/* ----------------------------- 紬 ----------------------------- */}
       <section className="relative mt-3 flex flex-col items-center">
-        <HeartBurst trigger={pats} />
+        <HeartBurst trigger={pats} enabled={state.settings.sfxEnabled} />
         <button
           type="button"
           onClick={pat}
@@ -122,6 +122,7 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
             speaking={speaking}
             size={238}
             reduceMotion={state.settings.reduceMotion}
+            effects={state.settings.sfxEnabled}
           />
         </button>
 

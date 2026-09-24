@@ -52,9 +52,7 @@ export function getDefaultStreak(): Streak {
 
 export function getDefaultSettings(): Settings {
   return {
-    voiceEnabled: false,
     autoSpeak: true,
-    showFurigana: true,
     reduceMotion: false,
     sfxEnabled: true,
   };
@@ -95,9 +93,9 @@ function migrate(raw: Record<string, unknown>): AppState {
     version: SCHEMA_VERSION,
   };
 
-  // 旧 voiceEnabled をトップレベルから settings へ
+  // 旧スキーマの voiceEnabled は「読み上げを使うか」だったので autoSpeak に繋ぐ
   if (typeof raw.voiceEnabled === 'boolean') {
-    merged.settings.voiceEnabled = raw.voiceEnabled;
+    merged.settings.autoSpeak = raw.voiceEnabled;
   }
   // SRS フィールドがない過去の間違い記録を初期化
   merged.mistakes = (merged.mistakes ?? []).map((m) =>

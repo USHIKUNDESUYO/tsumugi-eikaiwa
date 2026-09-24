@@ -294,6 +294,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
             speaking={speaking}
             size={186}
             reduceMotion={state.settings.reduceMotion}
+            effects={state.settings.sfxEnabled}
           />
         </div>
 
@@ -474,6 +475,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           bondLevel={state.bond.level}
           outfit={state.bond.currentOutfit}
           cleared={summary.turns >= TURNS_TO_CLEAR}
+          reduceMotion={state.settings.reduceMotion}
           onClose={() => {
             setSummary(null);
             onExit();
@@ -543,6 +545,7 @@ function SessionSummary({
   bondLevel,
   outfit,
   cleared,
+  reduceMotion,
   onClose,
 }: {
   scenarioTitle: string;
@@ -552,6 +555,7 @@ function SessionSummary({
   bondLevel: number;
   outfit: AppState['bond']['currentOutfit'];
   cleared: boolean;
+  reduceMotion: boolean;
   onClose: () => void;
 }) {
   const line = getClosingLine(bondLevel, corrections);
@@ -574,7 +578,12 @@ function SessionSummary({
           </p>
         )}
 
-        <TsumugiCharacter expression={line.expression} outfit={outfit} size={170} />
+        <TsumugiCharacter
+          expression={line.expression}
+          outfit={outfit}
+          size={170}
+          reduceMotion={reduceMotion}
+        />
 
         <p className="mt-1 text-[15px] font-bold leading-relaxed" style={{ color: 'var(--text)' }}>
           「{line.text}」

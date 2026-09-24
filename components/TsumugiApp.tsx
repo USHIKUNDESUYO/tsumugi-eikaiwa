@@ -135,6 +135,7 @@ export default function TsumugiApp() {
         <LevelUpOverlay
           event={levelUp}
           outfit={state.bond.currentOutfit}
+          reduceMotion={state.settings.reduceMotion}
           onClose={() => setLevelUp(null)}
         />
       )}
@@ -149,10 +150,12 @@ export default function TsumugiApp() {
 function LevelUpOverlay({
   event,
   outfit,
+  reduceMotion,
   onClose,
 }: {
   event: LevelUpEvent;
   outfit: Outfit;
+  reduceMotion: boolean;
   onClose: () => void;
 }) {
   const line = getLevelUpLine(event.level);
@@ -186,6 +189,7 @@ function LevelUpOverlay({
             expression={event.unlocked ? 'happy' : line.expression}
             outfit={event.unlocked?.outfit ?? outfit}
             size={190}
+            reduceMotion={reduceMotion}
           />
         </div>
 

@@ -21,7 +21,7 @@ function makeBatch(seed: number): Burst[] {
 }
 
 /** trigger が増えるたびにハートが舞う */
-export default function HeartBurst({ trigger }: { trigger: number }) {
+export default function HeartBurst({ trigger, enabled = true }: { trigger: number; enabled?: boolean }) {
   const [prevTrigger, setPrevTrigger] = useState(trigger);
   const [bursts, setBursts] = useState<Burst[]>([]);
 
@@ -36,7 +36,7 @@ export default function HeartBurst({ trigger }: { trigger: number }) {
     return () => clearTimeout(t);
   }, [bursts.length]);
 
-  if (bursts.length === 0) return null;
+  if (!enabled || bursts.length === 0) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-visible" aria-hidden>

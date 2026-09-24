@@ -11,6 +11,8 @@ interface TsumugiCharacterProps {
   /** 表示サイズ(px)。高さ基準。 */
   size?: number;
   reduceMotion?: boolean;
+  /** きらきら等の装飾を出すか（設定で切れる） */
+  effects?: boolean;
   className?: string;
 }
 
@@ -108,6 +110,7 @@ export default function TsumugiCharacter({
   outfit = 'casual',
   size = 220,
   reduceMotion = false,
+  effects = true,
   className = '',
 }: TsumugiCharacterProps) {
   const uid = useId().replace(/:/g, '');
@@ -496,7 +499,7 @@ export default function TsumugiCharacter({
       </g>
 
       {/* ============================ きらきら ============================ */}
-      {look.sparkle && (
+      {look.sparkle && effects && (
         <g className={animate ? 'tsumugi-sparkle' : ''} filter={`url(#${id.glow})`}>
           <path d="M58 104 L62 116 L74 120 L62 124 L58 136 L54 124 L42 120 L54 116 Z" fill="#FFE27A" />
           <path d="M262 76 L265 85 L274 88 L265 91 L262 100 L259 91 L250 88 L259 85 Z" fill="#FFC2D9" />

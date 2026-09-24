@@ -53,6 +53,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
     return (
       <EmptyState
         outfit={state.bond.currentOutfit}
+        reduceMotion={state.settings.reduceMotion}
         title="まだカードがありません"
         body={'会話の中で直してもらった表現が、\nここに自動でたまります。\nまずは1回、紬と話してみて。'}
         expression="smile"
@@ -64,6 +65,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
     return (
       <EmptyState
         outfit={state.bond.currentOutfit}
+        reduceMotion={state.settings.reduceMotion}
         title={done > 0 ? `${done}枚、おつかれさま！` : '今は復習するカードがないよ'}
         body={
           done > 0
@@ -105,6 +107,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
           outfit={state.bond.currentOutfit}
           size={150}
           reduceMotion={state.settings.reduceMotion}
+          effects={state.settings.sfxEnabled}
         />
         <SpeechBubble key={line} text={line} speed={26} className="max-w-[320px] text-center" />
 
@@ -209,16 +212,18 @@ function EmptyState({
   body,
   expression,
   outfit,
+  reduceMotion,
 }: {
   title: string;
   body: string;
   expression: Expression;
   outfit: AppState['bond']['currentOutfit'];
+  reduceMotion: boolean;
 }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-8 text-center safe-top">
       <div className="anim-float">
-        <TsumugiCharacter expression={expression} outfit={outfit} size={200} />
+        <TsumugiCharacter expression={expression} outfit={outfit} size={200} reduceMotion={reduceMotion} />
       </div>
       <h2 className="text-[19px] font-extrabold" style={{ color: 'var(--text)' }}>
         {title}

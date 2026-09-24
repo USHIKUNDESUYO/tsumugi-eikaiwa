@@ -138,9 +138,7 @@ export interface Streak {
 }
 
 export interface Settings {
-  voiceEnabled: boolean;
   autoSpeak: boolean;
-  showFurigana: boolean;
   reduceMotion: boolean;
   sfxEnabled: boolean;
 }
