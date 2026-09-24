@@ -6,6 +6,7 @@ import { OUTFIT_UNLOCKS, updateSettings, resetAll, exportState, bondProgress } f
 import { MAX_BOX } from '@/lib/srs';
 import { festivalScenarioOrder, getEssentialPhrases } from '@/lib/festivalScenarios';
 import { apiUrl } from '@/lib/apiBase';
+import { canAskClaudeDirectly } from '@/lib/chatTransport';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 
 const SETTING_ROWS: Array<{ key: keyof Settings; label: string; hint: string }> = [
@@ -33,10 +34,25 @@ export default function ProgressScreen({
   const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
-    fetch(apiUrl('/api/chat'))
-      .then((r) => r.json())
-      .then((d) => setAiLive(Boolean(d.configured)))
-      .catch(() => setAiLive(false));
+    let alive = true;
+    // window.claude 経由で直接聞ける場所（claude.ai のお試し版など）では
+    // /api/chat が無くても会話は成立するので、そちらを先に見る。
+    canAskClaudeDirectly()
+      .then((direct) => {
+        if (direct) return true;
+        return fetch(apiUrl('/api/chat'))
+          .then((r) => r.json())
+          .then((d) => Boolean(d.configured));
+      })
+      .then((live) => {
+        if (alive) setAiLive(live);
+      })
+      .catch(() => {
+        if (alive) setAiLive(false);
+      });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const stats = useMemo(() => {

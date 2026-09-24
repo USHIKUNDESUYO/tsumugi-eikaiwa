@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message } from '@/types';
 import { festivalScenarios } from '@/lib/festivalScenarios';
-import { apiUrl } from '@/lib/apiBase';
+import { askTsumugi } from '@/lib/chatTransport';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
@@ -137,21 +137,16 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
       setExpression('thinking');
 
       try {
-        const res = await fetch(apiUrl('/api/chat'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: next.map(({ role, content }) => ({ role, content })),
-            mode: 'festival',
-            level: state.profile.currentLevel,
-            festivalScenario: scenarioId,
-            successfulTurns: userTurns,
-            bondLevel: state.bond.level,
-          }),
+        const answer = await askTsumugi({
+          messages: next.map(({ role, content }) => ({ role, content })),
+          mode: 'festival',
+          level: state.profile.currentLevel,
+          festivalScenario: scenarioId,
+          successfulTurns: userTurns,
+          bondLevel: state.bond.level,
         });
 
-        const data = await res.json();
-        const { text: reply, correction } = parseReply(data.response ?? '');
+        const { text: reply, correction } = parseReply(answer);
         // 直してくれる場面は、考え顔より指差しのほうが意図が伝わる
         const expr: Expression = correction ? 'point' : inferExpression(reply);
 
