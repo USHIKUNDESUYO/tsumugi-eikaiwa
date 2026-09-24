@@ -1,0 +1,6 @@
+# 紬の声の事前生成（scripts/generate-voice-qwen.py）に使う。GPU は要らない。
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+qwen-tts
+lameenc
+pykakasi

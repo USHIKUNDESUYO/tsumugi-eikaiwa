@@ -1,0 +1,1216 @@
+{
+  "lines": [
+    {
+      "id": "greet-1-0",
+      "lang": "ja",
+      "text": "こんにちは。今日も来てくれたんですね。",
+      "out": "public/voice/greet-1-0.mp3"
+    },
+    {
+      "id": "greet-1-1",
+      "lang": "ja",
+      "text": "あ…待ってました。練習、はじめましょうか。",
+      "out": "public/voice/greet-1-1.mp3"
+    },
+    {
+      "id": "greet-1-2",
+      "lang": "ja",
+      "text": "きょうは、どのくらい話せそうですか？",
+      "out": "public/voice/greet-1-2.mp3"
+    },
+    {
+      "id": "praise-1-0",
+      "lang": "ja",
+      "text": "いまの、すごくきれいな英語でした。",
+      "out": "public/voice/praise-1-0.mp3"
+    },
+    {
+      "id": "praise-1-1",
+      "lang": "ja",
+      "text": "ちゃんと伝わってますよ。その調子です。",
+      "out": "public/voice/praise-1-1.mp3"
+    },
+    {
+      "id": "praise-1-2",
+      "lang": "ja",
+      "text": "わ…上手。",
+      "out": "public/voice/praise-1-2.mp3"
+    },
+    {
+      "id": "fix-1-0",
+      "lang": "ja",
+      "text": "あの…ひとつだけ、直していいですか？",
+      "out": "public/voice/fix-1-0.mp3"
+    },
+    {
+      "id": "fix-1-1",
+      "lang": "ja",
+      "text": "惜しいです。もう少しだけ自然にできますよ。",
+      "out": "public/voice/fix-1-1.mp3"
+    },
+    {
+      "id": "greet-2-0",
+      "lang": "ja",
+      "text": "おかえりなさい。ちゃんと続いてるね、えらい。",
+      "out": "public/voice/greet-2-0.mp3"
+    },
+    {
+      "id": "greet-2-1",
+      "lang": "ja",
+      "text": "あ、来た。今日もいっしょに練習しよ。",
+      "out": "public/voice/greet-2-1.mp3"
+    },
+    {
+      "id": "greet-2-2",
+      "lang": "ja",
+      "text": "実は…ちょっと待ってました。",
+      "out": "public/voice/greet-2-2.mp3"
+    },
+    {
+      "id": "praise-2-0",
+      "lang": "ja",
+      "text": "いいね、今の言い方すごく自然だった。",
+      "out": "public/voice/praise-2-0.mp3"
+    },
+    {
+      "id": "praise-2-1",
+      "lang": "ja",
+      "text": "え、うまい。ちょっとびっくりした。",
+      "out": "public/voice/praise-2-1.mp3"
+    },
+    {
+      "id": "praise-2-2",
+      "lang": "ja",
+      "text": "その調子。ほんとに伸びてるよ。",
+      "out": "public/voice/praise-2-2.mp3"
+    },
+    {
+      "id": "fix-2-0",
+      "lang": "ja",
+      "text": "ん、ちょっとだけ直そっか。",
+      "out": "public/voice/fix-2-0.mp3"
+    },
+    {
+      "id": "fix-2-1",
+      "lang": "ja",
+      "text": "伝わるけど、こう言うともっといいよ。",
+      "out": "public/voice/fix-2-1.mp3"
+    },
+    {
+      "id": "greet-3-0",
+      "lang": "ja",
+      "text": "おかえり！今日はどこから話す？",
+      "out": "public/voice/greet-3-0.mp3"
+    },
+    {
+      "id": "greet-3-1",
+      "lang": "ja",
+      "text": "ふふ、顔見たら安心した。",
+      "out": "public/voice/greet-3-1.mp3"
+    },
+    {
+      "id": "greet-3-2",
+      "lang": "ja",
+      "text": "あのね、昨日の練習すごく良かったよ。",
+      "out": "public/voice/greet-3-2.mp3"
+    },
+    {
+      "id": "praise-3-0",
+      "lang": "ja",
+      "text": "ちょっと…かっこよかった、今の。",
+      "out": "public/voice/praise-3-0.mp3"
+    },
+    {
+      "id": "praise-3-1",
+      "lang": "ja",
+      "text": "うん、完璧。もう私いらないかも。",
+      "out": "public/voice/praise-3-1.mp3"
+    },
+    {
+      "id": "praise-3-2",
+      "lang": "ja",
+      "text": "すごい。ねえ、ちゃんと自分でも気づいてる？",
+      "out": "public/voice/praise-3-2.mp3"
+    },
+    {
+      "id": "fix-3-0",
+      "lang": "ja",
+      "text": "おしい！あとちょっとなんだよね。",
+      "out": "public/voice/fix-3-0.mp3"
+    },
+    {
+      "id": "fix-3-1",
+      "lang": "ja",
+      "text": "はい、ここだけ直したら完璧。",
+      "out": "public/voice/fix-3-1.mp3"
+    },
+    {
+      "id": "greet-4-0",
+      "lang": "ja",
+      "text": "もー、遅い。ずっと待ってたんだからね？",
+      "out": "public/voice/greet-4-0.mp3"
+    },
+    {
+      "id": "greet-4-1",
+      "lang": "ja",
+      "text": "おかえり。…うん、やっぱりこの時間が一番好き。",
+      "out": "public/voice/greet-4-1.mp3"
+    },
+    {
+      "id": "greet-4-2",
+      "lang": "ja",
+      "text": "来てくれると、それだけで今日がいい日になる。",
+      "out": "public/voice/greet-4-2.mp3"
+    },
+    {
+      "id": "praise-4-0",
+      "lang": "ja",
+      "text": "…うん。やっぱり好きだな、そういうとこ。",
+      "out": "public/voice/praise-4-0.mp3"
+    },
+    {
+      "id": "praise-4-1",
+      "lang": "ja",
+      "text": "はぁ…また上手くなってる。悔しいくらい。",
+      "out": "public/voice/praise-4-1.mp3"
+    },
+    {
+      "id": "praise-4-2",
+      "lang": "ja",
+      "text": "本番でも絶対大丈夫。保証する。",
+      "out": "public/voice/praise-4-2.mp3"
+    },
+    {
+      "id": "fix-4-0",
+      "lang": "ja",
+      "text": "ここだけね。…ほら、もう完璧。",
+      "out": "public/voice/fix-4-0.mp3"
+    },
+    {
+      "id": "fix-4-1",
+      "lang": "ja",
+      "text": "大丈夫、私が見てるから間違えていいよ。",
+      "out": "public/voice/fix-4-1.mp3"
+    },
+    {
+      "id": "enc-0",
+      "lang": "ja",
+      "text": "ゆっくりで大丈夫。待ってるよ。",
+      "out": "public/voice/enc-0.mp3"
+    },
+    {
+      "id": "enc-1",
+      "lang": "ja",
+      "text": "完璧じゃなくていいの。まず言ってみよ？",
+      "out": "public/voice/enc-1.mp3"
+    },
+    {
+      "id": "enc-2",
+      "lang": "ja",
+      "text": "間違えても、誰も怒らないから。",
+      "out": "public/voice/enc-2.mp3"
+    },
+    {
+      "id": "enc-3",
+      "lang": "ja",
+      "text": "単語だけでも伝わるよ。ほんとに。",
+      "out": "public/voice/enc-3.mp3"
+    },
+    {
+      "id": "greet-night-warm",
+      "lang": "ja",
+      "text": "こんな時間まで…無理しないでね。ちょっとだけにしよ？",
+      "out": "public/voice/greet-night-warm.mp3"
+    },
+    {
+      "id": "greet-night-polite",
+      "lang": "ja",
+      "text": "夜ふかしですね…少しだけ、やりましょうか。",
+      "out": "public/voice/greet-night-polite.mp3"
+    },
+    {
+      "id": "greet-morning-warm",
+      "lang": "ja",
+      "text": "おはよう！朝の英語、頭に入りやすいんだよ。",
+      "out": "public/voice/greet-morning-warm.mp3"
+    },
+    {
+      "id": "greet-morning-polite",
+      "lang": "ja",
+      "text": "おはようございます。朝からえらいですね。",
+      "out": "public/voice/greet-morning-polite.mp3"
+    },
+    {
+      "id": "lvl-2",
+      "lang": "ja",
+      "text": "あ…なんだろう、ちょっと話しやすくなった気がする。",
+      "out": "public/voice/lvl-2.mp3"
+    },
+    {
+      "id": "lvl-3",
+      "lang": "ja",
+      "text": "ねえ、敬語やめてもいい？…そのほうが、自然だから。",
+      "out": "public/voice/lvl-3.mp3"
+    },
+    {
+      "id": "lvl-4",
+      "lang": "ja",
+      "text": "フェス用の服、選んでみたの。…似合う？",
+      "out": "public/voice/lvl-4.mp3"
+    },
+    {
+      "id": "lvl-5",
+      "lang": "ja",
+      "text": "毎日会ってるね。うれしい。",
+      "out": "public/voice/lvl-5.mp3"
+    },
+    {
+      "id": "lvl-6",
+      "lang": "ja",
+      "text": "サウナの話、私もできるようになったよ。ととのう、って英語で説明できる？",
+      "out": "public/voice/lvl-6.mp3"
+    },
+    {
+      "id": "lvl-7",
+      "lang": "ja",
+      "text": "あのね。もう先生とか生徒とか、どうでもよくなってきた。",
+      "out": "public/voice/lvl-7.mp3"
+    },
+    {
+      "id": "lvl-8",
+      "lang": "ja",
+      "text": "浴衣、着てみたよ。…笑わないでね。",
+      "out": "public/voice/lvl-8.mp3"
+    },
+    {
+      "id": "lvl-9",
+      "lang": "ja",
+      "text": "本番、ついていけたらいいのに。…なんて、ね。",
+      "out": "public/voice/lvl-9.mp3"
+    },
+    {
+      "id": "lvl-10",
+      "lang": "ja",
+      "text": "ここまで一緒に来たね。10月2日、ぜったい大丈夫だよ。",
+      "out": "public/voice/lvl-10.mp3"
+    },
+    {
+      "id": "lvl-default",
+      "lang": "ja",
+      "text": "また一歩、近づいた気がする。",
+      "out": "public/voice/lvl-default.mp3"
+    },
+    {
+      "id": "close-perfect-warm",
+      "lang": "ja",
+      "text": "今日、一度も直すとこなかった。…本気ですごいよ。",
+      "out": "public/voice/close-perfect-warm.mp3"
+    },
+    {
+      "id": "close-perfect-polite",
+      "lang": "ja",
+      "text": "今日は直すところがありませんでした。すばらしいです。",
+      "out": "public/voice/close-perfect-polite.mp3"
+    },
+    {
+      "id": "close-few-warm",
+      "lang": "ja",
+      "text": "おつかれさま。ちゃんと前に進んでるよ。",
+      "out": "public/voice/close-few-warm.mp3"
+    },
+    {
+      "id": "close-few-polite",
+      "lang": "ja",
+      "text": "おつかれさまでした。着実に伸びていますよ。",
+      "out": "public/voice/close-few-polite.mp3"
+    },
+    {
+      "id": "close-many-warm",
+      "lang": "ja",
+      "text": "いっぱい間違えた日ほど、伸びる日だからね。",
+      "out": "public/voice/close-many-warm.mp3"
+    },
+    {
+      "id": "close-many-polite",
+      "lang": "ja",
+      "text": "たくさん練習しましたね。間違いは伸びる材料です。",
+      "out": "public/voice/close-many-polite.mp3"
+    },
+    {
+      "id": "35ee4bbc9737",
+      "lang": "en",
+      "text": "Ah brilliant, so you reckon the second stage lineup's better than the main one or what?",
+      "out": "public/voice-en/35ee4bbc9737.mp3"
+    },
+    {
+      "id": "3a731507c106",
+      "lang": "en",
+      "text": "Sorry, could you say that again?",
+      "out": "public/voice-en/3a731507c106.mp3"
+    },
+    {
+      "id": "22b76015c88c",
+      "lang": "en",
+      "text": "Could you speak a little slower, please?",
+      "out": "public/voice-en/22b76015c88c.mp3"
+    },
+    {
+      "id": "6b1b1860c466",
+      "lang": "en",
+      "text": "Sorry, I didn't catch that.",
+      "out": "public/voice-en/6b1b1860c466.mp3"
+    },
+    {
+      "id": "a57d36dd7547",
+      "lang": "en",
+      "text": "What does that mean?",
+      "out": "public/voice-en/a57d36dd7547.mp3"
+    },
+    {
+      "id": "8ec046edb58f",
+      "lang": "en",
+      "text": "Do you mean…?",
+      "out": "public/voice-en/8ec046edb58f.mp3"
+    },
+    {
+      "id": "3f3d1381c108",
+      "lang": "en",
+      "text": "How do you spell that?",
+      "out": "public/voice-en/3f3d1381c108.mp3"
+    },
+    {
+      "id": "593ee5bbbd75",
+      "lang": "en",
+      "text": "Sorry, my English isn't great.",
+      "out": "public/voice-en/593ee5bbbd75.mp3"
+    },
+    {
+      "id": "8e5908091a08",
+      "lang": "en",
+      "text": "Give me a second…",
+      "out": "public/voice-en/8e5908091a08.mp3"
+    },
+    {
+      "id": "fe358a8115ca",
+      "lang": "en",
+      "text": "Can you write it down?",
+      "out": "public/voice-en/fe358a8115ca.mp3"
+    },
+    {
+      "id": "8297bb17c6aa",
+      "lang": "en",
+      "text": "Got it!",
+      "out": "public/voice-en/8297bb17c6aa.mp3"
+    },
+    {
+      "id": "148a8b89bf5e",
+      "lang": "en",
+      "text": "Sorry, I'm a bit lost. Can we go back a step?",
+      "out": "public/voice-en/148a8b89bf5e.mp3"
+    },
+    {
+      "id": "67a2d8bc4a7c",
+      "lang": "en",
+      "text": "Hey! This line is insane, right? Have you tried the food here before?",
+      "out": "public/voice-en/67a2d8bc4a7c.mp3"
+    },
+    {
+      "id": "08aeae0670aa",
+      "lang": "en",
+      "text": "Sorry, what was your name again?",
+      "out": "public/voice-en/08aeae0670aa.mp3"
+    },
+    {
+      "id": "7bc5e7f6b591",
+      "lang": "en",
+      "text": "Where are you from?",
+      "out": "public/voice-en/7bc5e7f6b591.mp3"
+    },
+    {
+      "id": "b0d54bc02875",
+      "lang": "en",
+      "text": "How do you like Japan so far?",
+      "out": "public/voice-en/b0d54bc02875.mp3"
+    },
+    {
+      "id": "22aa95b4bf05",
+      "lang": "en",
+      "text": "Is this your first time at Synapse?",
+      "out": "public/voice-en/22aa95b4bf05.mp3"
+    },
+    {
+      "id": "8f41f0427a2e",
+      "lang": "en",
+      "text": "Same here!",
+      "out": "public/voice-en/8f41f0427a2e.mp3"
+    },
+    {
+      "id": "af486880f803",
+      "lang": "en",
+      "text": "What made you come all the way to Fukuoka?",
+      "out": "public/voice-en/af486880f803.mp3"
+    },
+    {
+      "id": "ce7969ff92cb",
+      "lang": "en",
+      "text": "Are you here with friends, or solo?",
+      "out": "public/voice-en/ce7969ff92cb.mp3"
+    },
+    {
+      "id": "ac9913f790c3",
+      "lang": "en",
+      "text": "Nice, that sounds fun.",
+      "out": "public/voice-en/ac9913f790c3.mp3"
+    },
+    {
+      "id": "5377e1dbc2f1",
+      "lang": "en",
+      "text": "I'm still learning English, so please speak slowly.",
+      "out": "public/voice-en/5377e1dbc2f1.mp3"
+    },
+    {
+      "id": "84ed4609f097",
+      "lang": "en",
+      "text": "Hi! Welcome to Synapse. Do you have a ticket with you?",
+      "out": "public/voice-en/84ed4609f097.mp3"
+    },
+    {
+      "id": "714b262d3e3d",
+      "lang": "en",
+      "text": "I have a three-day pass.",
+      "out": "public/voice-en/714b262d3e3d.mp3"
+    },
+    {
+      "id": "f11aba27777b",
+      "lang": "en",
+      "text": "Here's my QR code.",
+      "out": "public/voice-en/f11aba27777b.mp3"
+    },
+    {
+      "id": "a51ca5dd23b4",
+      "lang": "en",
+      "text": "I also booked a tent site.",
+      "out": "public/voice-en/a51ca5dd23b4.mp3"
+    },
+    {
+      "id": "cb0ec3777b3d",
+      "lang": "en",
+      "text": "Where can I find my tent site?",
+      "out": "public/voice-en/cb0ec3777b3d.mp3"
+    },
+    {
+      "id": "c6eb2ad166af",
+      "lang": "en",
+      "text": "Is there anywhere I can leave my luggage?",
+      "out": "public/voice-en/c6eb2ad166af.mp3"
+    },
+    {
+      "id": "5551613647dd",
+      "lang": "en",
+      "text": "What time does the first act start?",
+      "out": "public/voice-en/5551613647dd.mp3"
+    },
+    {
+      "id": "1bba6e0bfda3",
+      "lang": "en",
+      "text": "Could I get a map of the site?",
+      "out": "public/voice-en/1bba6e0bfda3.mp3"
+    },
+    {
+      "id": "b059091c985d",
+      "lang": "en",
+      "text": "Is re-entry allowed?",
+      "out": "public/voice-en/b059091c985d.mp3"
+    },
+    {
+      "id": "27f0b6e82a08",
+      "lang": "en",
+      "text": "Sorry, one more thing — where are the showers?",
+      "out": "public/voice-en/27f0b6e82a08.mp3"
+    },
+    {
+      "id": "7e67657d75f7",
+      "lang": "en",
+      "text": "So what do you do? Or — what are you working on these days?",
+      "out": "public/voice-en/7e67657d75f7.mp3"
+    },
+    {
+      "id": "f6e4d8b999eb",
+      "lang": "en",
+      "text": "I'm a developer. I build apps.",
+      "out": "public/voice-en/f6e4d8b999eb.mp3"
+    },
+    {
+      "id": "bf76f18208e1",
+      "lang": "en",
+      "text": "I'm working on an English conversation app right now.",
+      "out": "public/voice-en/bf76f18208e1.mp3"
+    },
+    {
+      "id": "67852b7141d8",
+      "lang": "en",
+      "text": "It's still a side project, but I'm hoping to launch it soon.",
+      "out": "public/voice-en/67852b7141d8.mp3"
+    },
+    {
+      "id": "f4d13cbea0b7",
+      "lang": "en",
+      "text": "I work at a company, and I build my own things on the side.",
+      "out": "public/voice-en/f4d13cbea0b7.mp3"
+    },
+    {
+      "id": "c368bd7db034",
+      "lang": "en",
+      "text": "How did you get into that?",
+      "out": "public/voice-en/c368bd7db034.mp3"
+    },
+    {
+      "id": "54047a7c89b2",
+      "lang": "en",
+      "text": "That's really cool — how does it work?",
+      "out": "public/voice-en/54047a7c89b2.mp3"
+    },
+    {
+      "id": "e786041160f5",
+      "lang": "en",
+      "text": "How long have you been doing that?",
+      "out": "public/voice-en/e786041160f5.mp3"
+    },
+    {
+      "id": "5bd1fda9c61f",
+      "lang": "en",
+      "text": "Are you doing it full-time?",
+      "out": "public/voice-en/5bd1fda9c61f.mp3"
+    },
+    {
+      "id": "7d36ec26e036",
+      "lang": "en",
+      "text": "What's the hardest part?",
+      "out": "public/voice-en/7d36ec26e036.mp3"
+    },
+    {
+      "id": "7291cf58c7de",
+      "lang": "en",
+      "text": "I'd love to show you sometime.",
+      "out": "public/voice-en/7291cf58c7de.mp3"
+    },
+    {
+      "id": "c80136561eee",
+      "lang": "en",
+      "text": "Let me think… how do I say this…",
+      "out": "public/voice-en/c80136561eee.mp3"
+    },
+    {
+      "id": "59660cb89e69",
+      "lang": "en",
+      "text": "Oh man, this track is so good. Do you know who's playing right now?",
+      "out": "public/voice-en/59660cb89e69.mp3"
+    },
+    {
+      "id": "77d7239662c7",
+      "lang": "en",
+      "text": "This track is amazing.",
+      "out": "public/voice-en/77d7239662c7.mp3"
+    },
+    {
+      "id": "7624042614cb",
+      "lang": "en",
+      "text": "I love this vibe.",
+      "out": "public/voice-en/7624042614cb.mp3"
+    },
+    {
+      "id": "cd691b3bd329",
+      "lang": "en",
+      "text": "Who's playing right now?",
+      "out": "public/voice-en/cd691b3bd329.mp3"
+    },
+    {
+      "id": "d9807e3311c9",
+      "lang": "en",
+      "text": "What kind of music are you into?",
+      "out": "public/voice-en/d9807e3311c9.mp3"
+    },
+    {
+      "id": "25c1321594bd",
+      "lang": "en",
+      "text": "I'm more into deep house than techno.",
+      "out": "public/voice-en/25c1321594bd.mp3"
+    },
+    {
+      "id": "84e5517292f4",
+      "lang": "en",
+      "text": "The bass is hitting so hard.",
+      "out": "public/voice-en/84e5517292f4.mp3"
+    },
+    {
+      "id": "b0075943bc02",
+      "lang": "en",
+      "text": "Do you have any artists you'd recommend?",
+      "out": "public/voice-en/b0075943bc02.mp3"
+    },
+    {
+      "id": "f6d1cb864666",
+      "lang": "en",
+      "text": "How do you spell that? I want to look it up later.",
+      "out": "public/voice-en/f6d1cb864666.mp3"
+    },
+    {
+      "id": "4b58b064cdf6",
+      "lang": "en",
+      "text": "I've never heard of them, but I'll check them out.",
+      "out": "public/voice-en/4b58b064cdf6.mp3"
+    },
+    {
+      "id": "acdd9cf363e6",
+      "lang": "en",
+      "text": "Are you staying for the late set?",
+      "out": "public/voice-en/acdd9cf363e6.mp3"
+    },
+    {
+      "id": "0847e633d874",
+      "lang": "en",
+      "text": "Let's go closer to the stage!",
+      "out": "public/voice-en/0847e633d874.mp3"
+    },
+    {
+      "id": "420f7b0fa98e",
+      "lang": "en",
+      "text": "Hey! What can I get you?",
+      "out": "public/voice-en/420f7b0fa98e.mp3"
+    },
+    {
+      "id": "3e82652bfe01",
+      "lang": "en",
+      "text": "Could I get one of these, please?",
+      "out": "public/voice-en/3e82652bfe01.mp3"
+    },
+    {
+      "id": "f7b36ec1f2a8",
+      "lang": "en",
+      "text": "What would you recommend?",
+      "out": "public/voice-en/f7b36ec1f2a8.mp3"
+    },
+    {
+      "id": "f2f0e60701df",
+      "lang": "en",
+      "text": "What's in it?",
+      "out": "public/voice-en/f2f0e60701df.mp3"
+    },
+    {
+      "id": "cdd1f44fd1d3",
+      "lang": "en",
+      "text": "Is it spicy?",
+      "out": "public/voice-en/cdd1f44fd1d3.mp3"
+    },
+    {
+      "id": "7da47557f101",
+      "lang": "en",
+      "text": "I'm vegetarian — is there anything I can eat?",
+      "out": "public/voice-en/7da47557f101.mp3"
+    },
+    {
+      "id": "164caa75f64e",
+      "lang": "en",
+      "text": "Can I pay by card?",
+      "out": "public/voice-en/164caa75f64e.mp3"
+    },
+    {
+      "id": "418a24ea9d5f",
+      "lang": "en",
+      "text": "Do you want to try some?",
+      "out": "public/voice-en/418a24ea9d5f.mp3"
+    },
+    {
+      "id": "c2ef1ae01dc6",
+      "lang": "en",
+      "text": "This is called motsunabe — it's a Fukuoka specialty.",
+      "out": "public/voice-en/c2ef1ae01dc6.mp3"
+    },
+    {
+      "id": "75fe7dc5bd85",
+      "lang": "en",
+      "text": "You have to try tonkotsu ramen while you're here.",
+      "out": "public/voice-en/75fe7dc5bd85.mp3"
+    },
+    {
+      "id": "33224c361c9a",
+      "lang": "en",
+      "text": "Cheers!",
+      "out": "public/voice-en/33224c361c9a.mp3"
+    },
+    {
+      "id": "88883e15bdee",
+      "lang": "en",
+      "text": "Let me get this one.",
+      "out": "public/voice-en/88883e15bdee.mp3"
+    },
+    {
+      "id": "14d80271562e",
+      "lang": "en",
+      "text": "Hey neighbour! Need a hand with that tent?",
+      "out": "public/voice-en/14d80271562e.mp3"
+    },
+    {
+      "id": "f17b65db329a",
+      "lang": "en",
+      "text": "Hey! I'm in the tent right next to you.",
+      "out": "public/voice-en/f17b65db329a.mp3"
+    },
+    {
+      "id": "157c66e801fb",
+      "lang": "en",
+      "text": "Do you need a hand?",
+      "out": "public/voice-en/157c66e801fb.mp3"
+    },
+    {
+      "id": "c7f7c9b9e13c",
+      "lang": "en",
+      "text": "Actually, yes please — could you hold this?",
+      "out": "public/voice-en/c7f7c9b9e13c.mp3"
+    },
+    {
+      "id": "d9d868255f99",
+      "lang": "en",
+      "text": "Do you have a spare peg by any chance?",
+      "out": "public/voice-en/d9d868255f99.mp3"
+    },
+    {
+      "id": "4bdb3b1e2355",
+      "lang": "en",
+      "text": "It's going to get cold tonight.",
+      "out": "public/voice-en/4bdb3b1e2355.mp3"
+    },
+    {
+      "id": "e9561f0c21ea",
+      "lang": "en",
+      "text": "Is this your first time camping in Japan?",
+      "out": "public/voice-en/e9561f0c21ea.mp3"
+    },
+    {
+      "id": "3b1c23082343",
+      "lang": "en",
+      "text": "What time are you heading to the stage tomorrow?",
+      "out": "public/voice-en/3b1c23082343.mp3"
+    },
+    {
+      "id": "ba327cd99585",
+      "lang": "en",
+      "text": "Where can we get coffee in the morning?",
+      "out": "public/voice-en/ba327cd99585.mp3"
+    },
+    {
+      "id": "e3e7cc971c6e",
+      "lang": "en",
+      "text": "Thanks so much, you saved me.",
+      "out": "public/voice-en/e3e7cc971c6e.mp3"
+    },
+    {
+      "id": "804f3ff12c85",
+      "lang": "en",
+      "text": "Sleep well! See you tomorrow.",
+      "out": "public/voice-en/804f3ff12c85.mp3"
+    },
+    {
+      "id": "89980b6dcf58",
+      "lang": "en",
+      "text": "Okay, I've never done this properly. How does this actually work?",
+      "out": "public/voice-en/89980b6dcf58.mp3"
+    },
+    {
+      "id": "c810ca77c1b6",
+      "lang": "en",
+      "text": "First you wash, then you go in.",
+      "out": "public/voice-en/c810ca77c1b6.mp3"
+    },
+    {
+      "id": "77bfd1944d46",
+      "lang": "en",
+      "text": "Usually three rounds is enough.",
+      "out": "public/voice-en/77bfd1944d46.mp3"
+    },
+    {
+      "id": "20356af147dc",
+      "lang": "en",
+      "text": "Sauna, then cold bath, then rest. That's one round.",
+      "out": "public/voice-en/20356af147dc.mp3"
+    },
+    {
+      "id": "deee28664f8f",
+      "lang": "en",
+      "text": "The cold plunge is the best part, I promise.",
+      "out": "public/voice-en/deee28664f8f.mp3"
+    },
+    {
+      "id": "4c1b3c665ca1",
+      "lang": "en",
+      "text": "\"Totonou\" means your body and mind click into place.",
+      "out": "public/voice-en/4c1b3c665ca1.mp3"
+    },
+    {
+      "id": "87071c9bb397",
+      "lang": "en",
+      "text": "There's no perfect translation, but it feels like being reset.",
+      "out": "public/voice-en/87071c9bb397.mp3"
+    },
+    {
+      "id": "9b9305684d25",
+      "lang": "en",
+      "text": "Take it easy on your first time.",
+      "out": "public/voice-en/9b9305684d25.mp3"
+    },
+    {
+      "id": "65504613eb45",
+      "lang": "en",
+      "text": "Drink lots of water.",
+      "out": "public/voice-en/65504613eb45.mp3"
+    },
+    {
+      "id": "b37ce0c2da83",
+      "lang": "en",
+      "text": "How are you feeling?",
+      "out": "public/voice-en/b37ce0c2da83.mp3"
+    },
+    {
+      "id": "b1acbaf93b19",
+      "lang": "en",
+      "text": "Let's do one more round.",
+      "out": "public/voice-en/b1acbaf93b19.mp3"
+    },
+    {
+      "id": "eb9d998fdbae",
+      "lang": "en",
+      "text": "Hi! Come closer — are you interested in joining?",
+      "out": "public/voice-en/eb9d998fdbae.mp3"
+    },
+    {
+      "id": "0dd5a15a2674",
+      "lang": "en",
+      "text": "Can I still join?",
+      "out": "public/voice-en/0dd5a15a2674.mp3"
+    },
+    {
+      "id": "8dd82f3160a6",
+      "lang": "en",
+      "text": "How long does it take?",
+      "out": "public/voice-en/8dd82f3160a6.mp3"
+    },
+    {
+      "id": "41c4cb5b36bd",
+      "lang": "en",
+      "text": "Do I need to sign up in advance?",
+      "out": "public/voice-en/41c4cb5b36bd.mp3"
+    },
+    {
+      "id": "75eff0333083",
+      "lang": "en",
+      "text": "I've never done this before.",
+      "out": "public/voice-en/75eff0333083.mp3"
+    },
+    {
+      "id": "aa6aa5db5f63",
+      "lang": "en",
+      "text": "What's this piece about?",
+      "out": "public/voice-en/aa6aa5db5f63.mp3"
+    },
+    {
+      "id": "9ff826ad418d",
+      "lang": "en",
+      "text": "What inspired you to make this?",
+      "out": "public/voice-en/9ff826ad418d.mp3"
+    },
+    {
+      "id": "6da9e996613c",
+      "lang": "en",
+      "text": "How long did it take to make?",
+      "out": "public/voice-en/6da9e996613c.mp3"
+    },
+    {
+      "id": "640cb2ff8b0d",
+      "lang": "en",
+      "text": "Is it okay to take a photo?",
+      "out": "public/voice-en/640cb2ff8b0d.mp3"
+    },
+    {
+      "id": "5d8c85c98e7a",
+      "lang": "en",
+      "text": "Can I touch it?",
+      "out": "public/voice-en/5d8c85c98e7a.mp3"
+    },
+    {
+      "id": "5194b830325d",
+      "lang": "en",
+      "text": "That's a beautiful idea.",
+      "out": "public/voice-en/5194b830325d.mp3"
+    },
+    {
+      "id": "e9906ee48e7c",
+      "lang": "en",
+      "text": "It's quiet now… Can I ask you something? Why do you do what you do?",
+      "out": "public/voice-en/e9906ee48e7c.mp3"
+    },
+    {
+      "id": "3d1ce1a65f8e",
+      "lang": "en",
+      "text": "That's a big question.",
+      "out": "public/voice-en/3d1ce1a65f8e.mp3"
+    },
+    {
+      "id": "ee820212e310",
+      "lang": "en",
+      "text": "Honestly, I'm still figuring it out.",
+      "out": "public/voice-en/ee820212e310.mp3"
+    },
+    {
+      "id": "46aa65e52d69",
+      "lang": "en",
+      "text": "I want to build something people actually use.",
+      "out": "public/voice-en/46aa65e52d69.mp3"
+    },
+    {
+      "id": "56c708349015",
+      "lang": "en",
+      "text": "I guess I'm afraid of making something nobody needs.",
+      "out": "public/voice-en/56c708349015.mp3"
+    },
+    {
+      "id": "11a0db73bb20",
+      "lang": "en",
+      "text": "What about you?",
+      "out": "public/voice-en/11a0db73bb20.mp3"
+    },
+    {
+      "id": "8a65d8c9c83d",
+      "lang": "en",
+      "text": "I know exactly what you mean.",
+      "out": "public/voice-en/8a65d8c9c83d.mp3"
+    },
+    {
+      "id": "63aad872ea62",
+      "lang": "en",
+      "text": "That must have been hard.",
+      "out": "public/voice-en/63aad872ea62.mp3"
+    },
+    {
+      "id": "55d4c7649cda",
+      "lang": "en",
+      "text": "I've never thought about it that way.",
+      "out": "public/voice-en/55d4c7649cda.mp3"
+    },
+    {
+      "id": "13e11f5f95d3",
+      "lang": "en",
+      "text": "Can I ask you something personal?",
+      "out": "public/voice-en/13e11f5f95d3.mp3"
+    },
+    {
+      "id": "de5587be5f4d",
+      "lang": "en",
+      "text": "Thanks for sharing that.",
+      "out": "public/voice-en/de5587be5f4d.mp3"
+    },
+    {
+      "id": "402b1b29a11a",
+      "lang": "en",
+      "text": "This is the kind of conversation I came here for.",
+      "out": "public/voice-en/402b1b29a11a.mp3"
+    },
+    {
+      "id": "d722a847d3a3",
+      "lang": "en",
+      "text": "Hey, this was really fun. Are you on Instagram?",
+      "out": "public/voice-en/d722a847d3a3.mp3"
+    },
+    {
+      "id": "a0d6fe6fc33c",
+      "lang": "en",
+      "text": "Let's keep in touch!",
+      "out": "public/voice-en/a0d6fe6fc33c.mp3"
+    },
+    {
+      "id": "0f3c57c91512",
+      "lang": "en",
+      "text": "Are you on Instagram?",
+      "out": "public/voice-en/0f3c57c91512.mp3"
+    },
+    {
+      "id": "9c0c25fa2a60",
+      "lang": "en",
+      "text": "Let me find you — how do you spell your handle?",
+      "out": "public/voice-en/9c0c25fa2a60.mp3"
+    },
+    {
+      "id": "d5e4081fb805",
+      "lang": "en",
+      "text": "Can I just scan your QR code?",
+      "out": "public/voice-en/d5e4081fb805.mp3"
+    },
+    {
+      "id": "393cb8a6ac1c",
+      "lang": "en",
+      "text": "Are you in the Synapse Discord?",
+      "out": "public/voice-en/393cb8a6ac1c.mp3"
+    },
+    {
+      "id": "7b7fa29b9e98",
+      "lang": "en",
+      "text": "I'll send you a message later.",
+      "out": "public/voice-en/7b7fa29b9e98.mp3"
+    },
+    {
+      "id": "61c6672012fe",
+      "lang": "en",
+      "text": "Let me know if you come to Fukuoka again.",
+      "out": "public/voice-en/61c6672012fe.mp3"
+    },
+    {
+      "id": "08b3c532e635",
+      "lang": "en",
+      "text": "I'd love to show you my app when it's ready.",
+      "out": "public/voice-en/08b3c532e635.mp3"
+    },
+    {
+      "id": "20ffaad2fba7",
+      "lang": "en",
+      "text": "It was really nice meeting you.",
+      "out": "public/voice-en/20ffaad2fba7.mp3"
+    },
+    {
+      "id": "1eeb336209cf",
+      "lang": "en",
+      "text": "Let's grab a drink later if you're around.",
+      "out": "public/voice-en/1eeb336209cf.mp3"
+    },
+    {
+      "id": "1cd7ffb3bae6",
+      "lang": "en",
+      "text": "I have four more days here. Where should I go?",
+      "out": "public/voice-en/1cd7ffb3bae6.mp3"
+    },
+    {
+      "id": "4c05e4eacb70",
+      "lang": "en",
+      "text": "You should definitely check out the yatai.",
+      "out": "public/voice-en/4c05e4eacb70.mp3"
+    },
+    {
+      "id": "a84576f42e62",
+      "lang": "en",
+      "text": "Yatai are open-air food stalls along the river. They open at night.",
+      "out": "public/voice-en/a84576f42e62.mp3"
+    },
+    {
+      "id": "67513f261c1e",
+      "lang": "en",
+      "text": "It's about 30 minutes from here by train.",
+      "out": "public/voice-en/67513f261c1e.mp3"
+    },
+    {
+      "id": "a2538c7c52f4",
+      "lang": "en",
+      "text": "Take the subway to Tenjin, then walk about ten minutes.",
+      "out": "public/voice-en/a2538c7c52f4.mp3"
+    },
+    {
+      "id": "b87be823b2c2",
+      "lang": "en",
+      "text": "It gets pretty crowded on weekends.",
+      "out": "public/voice-en/b87be823b2c2.mp3"
+    },
+    {
+      "id": "e7495ce41509",
+      "lang": "en",
+      "text": "If you like temples, Dazaifu is worth a day trip.",
+      "out": "public/voice-en/e7495ce41509.mp3"
+    },
+    {
+      "id": "623d29c59df6",
+      "lang": "en",
+      "text": "Nokonoshima is a small island with flower fields — it's beautiful.",
+      "out": "public/voice-en/623d29c59df6.mp3"
+    },
+    {
+      "id": "de48db0328e2",
+      "lang": "en",
+      "text": "Don't leave without trying tonkotsu ramen.",
+      "out": "public/voice-en/de48db0328e2.mp3"
+    },
+    {
+      "id": "215ccbb61587",
+      "lang": "en",
+      "text": "I can write it down for you.",
+      "out": "public/voice-en/215ccbb61587.mp3"
+    },
+    {
+      "id": "f2ad10e405c6",
+      "lang": "en",
+      "text": "Text me if you get lost!",
+      "out": "public/voice-en/f2ad10e405c6.mp3"
+    },
+    {
+      "id": "1dbaaba577d3",
+      "lang": "en",
+      "text": "So… that's it. Three days went way too fast.",
+      "out": "public/voice-en/1dbaaba577d3.mp3"
+    },
+    {
+      "id": "16f7b99fdde5",
+      "lang": "en",
+      "text": "That went way too fast.",
+      "out": "public/voice-en/16f7b99fdde5.mp3"
+    },
+    {
+      "id": "02f2c962e04e",
+      "lang": "en",
+      "text": "This was the best part of my year.",
+      "out": "public/voice-en/02f2c962e04e.mp3"
+    },
+    {
+      "id": "069a0f83774c",
+      "lang": "en",
+      "text": "Thanks for everything.",
+      "out": "public/voice-en/069a0f83774c.mp3"
+    },
+    {
+      "id": "79a010dc4fb1",
+      "lang": "en",
+      "text": "I'm really glad we met.",
+      "out": "public/voice-en/79a010dc4fb1.mp3"
+    },
+    {
+      "id": "8b14aa3fafa4",
+      "lang": "en",
+      "text": "I learned a lot from you.",
+      "out": "public/voice-en/8b14aa3fafa4.mp3"
+    },
+    {
+      "id": "0c9bf9e96f6c",
+      "lang": "en",
+      "text": "Let me know when you're back in Japan.",
+      "out": "public/voice-en/0c9bf9e96f6c.mp3"
+    },
+    {
+      "id": "2d63e271d130",
+      "lang": "en",
+      "text": "If you ever come to Fukuoka, you have a place to stay.",
+      "out": "public/voice-en/2d63e271d130.mp3"
+    },
+    {
+      "id": "57a3a2c9e942",
+      "lang": "en",
+      "text": "Same time next year?",
+      "out": "public/voice-en/57a3a2c9e942.mp3"
+    },
+    {
+      "id": "e77a97095ade",
+      "lang": "en",
+      "text": "Take care, and safe travels.",
+      "out": "public/voice-en/e77a97095ade.mp3"
+    },
+    {
+      "id": "49cade70cd7f",
+      "lang": "en",
+      "text": "See you — for real this time.",
+      "out": "public/voice-en/49cade70cd7f.mp3"
+    }
+  ]
+}
