@@ -1,7 +1,7 @@
 import { ChatMode, LanguageLevel, BusinessScenario, DifficultyLevel, FestivalScenarioId } from '@/types';
 import { getBusinessScenarioPrompt } from './businessScenarios';
 import { getFestivalScenarioPrompt, festivalScenarios } from './festivalScenarios';
-import { nameForEnglish } from './learnerName';
+import { NAME_TOKEN, nameForEnglish } from './learnerName';
 
 const LEVEL_GUIDANCE: Record<LanguageLevel, string> = {
   elementary: 'The user is at A2 level (elementary daily conversation). Use simple vocabulary and grammar. Focus on basic daily topics. Encourage with simple phrases.',
@@ -142,6 +142,28 @@ Reply in character first. Then, only if the learner's last message has a real mi
 - Fix every real mistake in the sentences you quote, not just one, so they can say the whole thing right next time.
 - If they write in Japanese (or mix Japanese in) because they don't know how to say something, stay in character, give them the natural English to say in quotes, and invite them to try it. Then add a block where "said" is their Japanese, "better" is that English, "why" is a short Japanese note, and "severity" is "minor".
 - Never write stage directions or actions such as *laughs* or (speaks slower). Write only the words you say.`;
+
+/**
+ * 日本語で「英語でどう説明する？」と聞かれたときの答えだけを作る。
+ * 会話の添削は、答えの代わりに質問の英訳（How do you explain "totonou" in English?）を入れることが多く
+ * （本番で説明の質問 18回中 12回）、そのときだけ使う（app/api/chat/route.ts の fixHelpCard）。
+ */
+export function getHelpAnswerPrompt(level: LanguageLevel, festivalScenario?: FestivalScenarioId): string {
+  // その場面のフレーズ帳に答えがあれば、そのまま使ってもらう（覚える言い方が1つにそろう。
+  // 渡さないと「ととのう」を Totono と書いたりした）
+  const phrases = festivalScenario
+    ? festivalScenarios[festivalScenario].phrases.filter((p) => !p.en.includes(NAME_TOKEN)).map((p) => `- ${p.en}`)
+    : [];
+  const phrasebook = phrases.length
+    ? `\n- The learner's phrasebook for this scene has these lines. If one of them says it, use it as it is:\n${phrases.join('\n')}`
+    : '';
+  return `A Japanese learner is practicing small talk for SYNAPSE FESTIVAL 2026, an international music and community festival in Fukuoka. They asked, in Japanese, how to say or explain something in English.
+Give only the English they can say out loud to the other person: 1 or 2 short, natural spoken sentences.
+- If they want to explain a Japanese word or thing, explain it simply and keep the Japanese word in standard romaji ("Mentaiko is spicy pollock roe. It's a Fukuoka specialty.").
+- If they want to ask for something, give the question they can ask.
+- ${LEVEL_GUIDANCE[level]}${phrasebook}
+Reply with JSON only: {"en": "what they can say", "note": "その英語のポイントを日本語で1文"}`;
+}
 
 // 最後に置く（一覧のフレーズを使おうとして、もう聞いたことを聞き返していた）
 const FESTIVAL_FINAL_CHECK = `BEFORE YOU REPLY

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCoachPrompt, getSystemPrompt } from '@/lib/prompts';
+import { getCoachPrompt, getHelpAnswerPrompt, getSystemPrompt } from '@/lib/prompts';
+import { dropQuestionPrefix, isQuestionAboutEnglish, parseCorrectionBlock } from '@/lib/correction';
+import { hasJapanese } from '@/lib/speechMatch';
 import { corsHeaders, preflight } from '@/app/api/cors';
 import type {
   ChatMode,
+  CorrectionCard,
   LanguageLevel,
   Message,
   BusinessScenario,
@@ -78,51 +81,122 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
           userName
         );
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
-
-    const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
-        ],
-        // 答えの書き直しは、本人の言いたいことから外れないよう揺らぎを抑える
-        temperature: coach ? 0.4 : 0.9,
-        max_tokens: 400,
-        // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
-        // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
-        // 途中で切れたりしていた。会話は返事の速さが命で、思考モードでは
-        // temperature も効かないので、思考は切る。
-        ...(IS_DEEPSEEK ? { thinking: { type: 'disabled' } } : {}),
-      }),
-    }).finally(() => clearTimeout(timeout));
-
-    if (!response.ok) {
-      const detail = (await response.text().catch(() => '')).slice(0, 200);
-      throw new Error(`API error: ${response.status} ${detail}`);
-    }
-
-    const data = await response.json();
-    const choice = data.choices?.[0];
-    const text = choice?.message?.content;
-    if (!text) {
-      throw new Error(
-        `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
-      );
-    }
-    return { text, live: true };
+    const text = await complete(
+      systemPrompt,
+      messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
+      // 答えの書き直しは、本人の言いたいことから外れないよう揺らぎを抑える
+      coach ? 0.4 : 0.9,
+      400
+    );
+    const last = messages.at(-1);
+    const lastUser = last?.role === 'user' ? last.content : undefined;
+    return { text: coach ? text : await fixHelpCard(text, level, festivalScenario, lastUser), live: true };
   } catch (error) {
     console.error('AI API error:', error);
     const reason = error instanceof Error ? error.message : String(error);
     return { text: getMockResponse(body), live: false, reason };
+  }
+}
+
+/** OpenAI 互換 API に1回聞いて本文を返す。失敗は throw する */
+async function complete(
+  systemPrompt: string,
+  messages: Array<{ role: string; content: string }>,
+  temperature: number,
+  maxTokens: number,
+  timeoutMs = 30_000
+): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    signal: controller.signal,
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
+      temperature,
+      max_tokens: maxTokens,
+      // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
+      // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
+      // 途中で切れたりしていた。会話は返事の速さが命で、思考モードでは
+      // temperature も効かないので、思考は切る。
+      ...(IS_DEEPSEEK ? { thinking: { type: 'disabled' } } : {}),
+    }),
+  }).finally(() => clearTimeout(timeout));
+
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => '')).slice(0, 200);
+    throw new Error(`API error: ${response.status} ${detail}`);
+  }
+
+  const data = await response.json();
+  const choice = data.choices?.[0];
+  const text = choice?.message?.content;
+  if (!text) {
+    throw new Error(
+      `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
+    );
+  }
+  return text;
+}
+
+const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
+
+/**
+ * 日本語で「英語でどう説明する？」と聞かれたのに、添削カードが答えではなく質問の英訳
+ * （How do you explain "totonou" in English?）になっていたら、答えだけ作り直して差し替える。
+ * 添削ブロックそのものが無い（カードが出ない）ときは、答えを作ってブロックを足す。
+ * 会話のプロンプトで頼む形も試したが、役の上で答えを知らない相手（サウナ初心者など）では
+ * 3回に1回は直らず、ふつうの間違いに添削が付かない返事が増えた（72回中 10回。本番は 96回中 2回）。
+ * 相手のセリフと訳はそのまま。作り直せなければ元の返事を返す。
+ */
+async function fixHelpCard(
+  text: string,
+  level: LanguageLevel,
+  festivalScenario: FestivalScenarioId | undefined,
+  lastUser: string | undefined
+): Promise<string> {
+  const match = text.match(CORRECTION_RE);
+  const card = match ? parseCorrectionBlock(match[1]) : null;
+  const withCard = (c: CorrectionCard) => {
+    const block = `<correction>\n${JSON.stringify(c, null, 2)}\n</correction>`;
+    return match ? text.replace(match[0], () => block) : `${text.trimEnd()}\n\n${block}`;
+  };
+
+  if (card && hasJapanese(card.said)) {
+    // 質問の英訳のあとに答えが続いているなら、質問を落とすだけでいい
+    const answerOnly = dropQuestionPrefix(card.better);
+    if (answerOnly !== card.better) return withCard({ ...card, better: answerOnly });
+    if (!isQuestionAboutEnglish(card.better)) return text;
+    const help = await makeHelpAnswer(card.said, level, festivalScenario);
+    // 元の説明は質問の英訳について書いていることがあるので、答えに合わせて入れ替える
+    return help ? withCard({ ...card, better: help.en, why: help.note || card.why }) : text;
+  }
+  if (!match && lastUser && hasJapanese(lastUser)) {
+    const help = await makeHelpAnswer(lastUser, level, festivalScenario);
+    if (help) return withCard({ said: lastUser, better: help.en, why: help.note || 'このまま言ってみよう。', severity: 'minor' });
+  }
+  return text;
+}
+
+async function makeHelpAnswer(
+  said: string,
+  level: LanguageLevel,
+  festivalScenario: FestivalScenarioId | undefined
+): Promise<{ en: string; note: string } | null> {
+  try {
+    const raw = await complete(getHelpAnswerPrompt(level, festivalScenario), [{ role: 'user', content: said }], 0.3, 200, 10_000);
+    const json = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const en = String(json.en ?? '').trim();
+    if (!en || hasJapanese(en) || isQuestionAboutEnglish(en)) return null;
+    return { en, note: String(json.note ?? '').trim() };
+  } catch {
+    return null;
   }
 }
 

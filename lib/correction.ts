@@ -58,3 +58,26 @@ function unescapeValue(raw: string): string {
     return raw;
   }
 }
+
+/**
+ * 日本語で「英語でどう説明する？」と聞かれたときの添削で、答えではなく
+ * 質問の英訳（How do you explain "totonou" in English?）になっているか。
+ * 「I'm an engineer. But I can't explain it in English yet.」のような、言いたいことを
+ * そのまま英語にしたものは答えなので、質問の形（? で終わる）のときだけ
+ */
+export function isQuestionAboutEnglish(better: string): boolean {
+  return (
+    /\?["'”’]?\s*$/.test(better.trim()) &&
+    /\bin english\b|\bhow (do|should|would|can|could) (i|you|we) (say|explain|describe)\b/i.test(better)
+  );
+}
+
+/**
+ * 「How do I explain motsunabe? It's a hot pot with …」のように、質問の英訳のあとに答えが
+ * 続いているときは、前の質問を落として答えだけにする。そうでなければそのまま返す
+ */
+export function dropQuestionPrefix(better: string): string {
+  const m = better.match(/^(.*?\?["'”’]?)\s*(?:\/\s*)?(\S[\s\S]*)$/);
+  if (!m || !isQuestionAboutEnglish(m[1]) || isQuestionAboutEnglish(m[2])) return better;
+  return m[2].trim();
+}
