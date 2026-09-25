@@ -38,8 +38,8 @@ export interface FestivalPhrase {
   /** 最重要フレーズ（暗記推奨）*/
   star?: boolean;
   /**
-   * 学習者だけが言うセリフ。相手役が言うとおかしい（日本に来た人への質問、手伝ってもらう側の返事など）。
-   * 相手役は一覧のフレーズを自分のセリフに混ぜるので、印が無いと学習者の側のセリフまで口にしていた
+   * 学習者だけが言うセリフ。相手役が言うとおかしい（日本に来た人への質問、手伝ってもらう側の返事、
+   * 学習者が教える側の説明など）。相手役のプロンプトには渡さない（渡すと口にしていた）
    */
   userOnly?: boolean;
 }
@@ -114,16 +114,16 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "Hi! Welcome to Synapse. Do you have a ticket with you?",
     openerJa: 'こんにちは！Synapse へようこそ。チケットはお持ちですか？',
     phrases: [
-      { en: "I have a three-day pass.", ja: '3日通し券を持っています。', star: true },
+      { en: "I have a three-day pass.", ja: '3日通し券を持っています。', star: true, userOnly: true },
       { en: "It's under the name {name}.", ja: '「{name}」の名前で予約しています。', note: '受付で名前を確認されたら。under the name 〜 が定番。' },
-      { en: "Here's my QR code.", ja: 'これがQRコードです。', star: true },
-      { en: "I also booked a tent site.", ja: 'テントサイトも予約しています。' },
-      { en: "Where can I find my tent site?", ja: 'テントサイトはどこですか？', star: true },
-      { en: "Is there anywhere I can leave my luggage?", ja: '荷物を預けられる場所はありますか？' },
-      { en: "What time does the first act start?", ja: '最初のアクトは何時からですか？', note: 'act = 出演者。DJでも band でも使える便利ワード。' },
-      { en: "Could I get a map of the site?", ja: '会場マップをもらえますか？' },
-      { en: "Is re-entry allowed?", ja: '再入場はできますか？' },
-      { en: "Sorry, one more thing — where are the showers?", ja: 'すみません、もう一つだけ。シャワーはどこですか？', note: 'one more thing を付けると、追加の質問が自然になる。' },
+      { en: "Here's my QR code.", ja: 'これがQRコードです。', star: true, userOnly: true },
+      { en: "I also booked a tent site.", ja: 'テントサイトも予約しています。', userOnly: true },
+      { en: "Where can I find my tent site?", ja: 'テントサイトはどこですか？', star: true, userOnly: true },
+      { en: "Is there anywhere I can leave my luggage?", ja: '荷物を預けられる場所はありますか？', userOnly: true },
+      { en: "What time does the first act start?", ja: '最初のアクトは何時からですか？', note: 'act = 出演者。DJでも band でも使える便利ワード。', userOnly: true },
+      { en: "Could I get a map of the site?", ja: '会場マップをもらえますか？', userOnly: true },
+      { en: "Is re-entry allowed?", ja: '再入場はできますか？', userOnly: true },
+      { en: "Sorry, one more thing — where are the showers?", ja: 'すみません、もう一つだけ。シャワーはどこですか？', note: 'one more thing を付けると、追加の質問が自然になる。', userOnly: true },
     ],
     culturalTip:
       'スタッフに話しかけるときは "Excuse me" よりも "Hi!" の方がフェスの空気に合っています。困ったら "Sorry, my English is not great" と最初に言ってOK。みんな優しくしてくれます。',
@@ -154,7 +154,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     openerJa: 'ねえ！この列、すごすぎない？ここのごはん、前に食べたことある？',
     phrases: [
       { en: "Hey, I'm {name}. Nice to meet you!", ja: 'こんにちは、{name}です。よろしく！', star: true },
-      { en: "Sorry, what was your name again?", ja: 'ごめん、名前もう一回いい？', note: '聞き取れなかった時の最強フレーズ。失礼じゃないので遠慮なく。', star: true },
+      { en: "Sorry, what was your name again?", ja: 'ごめん、名前もう一回いい？', note: '聞き取れなかった時の最強フレーズ。失礼じゃないので遠慮なく。', star: true, userOnly: true },
       { en: "Where are you from?", ja: 'どこから来たの？' },
       { en: "How do you like Japan so far?", ja: '日本はどう？', userOnly: true },
       { en: "Is this your first time at Synapse?", ja: 'シナプスは初めて？', star: true },
@@ -192,17 +192,17 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "So what do you do? Or — what are you working on these days?",
     openerJa: 'それで、仕事は何してるの？というか、最近は何に取り組んでるの？',
     phrases: [
-      { en: "I'm a developer. I build apps.", ja: '開発者です。アプリを作っています。', star: true },
-      { en: "I'm working on an English conversation app right now.", ja: '今は英会話アプリを作っています。', star: true },
-      { en: "It's still a side project, but I'm hoping to launch it soon.", ja: 'まだ個人プロジェクトだけど、近いうちに出したいと思ってる。', note: 'side project = 本業の傍らでやっているもの。フェスで超頻出。' },
-      { en: "I work at a company, and I build my own things on the side.", ja: '会社で働きながら、個人でもいろいろ作っています。' },
+      { en: "I'm a developer. I build apps.", ja: '開発者です。アプリを作っています。', star: true, userOnly: true },
+      { en: "I'm working on an English conversation app right now.", ja: '今は英会話アプリを作っています。', star: true, userOnly: true },
+      { en: "It's still a side project, but I'm hoping to launch it soon.", ja: 'まだ個人プロジェクトだけど、近いうちに出したいと思ってる。', note: 'side project = 本業の傍らでやっているもの。フェスで超頻出。', userOnly: true },
+      { en: "I work at a company, and I build my own things on the side.", ja: '会社で働きながら、個人でもいろいろ作っています。', userOnly: true },
       { en: "How did you get into that?", ja: 'どうやってその道に入ったの？', note: '相手の話を深掘りする最強の質問。', star: true },
       { en: "That's really cool — how does it work?", ja: 'それすごいね、どういう仕組みなの？' },
       { en: "How long have you been doing that?", ja: 'それどれくらいやってるの？' },
       { en: "Are you doing it full-time?", ja: 'それは専業でやってるの？' },
       { en: "What's the hardest part?", ja: '一番大変なところは？', note: '深い話に入る鍵。相手は大体うれしそうに話してくれる。' },
       { en: "I'd love to show you sometime.", ja: 'いつか見せたいな。', note: '作っているものがある人の必殺技。ここから連絡先交換に繋がる。', star: true },
-      { en: "Let me think… how do I say this…", ja: 'えーっと、なんて言えばいいかな…', note: '沈黙が怖い時の時間稼ぎ。黙るより100倍印象がいい。', star: true },
+      { en: "Let me think… how do I say this…", ja: 'えーっと、なんて言えばいいかな…', note: '沈黙が怖い時の時間稼ぎ。黙るより100倍印象がいい。', star: true, userOnly: true },
     ],
     culturalTip:
       '"What do you do?" に対して、肩書きだけ答えるより「今なにを作っているか」を話す方がウケます。SYNAPSE は起業家・クリエイターが多いので、作っているものの話が一番盛り上がります。',
@@ -311,14 +311,14 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "Okay, I've never done this properly. How does this actually work?",
     openerJa: 'ねえ、ちゃんとやったことないんだ。これって、どうやるのが正しいの？',
     phrases: [
-      { en: "First you wash, then you go in.", ja: 'まず体を洗って、それから入る。', star: true, note: '日本の風呂マナーの基本。これだけは伝えたい。' },
-      { en: "Usually three rounds is enough.", ja: '普通は3セットで十分だよ。', note: 'round = セット。サウナ用語として通じます。' },
-      { en: "Sauna, then cold bath, then rest. That's one round.", ja: 'サウナ→水風呂→休憩。これで1セット。', star: true },
-      { en: "The cold plunge is the best part, I promise.", ja: '水風呂が一番いいところだよ、ほんとに。', note: 'cold plunge = 水風呂。英語圏のサウナ好きに完全に通じる。' },
-      { en: "\"Totonou\" means your body and mind click into place.", ja: '「ととのう」は、心と体がカチッとはまる感覚のこと。', star: true },
-      { en: "There's no perfect translation, but it feels like being reset.", ja: '完璧な訳はないけど、リセットされる感じ。', note: '訳せない日本語を説明する型。応用がすごく効く。' },
-      { en: "Take it easy on your first time.", ja: '初回は無理しないでね。' },
-      { en: "Drink lots of water.", ja: '水をたくさん飲んでね。' },
+      { en: "First you wash, then you go in.", ja: 'まず体を洗って、それから入る。', star: true, note: '日本の風呂マナーの基本。これだけは伝えたい。', userOnly: true },
+      { en: "Usually three rounds is enough.", ja: '普通は3セットで十分だよ。', note: 'round = セット。サウナ用語として通じます。', userOnly: true },
+      { en: "Sauna, then cold bath, then rest. That's one round.", ja: 'サウナ→水風呂→休憩。これで1セット。', star: true, userOnly: true },
+      { en: "The cold plunge is the best part, I promise.", ja: '水風呂が一番いいところだよ、ほんとに。', note: 'cold plunge = 水風呂。英語圏のサウナ好きに完全に通じる。', userOnly: true },
+      { en: "\"Totonou\" means your body and mind click into place.", ja: '「ととのう」は、心と体がカチッとはまる感覚のこと。', star: true, userOnly: true },
+      { en: "There's no perfect translation, but it feels like being reset.", ja: '完璧な訳はないけど、リセットされる感じ。', note: '訳せない日本語を説明する型。応用がすごく効く。', userOnly: true },
+      { en: "Take it easy on your first time.", ja: '初回は無理しないでね。', userOnly: true },
+      { en: "Drink lots of water.", ja: '水をたくさん飲んでね。', userOnly: true },
       { en: "How are you feeling?", ja: '調子どう？' },
       { en: "Let's do one more round.", ja: 'もう1セット行こう。' },
     ],
@@ -350,15 +350,15 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "Hey! What can I get you?",
     openerJa: 'いらっしゃい！何にする？',
     phrases: [
-      { en: "Could I get one of these, please?", ja: 'これを1つください。', star: true, note: '指さし + これで100%通じる。最強。' },
+      { en: "Could I get one of these, please?", ja: 'これを1つください。', star: true, note: '指さし + これで100%通じる。最強。', userOnly: true },
       { en: "What would you recommend?", ja: 'おすすめは何ですか？', star: true },
       { en: "What's in it?", ja: '何が入ってますか？' },
       { en: "Is it spicy?", ja: '辛いですか？' },
-      { en: "I'm vegetarian — is there anything I can eat?", ja: 'ベジタリアンなんですが、食べられるものありますか？', note: '自分用にも、相手に聞かれた時にも使える。' },
-      { en: "Can I pay by card?", ja: 'カードで払えますか？' },
+      { en: "I'm vegetarian — is there anything I can eat?", ja: 'ベジタリアンなんですが、食べられるものありますか？', note: '自分用にも、相手に聞かれた時にも使える。', userOnly: true },
+      { en: "Can I pay by card?", ja: 'カードで払えますか？', userOnly: true },
       { en: "Do you want to try some?", ja: 'ちょっと食べてみる？', star: true, note: 'シェアは距離を縮める最短ルート。' },
-      { en: "This is called motsunabe — it's a Fukuoka specialty.", ja: 'これはもつ鍋っていって、福岡の名物です。', star: true },
-      { en: "You have to try tonkotsu ramen while you're here.", ja: 'ここにいる間にとんこつラーメンは絶対食べた方がいい。' },
+      { en: "This is called motsunabe — it's a Fukuoka specialty.", ja: 'これはもつ鍋っていって、福岡の名物です。', star: true, userOnly: true },
+      { en: "You have to try tonkotsu ramen while you're here.", ja: 'ここにいる間にとんこつラーメンは絶対食べた方がいい。', userOnly: true },
       { en: "Cheers!", ja: '乾杯！', note: '英語圏では Cheers! が乾杯。グラスを合わせながら目を見るのがマナー。' },
       { en: "Let me get this one.", ja: 'ここは私が出すよ。' },
     ],
@@ -390,15 +390,15 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "Hi! Come closer — are you interested in joining?",
     openerJa: 'こんにちは！もっと近くでどうぞ。参加してみない？',
     phrases: [
-      { en: "Can I still join?", ja: '今からでも参加できますか？', star: true },
-      { en: "How long does it take?", ja: 'どれくらい時間かかりますか？' },
-      { en: "Do I need to sign up in advance?", ja: '事前に申し込みが必要ですか？' },
-      { en: "I've never done this before.", ja: 'これ初めてなんです。', star: true, note: 'これを言うと、世界中どこでも丁寧に教えてもらえる。' },
-      { en: "What's this piece about?", ja: 'この作品はどういう意味があるんですか？', note: 'piece = 作品。artwork より自然。', star: true },
-      { en: "What inspired you to make this?", ja: '何がきっかけでこれを作ったんですか？' },
-      { en: "How long did it take to make?", ja: '作るのにどれくらいかかったんですか？' },
-      { en: "Is it okay to take a photo?", ja: '写真を撮ってもいいですか？', star: true },
-      { en: "Can I touch it?", ja: '触ってもいいですか？' },
+      { en: "Can I still join?", ja: '今からでも参加できますか？', star: true, userOnly: true },
+      { en: "How long does it take?", ja: 'どれくらい時間かかりますか？', userOnly: true },
+      { en: "Do I need to sign up in advance?", ja: '事前に申し込みが必要ですか？', userOnly: true },
+      { en: "I've never done this before.", ja: 'これ初めてなんです。', star: true, note: 'これを言うと、世界中どこでも丁寧に教えてもらえる。', userOnly: true },
+      { en: "What's this piece about?", ja: 'この作品はどういう意味があるんですか？', note: 'piece = 作品。artwork より自然。', star: true, userOnly: true },
+      { en: "What inspired you to make this?", ja: '何がきっかけでこれを作ったんですか？', userOnly: true },
+      { en: "How long did it take to make?", ja: '作るのにどれくらいかかったんですか？', userOnly: true },
+      { en: "Is it okay to take a photo?", ja: '写真を撮ってもいいですか？', star: true, userOnly: true },
+      { en: "Can I touch it?", ja: '触ってもいいですか？', userOnly: true },
       { en: "That's a beautiful idea.", ja: '素敵な考えですね。' },
     ],
     culturalTip:
@@ -475,7 +475,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       { en: "Can I just scan your QR code?", ja: 'QRコード読み取ってもいい？', note: 'これが一番早い。スペル問題を全部解決する裏技。', star: true },
       { en: "Are you in the Synapse Discord?", ja: 'シナプスのDiscordに入ってる？' },
       { en: "I'll send you a message later.", ja: '後でメッセージ送るね。' },
-      { en: "Let me know if you come to Fukuoka again.", ja: 'また福岡来るときは連絡して。', star: true },
+      { en: "Let me know if you come to Fukuoka again.", ja: 'また福岡来るときは連絡して。', star: true, userOnly: true },
       { en: "I'd love to show you my app when it's ready.", ja: 'アプリ完成したら見せたいな。' },
       { en: "It was really nice meeting you.", ja: '会えて本当によかった。', star: true },
       { en: "Let's grab a drink later if you're around.", ja: 'まだいるなら後で飲もうよ。' },
@@ -508,16 +508,16 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "I have four more days here. Where should I go?",
     openerJa: 'あと4日ここにいるんだ。どこに行けばいい？',
     phrases: [
-      { en: "You should definitely check out the yatai.", ja: '屋台は絶対行った方がいい。', star: true },
-      { en: "Yatai are open-air food stalls along the river. They open at night.", ja: '屋台は川沿いの屋外の食べ物の店。夜に開くんだ。', star: true, note: '日本語の固有名詞は「名前 + 説明」のセットで言うと必ず伝わる。' },
-      { en: "It's about 30 minutes from here by train.", ja: 'ここから電車で30分くらい。' },
-      { en: "Take the subway to Tenjin, then walk about ten minutes.", ja: '地下鉄で天神まで行って、そこから10分歩く。' },
-      { en: "It gets pretty crowded on weekends.", ja: '週末はけっこう混むよ。' },
-      { en: "If you like temples, Dazaifu is worth a day trip.", ja: '寺が好きなら、太宰府は日帰りで行く価値ある。', note: 'worth a day trip = 日帰りで行く価値がある。便利。' },
-      { en: "Nokonoshima is a small island with flower fields — it's beautiful.", ja: '能古島は花畑のある小さい島で、すごくきれい。' },
-      { en: "Don't leave without trying tonkotsu ramen.", ja: 'とんこつラーメン食べずに帰らないでね。', star: true },
-      { en: "I can write it down for you.", ja: '書いてあげようか。', note: '地名が伝わらない時の切り札。' },
-      { en: "Text me if you get lost!", ja: '迷ったら連絡して！', star: true },
+      { en: "You should definitely check out the yatai.", ja: '屋台は絶対行った方がいい。', star: true, userOnly: true },
+      { en: "Yatai are open-air food stalls along the river. They open at night.", ja: '屋台は川沿いの屋外の食べ物の店。夜に開くんだ。', star: true, note: '日本語の固有名詞は「名前 + 説明」のセットで言うと必ず伝わる。', userOnly: true },
+      { en: "It's about 30 minutes from here by train.", ja: 'ここから電車で30分くらい。', userOnly: true },
+      { en: "Take the subway to Tenjin, then walk about ten minutes.", ja: '地下鉄で天神まで行って、そこから10分歩く。', userOnly: true },
+      { en: "It gets pretty crowded on weekends.", ja: '週末はけっこう混むよ。', userOnly: true },
+      { en: "If you like temples, Dazaifu is worth a day trip.", ja: '寺が好きなら、太宰府は日帰りで行く価値ある。', note: 'worth a day trip = 日帰りで行く価値がある。便利。', userOnly: true },
+      { en: "Nokonoshima is a small island with flower fields — it's beautiful.", ja: '能古島は花畑のある小さい島で、すごくきれい。', userOnly: true },
+      { en: "Don't leave without trying tonkotsu ramen.", ja: 'とんこつラーメン食べずに帰らないでね。', star: true, userOnly: true },
+      { en: "I can write it down for you.", ja: '書いてあげようか。', note: '地名が伝わらない時の切り札。', userOnly: true },
+      { en: "Text me if you get lost!", ja: '迷ったら連絡して！', star: true, userOnly: true },
     ],
     culturalTip:
       '固有名詞（屋台・太宰府・もつ鍋）は「名前を言う → 5語で説明する」の順番が鉄則。"Yatai — they\'re street food stalls" のように、説明をセットにするだけで一気に伝わります。',
@@ -547,17 +547,17 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
     opener: "Ah brilliant, so you reckon the second stage lineup's better than the main one or what?",
     openerJa: 'おお、いいね。じゃあ、セカンドステージのラインナップのほうがメインより良いと思ってるってこと？',
     phrases: [
-      { en: "Sorry, could you say that again?", ja: 'すみません、もう一度言ってもらえますか？', star: true },
-      { en: "Could you speak a little slower, please?", ja: 'もう少しゆっくり話してもらえますか？', star: true },
-      { en: "Sorry, I didn't catch that.", ja: 'ごめん、聞き取れなかった。', note: 'catch = 聞き取る。ネイティブが一番使う表現。', star: true },
+      { en: "Sorry, could you say that again?", ja: 'すみません、もう一度言ってもらえますか？', star: true, userOnly: true },
+      { en: "Could you speak a little slower, please?", ja: 'もう少しゆっくり話してもらえますか？', star: true, userOnly: true },
+      { en: "Sorry, I didn't catch that.", ja: 'ごめん、聞き取れなかった。', note: 'catch = 聞き取る。ネイティブが一番使う表現。', star: true, userOnly: true },
       { en: "What does that mean?", ja: 'それどういう意味？' },
-      { en: "Do you mean…?", ja: '〜っていう意味？', note: '自分の理解を確認する。これができると会話が止まらない。', star: true },
+      { en: "Do you mean…?", ja: '〜っていう意味？', note: '自分の理解を確認する。これができると会話が止まらない。', star: true, userOnly: true },
       { en: "How do you spell that?", ja: 'それどう書くの？' },
-      { en: "Sorry, my English isn't great.", ja: 'ごめん、英語あまり得意じゃなくて。', note: '先に言うと相手が必ず合わせてくれる。恥ずかしくない。' },
-      { en: "Give me a second…", ja: 'ちょっと待ってね…', note: '考える時間を作る。黙るより断然いい。', star: true },
-      { en: "Can you write it down?", ja: '書いてもらえる？' },
+      { en: "Sorry, my English isn't great.", ja: 'ごめん、英語あまり得意じゃなくて。', note: '先に言うと相手が必ず合わせてくれる。恥ずかしくない。', userOnly: true },
+      { en: "Give me a second…", ja: 'ちょっと待ってね…', note: '考える時間を作る。黙るより断然いい。', star: true, userOnly: true },
+      { en: "Can you write it down?", ja: '書いてもらえる？', userOnly: true },
       { en: "Got it!", ja: '分かった！', note: '理解できた時の一言。I understand よりずっと自然。' },
-      { en: "Sorry, I'm a bit lost. Can we go back a step?", ja: 'ごめん、ちょっと分からなくなった。少し戻っていい？' },
+      { en: "Sorry, I'm a bit lost. Can we go back a step?", ja: 'ごめん、ちょっと分からなくなった。少し戻っていい？', userOnly: true },
     ],
     culturalTip:
       '英語が分からない時に黙るのが一番よくありません。"Sorry, I didn\'t catch that" は失礼どころか、ちゃんと聞こうとしている証拠として好印象。何度使ってもOKです。',
@@ -578,7 +578,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       vibe: 'a little sentimental, genuinely glad to have met them, makes concrete plans',
     },
     situation:
-      'It is the last morning of the festival. Tents are coming down. You met the user on day one and spent a lot of the weekend together. Say goodbye properly: what you enjoyed, thanking them, making a concrete plan to meet again, and a warm final line. Make it feel real, a little bittersweet.',
+      'It is the last morning of the festival. Tents are coming down. You met the user on day one and spent a lot of the weekend together. You are the one flying home to Berlin; they live in Japan. Say goodbye properly: what you enjoyed, thanking them, making a concrete plan to meet again, and a warm final line. Make it feel real, a little bittersweet.',
     missions: [
       '3日間の感想を伝える',
       '感謝を伝える',
@@ -592,8 +592,8 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       { en: "Thanks for everything.", ja: '色々ありがとう。', star: true },
       { en: "I'm really glad we met.", ja: '会えて本当によかった。', star: true },
       { en: "I learned a lot from you.", ja: 'すごく学ぶことが多かった。' },
-      { en: "Let me know when you're back in Japan.", ja: 'また日本来るとき教えて。' },
-      { en: "If you ever come to Fukuoka, you have a place to stay.", ja: '福岡来ることあったら、泊まるとこあるからね。', note: '一気に距離が縮まる一言。' },
+      { en: "Let me know when you're back in Japan.", ja: 'また日本来るとき教えて。', userOnly: true },
+      { en: "If you ever come to Fukuoka, you have a place to stay.", ja: '福岡来ることあったら、泊まるとこあるからね。', note: '一気に距離が縮まる一言。', userOnly: true },
       { en: "Same time next year?", ja: '来年も同じ時期に？', star: true, note: '別れ際の最高の締め方。' },
       { en: "Take care, and safe travels.", ja: '気をつけて、いい旅を。', star: true },
       { en: "See you — for real this time.", ja: 'またね、今度は本当に。' },
@@ -656,15 +656,17 @@ export function getFestivalScenarioPrompt(id: FestivalScenarioId, learnerName?: 
   const s = festivalScenarios[id];
   const name = nameForEnglish(learnerName);
   const unknown = "[the user's name]";
+  // 学習者だけが言うセリフ（名前入りの自己紹介も）は、相手役には渡さない。
+  // 同じ一覧に「言わないで」と添えても、「学習者が練習中のセリフ」として別に見せても、相手が
+  // 自問自答したり（Can I still join? Yes, you can!）、学習者に聞いたりしていた（本番で 117回中 23回）。
+  // 見せなければ写せない。学習者はフレーズ帳と復習で覚える
   const phraseList = s.phrases
-    .map((p) => {
-      const line = `- "${fillName(p.en, learnerName, 'en', unknown)}" (${fillName(p.ja, learnerName, 'ja', unknown)})`;
-      // 名前入りのフレーズは学習者本人のセリフ。相手役が口にすると自分が名乗ってしまう。
-      if (p.en.includes(NAME_TOKEN)) return `${line} — the user's own line about themselves; never say it as yourself`;
-      if (p.userOnly) return `${line} — the user's line, not yours; never say or ask it yourself`;
-      return line;
-    })
+    .filter((p) => !p.userOnly && !p.en.includes(NAME_TOKEN))
+    .map((p) => `- "${fillName(p.en, learnerName, 'en', unknown)}" (${fillName(p.ja, learnerName, 'ja', unknown)})`)
     .join('\n');
+  const usePhrases = phraseList
+    ? `\n- Naturally work these useful expressions into your own lines so the user picks them up. Skip any question the user has already answered:\n${phraseList}`
+    : '';
   // 名前は背景として渡すだけ。初対面の練習なので、本人が名乗るまでは使わせない。
   const aboutUser = name
     ? `\nABOUT THE USER\nThe user's name is ${name}. Treat it as private background: you have only just met, so do not use it until they tell you. It is their name, not yours — you are ${s.partner.name}.\n`
@@ -690,9 +692,7 @@ HOW TO PLAY IT
 - Always end with a question or an opening so the user has something to respond to.
 - Match the user's level: if they write short, simple English, keep yours simple too.
 - React like a human: laugh, get excited, be surprised, pause.
-- The user is a Japanese attendee practicing their English. Don't ask them things only a visitor to Japan gets asked, like how they like Japan.
-- Naturally work these useful expressions into your own lines so the user picks them up. Skip any question the user has already answered:
-${phraseList}
+- The user is a Japanese attendee practicing their English. They live in Japan, so treat them as a local, not a visitor.${usePhrases}
 
 CORRECTIONS
 You are also secretly their English coach. When the user makes a mistake worth fixing, still reply in character first, then append the correction block. Do not break character inside the spoken reply itself.`;

@@ -7,6 +7,7 @@ import { ANSWER_QUESTIONS } from '@/lib/answerQuestions';
 import { askTsumugi } from '@/lib/chatTransport';
 import { fillName } from '@/lib/learnerName';
 import { alternatives, hasJapanese, sameWords } from '@/lib/speechMatch';
+import { parseCorrectionBlock } from '@/lib/correction';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
@@ -70,21 +71,9 @@ function parseReply(raw: string): { text: string; translation?: string; correcti
   const text = cleanSpoken(body.replace(CORRECTION_RE, ''));
   if (!match) return { text, translation };
 
-  try {
-    const parsed = JSON.parse(match[1]) as Partial<CorrectionCard>;
-    if (parsed.said && parsed.better && parsed.why) {
-      const correction: CorrectionCard = {
-        said: parsed.said,
-        better: parsed.better,
-        why: parsed.why,
-        severity: parsed.severity ?? 'minor',
-      };
-      return isRealCorrection(correction) ? { text, translation, correction } : { text, translation };
-    }
-  } catch {
-    /* 壊れたJSONは黙って捨てる。会話が止まる方が損。 */
-  }
-  return { text, translation };
+  // 読めないブロックは捨てる（会話が止まる方が損）。少し崩れているだけなら読む
+  const correction = parseCorrectionBlock(match[1]);
+  return correction && isRealCorrection(correction) ? { text, translation, correction } : { text, translation };
 }
 
 export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Props) {
