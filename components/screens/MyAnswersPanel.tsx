@@ -207,11 +207,13 @@ function AnswerCard({
             className="tsu-card-solid mt-1.5 w-full resize-none px-3.5 py-2.5 text-[14px] outline-none"
             style={{ borderRadius: 16, color: 'var(--text)' }}
           />
+          {/* 英語ができたら「これにする」が主役。作り直しは控えめにする */}
           <button
             type="button"
             onClick={make}
             disabled={!draft.trim() || busy}
-            className="tsu-btn tsu-btn-primary mt-2 w-full py-2.5 text-[13.5px]"
+            className={`tsu-btn mt-2 w-full py-2.5 text-[13.5px] ${result ? 'font-extrabold' : 'tsu-btn-primary'}`}
+            style={result ? { background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' } : undefined}
           >
             {busy ? '紬が考えてるよ…' : result ? 'この下書きで作り直す' : '紬に英語にしてもらう'}
           </button>
