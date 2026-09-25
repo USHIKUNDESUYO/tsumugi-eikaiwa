@@ -160,12 +160,13 @@ async function precache(shell, urls) {
   const toKey = (u) => new URL(u, origin).href;
 
   // 前のビルドの JS・CSS はもう使わないので消す（デプロイのたびに溜まらないように）。
-  // フォント（/_next/static/media/）は画面ごとに使う文字の分だけ読まれるので、消さずに残す
+  // フォント（media）は画面ごとに使う文字の分だけ読まれるので、消さずに残す。
+  // Vercel では /_next/static/immutable/media/、手元の next start では /_next/static/media/ に置かれる
   if (shell.length) {
     const keep = new Set(shell.map(toKey));
     for (const request of await cache.keys()) {
       const path = new URL(request.url).pathname;
-      if (path.startsWith('/_next/static/') && !path.startsWith('/_next/static/media/') && !keep.has(request.url)) {
+      if (path.startsWith('/_next/static/') && !path.includes('/media/') && !keep.has(request.url)) {
         await cache.delete(request);
       }
     }
