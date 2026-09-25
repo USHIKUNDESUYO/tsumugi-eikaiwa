@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message } from '@/types';
 import { festivalScenarios } from '@/lib/festivalScenarios';
+import { ANSWER_QUESTIONS } from '@/lib/answerQuestions';
 import { askTsumugi } from '@/lib/chatTransport';
 import { fillName } from '@/lib/learnerName';
 import { alternatives, hasJapanese, sameWords } from '@/lib/speechMatch';
@@ -118,6 +119,17 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
     () => getScenarioIntro(scenario.title, state.bond.level),
     [scenario.title, state.bond.level]
   );
+  /** 自分の答えノートの答え（💡から入力欄に入れられる）。この場面で聞かれやすい質問を先に */
+  const myAnswers = useMemo(() => {
+    const saved = ANSWER_QUESTIONS.flatMap((question) => {
+      const answer = state.myAnswers[question.id];
+      return answer?.en ? [{ question, answer }] : [];
+    });
+    return [
+      ...saved.filter((a) => a.question.scenes.includes(scenarioId)),
+      ...saved.filter((a) => !a.question.scenes.includes(scenarioId)),
+    ];
+  }, [state.myAnswers, scenarioId]);
   const userTurns = messages.filter((m) => m.role === 'user').length;
   const remainingToClear = Math.max(0, TURNS_TO_CLEAR - userTurns);
 
@@ -506,6 +518,37 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           <p className="sticky top-0 py-2 text-[11px] font-extrabold" style={{ background: 'var(--surface)', color: 'var(--text-faint)' }}>
             タップで入力欄に入ります
           </p>
+          {myAnswers.length > 0 && (
+            <>
+              <p className="pb-1.5 text-[11px] font-extrabold" style={{ color: 'var(--tsu-lav-400)' }}>
+                📝 自分の答え
+              </p>
+              <ul className="flex flex-col gap-1.5 pb-3">
+                {myAnswers.map(({ question, answer }) => (
+                  <li key={question.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInput(answer.en);
+                        setShowPhrases(false);
+                      }}
+                      className="tsu-btn tsu-card-solid w-full px-3.5 py-2.5 text-left !rounded-2xl"
+                    >
+                      <span className="block text-[14px] font-extrabold" style={{ color: 'var(--text)' }}>
+                        {answer.en}
+                      </span>
+                      <span className="block text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+                        {question.ja}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="pb-1.5 text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
+                📖 この場面のフレーズ
+              </p>
+            </>
+          )}
           <ul className="flex flex-col gap-1.5 pb-2">
             {scenario.phrases.map((p) => {
               const en = fillName(p.en, state.profile.displayName, 'en');

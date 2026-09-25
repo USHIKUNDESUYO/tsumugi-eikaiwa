@@ -14,6 +14,7 @@ import type {
   Outfit,
   FestivalScenarioId,
   CardProgress,
+  MyAnswer,
 } from '@/types';
 import { scheduleNext } from './srs';
 
@@ -80,6 +81,7 @@ export function getDefaultState(): AppState {
     clearedScenarios: [],
     masteredPhrases: [],
     cards: {},
+    myAnswers: {},
     version: SCHEMA_VERSION,
   };
 }
@@ -97,6 +99,7 @@ function migrate(raw: Record<string, unknown>): AppState {
     clearedScenarios: (raw.clearedScenarios as FestivalScenarioId[]) ?? [],
     masteredPhrases: (raw.masteredPhrases as string[]) ?? [],
     cards: (raw.cards as Record<string, CardProgress>) ?? {},
+    myAnswers: (raw.myAnswers as Record<string, MyAnswer>) ?? {},
     version: SCHEMA_VERSION,
   };
 
@@ -388,6 +391,22 @@ export function retireCard(key: string, now = Date.now()): void {
       wrong: prev?.wrong ?? 0,
       retired: true,
     };
+  });
+}
+
+/* ------------------------------ 自分の答えノート ------------------------------ */
+
+/**
+ * 自分の答えを保存する。英語が変わったら覚え直しなので、暗記カードも最初から。
+ * 作った直後に一度声に出しているので、最初の出題は少し寝かせる（10分後）。
+ */
+export function saveMyAnswer(id: string, answer: Omit<MyAnswer, 'updatedAt'>, now = Date.now()): void {
+  updateState((s) => {
+    const before = s.myAnswers[id];
+    s.myAnswers[id] = { ...answer, updatedAt: now };
+    if (!before || before.en !== answer.en) {
+      s.cards[`answer:${id}`] = { ...scheduleNext(1, now), introducedAt: now, correct: 0, wrong: 0 };
+    }
   });
 }
 

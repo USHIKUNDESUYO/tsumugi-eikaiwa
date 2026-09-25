@@ -1,5 +1,5 @@
 import { apiUrl } from '@/lib/apiBase';
-import { getSystemPrompt } from '@/lib/prompts';
+import { getCoachPrompt, getSystemPrompt } from '@/lib/prompts';
 import type {
   BusinessScenario,
   ChatMode,
@@ -38,6 +38,8 @@ export interface AskInput {
   bondLevel?: number;
   /** 学習者の名前。相手役に「これはあなたではなく相手の名前」と教えるために渡す */
   userName?: string;
+  /** 自分の答えノート: この質問への答えを英語にする（messages の最後が下書き） */
+  coach?: { en: string; ja: string };
 }
 
 interface SampleResult {
@@ -72,6 +74,7 @@ export async function canAskClaudeDirectly(): Promise<boolean> {
 }
 
 function buildPrompt(input: AskInput): string {
+  if (input.coach) return getCoachPrompt(input.coach, input.level, input.userName);
   return getSystemPrompt(
     input.mode,
     input.level,

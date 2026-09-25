@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSystemPrompt } from '@/lib/prompts';
+import { getCoachPrompt, getSystemPrompt } from '@/lib/prompts';
 import { corsHeaders, preflight } from '@/app/api/cors';
 import type {
   ChatMode,
@@ -20,6 +20,8 @@ interface ChatRequest {
   successfulTurns?: number;
   bondLevel?: number;
   userName?: string;
+  /** 自分の答えノート: この質問への答えを英語にする（messages の最後が下書き） */
+  coach?: { en: string; ja: string };
 }
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -55,6 +57,7 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
     successfulTurns,
     bondLevel,
     userName,
+    coach,
   } = body;
 
   if (!OPENAI_API_KEY) {
@@ -62,16 +65,18 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
   }
 
   try {
-    const systemPrompt = getSystemPrompt(
-      mode,
-      level,
-      businessScenario,
-      businessDifficulty,
-      successfulTurns,
-      festivalScenario,
-      bondLevel,
-      userName
-    );
+    const systemPrompt = coach
+      ? getCoachPrompt({ en: String(coach.en).slice(0, 200), ja: String(coach.ja).slice(0, 200) }, level, userName)
+      : getSystemPrompt(
+          mode,
+          level,
+          businessScenario,
+          businessDifficulty,
+          successfulTurns,
+          festivalScenario,
+          bondLevel,
+          userName
+        );
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
@@ -89,7 +94,8 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
           { role: 'system', content: systemPrompt },
           ...messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
         ],
-        temperature: 0.9,
+        // 答えの書き直しは、本人の言いたいことから外れないよう揺らぎを抑える
+        temperature: coach ? 0.4 : 0.9,
         max_tokens: 400,
         // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
         // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
@@ -181,6 +187,8 @@ const FESTIVAL_FALLBACKS: Record<FestivalScenarioId, string[]> = {
 
 function getMockResponse(body: ChatRequest): string {
   const { mode, festivalScenario, messages } = body;
+  // 答えの書き直しは AI が無いと作れない。空の答えを返して、画面に「今は作れない」と出させる
+  if (body.coach) return JSON.stringify({ en: '', ja: '', tip: '' });
   const last = messages[messages.length - 1]?.content ?? '';
   const turn = messages.filter((m) => m.role === 'user').length;
 

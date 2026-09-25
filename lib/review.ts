@@ -1,5 +1,6 @@
-import type { AppState, CardProgress, FestivalScenarioId, MistakeRecord } from '@/types';
+import type { AppState, CardProgress, FestivalScenarioId, MistakeRecord, MyAnswer } from '@/types';
 import { festivalScenarioOrder, festivalScenarios, type FestivalPhrase } from './festivalScenarios';
+import { ANSWER_QUESTIONS, type AnswerQuestion } from './answerQuestions';
 import { NAME_TOKEN, nameForEnglish } from './learnerName';
 import { getDueCards } from './srs';
 
@@ -8,6 +9,7 @@ import { getDueCards } from './srs';
  *
  * これまでは会話で直された文だけで、直されなければ復習は空っぽだった。
  * フェスのフレーズ（必修54個＋α）も、日本語を見て英語を思い出すカードとして混ぜる。
+ * 自分の答えノートで作った答えも、質問を聞いて答えるカードにする。
  */
 
 /** 1日に新しく出すフレーズの数。まとめて出すと覚えきれず、翌日からの復習が溜まる */
@@ -25,10 +27,15 @@ export type ReviewItem =
       /** 今日はじめて出すカード */
       isNew: boolean;
       progress?: CardProgress;
-    };
+    }
+  | { kind: 'answer'; key: string; question: AnswerQuestion; answer: MyAnswer; progress: CardProgress };
 
 export function phraseKey(en: string): string {
   return `phrase:${en}`;
+}
+
+export function answerKey(questionId: string): string {
+  return `answer:${questionId}`;
 }
 
 let orderCache: Array<{ scenarioId: FestivalScenarioId; phrase: FestivalPhrase }> | null = null;
@@ -62,6 +69,15 @@ export function buildReviewQueue(state: AppState, now = Date.now()): ReviewItem[
       dueAt: record.dueAt ?? 0,
     })
   );
+
+  for (const question of ANSWER_QUESTIONS) {
+    const answer = state.myAnswers[question.id];
+    const key = answerKey(question.id);
+    const progress = state.cards[key];
+    if (answer?.en && progress && !progress.retired && progress.dueAt <= now) {
+      due.push({ item: { kind: 'answer', key, question, answer, progress }, box: progress.box, dueAt: progress.dueAt });
+    }
+  }
 
   const today = dayOf(now);
   const introducedToday = Object.entries(state.cards).filter(

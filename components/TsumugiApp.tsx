@@ -20,7 +20,7 @@ import OnboardingScreen from '@/components/screens/OnboardingScreen';
 import HomeScreen from '@/components/screens/HomeScreen';
 import ScenarioListScreen from '@/components/screens/ScenarioListScreen';
 import ChatScreen from '@/components/screens/ChatScreen';
-import PhrasebookScreen from '@/components/screens/PhrasebookScreen';
+import PhrasebookScreen, { type PhraseTab } from '@/components/screens/PhrasebookScreen';
 import ReviewScreen from '@/components/screens/ReviewScreen';
 import ProgressScreen from '@/components/screens/ProgressScreen';
 
@@ -38,6 +38,7 @@ export default function TsumugiApp() {
   const [levelUp, setLevelUp] = useState<LevelUpEvent | null>(null);
   /** 復習の出題は「画面を開いた時刻」で確定させる（開いている間に増減しない） */
   const [reviewOpenedAt, setReviewOpenedAt] = useState(0);
+  const [phraseTab, setPhraseTab] = useState<PhraseTab>('scenes');
 
   useEffect(() => {
     touchStreak();
@@ -119,9 +120,19 @@ export default function TsumugiApp() {
           state.settings.reduceMotion ? '' : 'anim-screen'
         }`}
       >
-        {screen === 'home' && <HomeScreen state={state} onStart={setActiveScenario} onNavigate={navigate} />}
+        {screen === 'home' && (
+          <HomeScreen
+            state={state}
+            onStart={setActiveScenario}
+            onNavigate={navigate}
+            onOpenMyAnswers={() => {
+              setPhraseTab('mine');
+              navigate('phrases');
+            }}
+          />
+        )}
         {screen === 'scenarios' && <ScenarioListScreen state={state} onStart={setActiveScenario} />}
-        {screen === 'phrases' && <PhrasebookScreen state={state} />}
+        {screen === 'phrases' && <PhrasebookScreen state={state} tab={phraseTab} onTabChange={setPhraseTab} />}
         {screen === 'review' && <ReviewScreen key={reviewOpenedAt} state={state} now={reviewOpenedAt} />}
         {screen === 'progress' && (
           <ProgressScreen

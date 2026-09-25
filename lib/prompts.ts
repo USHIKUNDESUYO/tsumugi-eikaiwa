@@ -1,6 +1,13 @@
 import { ChatMode, LanguageLevel, BusinessScenario, DifficultyLevel, FestivalScenarioId } from '@/types';
 import { getBusinessScenarioPrompt } from './businessScenarios';
 import { getFestivalScenarioPrompt, festivalScenarios } from './festivalScenarios';
+import { nameForEnglish } from './learnerName';
+
+const LEVEL_GUIDANCE: Record<LanguageLevel, string> = {
+  elementary: 'The user is at A2 level (elementary daily conversation). Use simple vocabulary and grammar. Focus on basic daily topics. Encourage with simple phrases.',
+  intermediate: 'The user is at B1-B2 level (intermediate). Use everyday vocabulary with some variety. Introduce idioms gradually.',
+  business: 'The user is at business level. Use professional vocabulary, business idioms, and formal expressions appropriate for meetings, emails, and presentations.',
+};
 
 export function getSystemPrompt(
   mode: ChatMode,
@@ -36,12 +43,6 @@ When you notice a mistake that should be corrected, include a correction card us
 
 Only correct when truly helpful — don't overwhelm. Focus on mistakes that matter for clear communication or present good learning moments. Always frame corrections with kindness and encouragement.`;
 
-  const levelGuidance = {
-    elementary: 'The user is at A2 level (elementary daily conversation). Use simple vocabulary and grammar. Focus on basic daily topics. Encourage with simple phrases.',
-    intermediate: 'The user is at B1-B2 level (intermediate). Use everyday vocabulary with some variety. Introduce idioms gradually.',
-    business: 'The user is at business level. Use professional vocabulary, business idioms, and formal expressions appropriate for meetings, emails, and presentations.',
-  };
-
   const modeGuidance: Record<ChatMode, string> = {
     'free-chat': 'Have a natural, friendly conversation about any topic the user brings up. Let the conversation flow naturally.',
     'daily-life': 'Practice everyday situations: shopping, cooking, hobbies, family, weather, daily routines. Keep it light and practical.',
@@ -70,7 +71,7 @@ Only correct when truly helpful — don't overwhelm. Focus on mistakes that matt
   if (mode === 'festival' && festivalScenario && festivalScenarios[festivalScenario]) {
     return `${getFestivalScenarioPrompt(festivalScenario, learnerName)}
 
-Level of the learner: ${levelGuidance[level]}
+Level of the learner: ${LEVEL_GUIDANCE[level]}
 
 ${TRANSLATION_FORMAT}
 
@@ -81,9 +82,30 @@ ${CORRECTION_FORMAT}`;
 
 ${getWarmthGuidance(bondLevel)}
 
-Level: ${levelGuidance[level]}
+Level: ${LEVEL_GUIDANCE[level]}
 
 Mode: ${specificGuidance}`;
+}
+
+/**
+ * 自分の答えノート: フェスでよく聞かれる質問への答えを、学習者が書いた下書き
+ * （日本語でも英語でも）から、口に出して言える英語にする。
+ */
+export function getCoachPrompt(
+  question: { en: string; ja: string },
+  level: LanguageLevel,
+  learnerName?: string
+): string {
+  const name = nameForEnglish(learnerName);
+  return `You are Tsumugi, a warm English coach. A Japanese learner is preparing for small talk at SYNAPSE FESTIVAL 2026, an international music and community festival in Fukuoka.
+People there will often ask them: "${question.en}" (${question.ja})
+The learner's message is what they want to answer, written in Japanese, English, or a mix. Turn it into what they can actually say out loud.
+- 1 or 2 short, natural spoken sentences. Friendly festival small talk, not formal.
+- Keep their facts and meaning. Do not add facts, names, places, numbers or opinions they did not give.
+- ${LEVEL_GUIDANCE[level]} Prefer words that are easy to pronounce and remember.
+- If their English is already natural, keep it and only fix real mistakes.${name ? `\n- Their name is ${name}.` : ''}
+Reply with JSON only, no other text:
+{"en": "what they can say", "ja": "その英語の自然な日本語訳", "tip": "覚えるときのコツや、キーになる表現の説明を日本語で1文。無ければ空文字"}`;
 }
 
 /** 親密度が上がるほど、紬の距離が近くなる */

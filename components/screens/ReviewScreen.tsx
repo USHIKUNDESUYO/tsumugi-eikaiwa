@@ -24,6 +24,10 @@ interface CardView {
   isNew?: boolean;
   promptLabel: string;
   prompt: string;
+  /** 問題の下に小さく添える訳 */
+  promptSub?: string;
+  /** 問題を紬の声で聞けるか（自分の答えノートの質問） */
+  promptSpeakable?: boolean;
   /** 問題を取り消し線で出すか（自分の間違い） */
   strike: boolean;
   question: string;
@@ -47,6 +51,20 @@ function viewOf(item: ReviewItem, displayName: string): CardView {
       answer: item.record.better,
       note: item.record.why,
       mastery: masteryRatio(item.record),
+    };
+  }
+  if (item.kind === 'answer') {
+    return {
+      context: '📝 自分の答え',
+      promptLabel: 'よく聞かれる質問',
+      prompt: item.question.en,
+      promptSub: item.question.ja,
+      promptSpeakable: true,
+      strike: false,
+      question: 'あなたの答えは？',
+      answer: item.answer.en,
+      note: item.answer.tip || undefined,
+      mastery: Math.min(1, item.progress.box / MAX_BOX),
     };
   }
   const scenario = festivalScenarios[item.scenarioId];
@@ -200,7 +218,26 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
             style={{ color: view.strike ? 'var(--text-soft)' : 'var(--text)' }}
           >
             {view.prompt}
+            {view.promptSpeakable && (
+              <button
+                type="button"
+                onClick={() => {
+                  stopAllSpeech();
+                  speakText(view.prompt);
+                }}
+                aria-label="質問を聞く"
+                className="tsu-btn ml-1.5 inline-grid h-8 w-8 place-items-center align-middle text-[14px]"
+                style={{ background: 'var(--tsu-pink-100)' }}
+              >
+                🔊
+              </button>
+            )}
           </p>
+          {view.promptSub && (
+            <p className="mt-0.5 text-[12.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+              {view.promptSub}
+            </p>
+          )}
 
           <div className="my-3.5 flex items-center gap-2">
             <span className="h-px flex-1" style={{ background: 'var(--border)' }} />

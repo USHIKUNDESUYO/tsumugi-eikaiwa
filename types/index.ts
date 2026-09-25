@@ -96,7 +96,7 @@ export interface MistakeRecord {
 
 /**
  * フレーズなどの暗記カードの進み具合（会話で直された間違いの記録とは別に持つ）。
- * キーは「phrase:<英文>」。
+ * キーは「phrase:<英文>」「answer:<質問の id>」。
  */
 export interface CardProgress {
   /** SRS: 現在の間隔インデックス */
@@ -110,6 +110,19 @@ export interface CardProgress {
   wrong: number;
   /** 「このカードはもういらない」 */
   retired?: boolean;
+}
+
+/** フェスで必ず聞かれる質問への、自分の答え（lib/answerQuestions.ts の id ごと） */
+export interface MyAnswer {
+  /** 本人が書いた下書き（日本語でも英語でも） */
+  draft: string;
+  /** 紬と一緒に作った英語 */
+  en: string;
+  /** その英語の日本語訳 */
+  ja: string;
+  /** 覚えるときのひとこと */
+  tip?: string;
+  updatedAt: number;
 }
 
 export interface UserProfile {
@@ -202,6 +215,8 @@ export interface AppState {
   masteredPhrases: string[];
   /** 暗記カードの進み具合 */
   cards: Record<string, CardProgress>;
+  /** 自分の答えノート */
+  myAnswers: Record<string, MyAnswer>;
   /** スキーマバージョン（マイグレーション用） */
   version: number;
 }
