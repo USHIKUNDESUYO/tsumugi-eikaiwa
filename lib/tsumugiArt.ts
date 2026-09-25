@@ -86,6 +86,11 @@ const ALL_EXPRESSIONS: Expression[] = [
   'hide',
 ];
 
+/** その衣装で使う絵（表情ぜんぶ・まばたき・口パク） */
+export function artSrcs(outfit: Outfit): string[] {
+  return [...ALL_EXPRESSIONS.map((e) => artSrc(e, outfit)), blinkSrc(outfit), talkSrc(outfit)];
+}
+
 /**
  * 表情を切り替えた瞬間に読み込みが走ると一瞬消えるので、
  * いま着ている衣装のぶんだけ先にブラウザキャッシュへ入れておく。
@@ -93,12 +98,7 @@ const ALL_EXPRESSIONS: Expression[] = [
  */
 export function preloadArt(outfit: Outfit): void {
   if (typeof window === 'undefined') return;
-  const srcs = [
-    ...ALL_EXPRESSIONS.map((e) => artSrc(e, outfit)),
-    blinkSrc(outfit),
-    talkSrc(outfit),
-  ];
-  for (const src of srcs) {
+  for (const src of artSrcs(outfit)) {
     const img = new Image();
     img.decoding = 'async';
     img.src = src;

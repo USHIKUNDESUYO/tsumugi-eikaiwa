@@ -5,6 +5,7 @@ import type { FestivalScenarioId, Outfit } from '@/types';
 import { touchStreak, setOutfit } from '@/lib/storage';
 import { useAppState, useHydrated } from '@/lib/useAppState';
 import { preloadArt } from '@/lib/tsumugiArt';
+import { prepareOffline } from '@/lib/offline';
 import { unlockVoice, speakJa, stopVoice } from '@/lib/tsumugiSpeech';
 import { unlockSfx, setSfxEnabled, playSfx } from '@/lib/sfx';
 import { setHapticsEnabled, hapticCelebrate, haptic } from '@/lib/haptics';
@@ -56,6 +57,13 @@ export default function TsumugiApp() {
   // 着ている衣装のイラストを先に温めておく（着替えたら新しいぶんを読む）
   useEffect(() => {
     preloadArt(state.bond.currentOutfit);
+  }, [state.bond.currentOutfit]);
+
+  // 電波があるうちに、アプリ本体と紬の声を保存しておく（会場で電波が無くなっても使えるように）。
+  // 起動直後の読み込み（挨拶の声・絵）の邪魔をしないよう、少し待ってから
+  useEffect(() => {
+    const t = window.setTimeout(() => prepareOffline(state.bond.currentOutfit), 5000);
+    return () => window.clearTimeout(t);
   }, [state.bond.currentOutfit]);
 
   // 効果音と振動は React の外で鳴るので、設定を単純に流し込む
