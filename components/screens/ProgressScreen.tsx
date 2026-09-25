@@ -21,14 +21,10 @@ const SETTING_ROWS: Array<{ key: keyof Settings; label: string; hint: string }> 
 
 export default function ProgressScreen({
   state,
-  isPremium,
   onChangeOutfit,
-  onOpenPaywall,
 }: {
   state: AppState;
-  isPremium: boolean;
   onChangeOutfit: (o: Outfit) => void;
-  onOpenPaywall: () => void;
 }) {
   const [aiLive, setAiLive] = useState<boolean | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -125,37 +121,6 @@ export default function ProgressScreen({
             }}
           />
         </div>
-      </section>
-
-      {/* ----------------------------- プラン ----------------------------- */}
-      <section className="mt-3">
-        {isPremium ? (
-          <div className="tsu-card-solid flex items-center gap-3 px-4 py-3.5">
-            <span className="text-[20px]" aria-hidden>
-              💗
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] font-extrabold" style={{ color: 'var(--text)' }}>
-                13場面ぜんぶ解放ずみ
-              </p>
-              <p className="text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
-                ありがとう。最後まで一緒に練習できます。
-              </p>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onOpenPaywall}
-            className="tsu-btn w-full rounded-[22px] px-4 py-3.5 text-left text-white"
-            style={{ background: 'linear-gradient(120deg, var(--tsu-pink-400), var(--tsu-pink-600))' }}
-          >
-            <span className="block text-[13.5px] font-extrabold">🔒 ロック中のシナリオを解放する</span>
-            <span className="block text-[11.5px] font-semibold opacity-90">
-              無料は3場面。残り10場面とフレーズが開きます
-            </span>
-          </button>
-        )}
       </section>
 
       {/* --------------------------- クローゼット --------------------------- */}

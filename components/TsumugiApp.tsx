@@ -4,15 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FestivalScenarioId, Outfit } from '@/types';
 import { touchStreak, setOutfit } from '@/lib/storage';
 import { useAppState, useHydrated } from '@/lib/useAppState';
-import { initPurchases } from '@/lib/purchases';
 import { preloadArt } from '@/lib/tsumugiArt';
 import { unlockVoice, speakJa, stopVoice } from '@/lib/tsumugiSpeech';
 import { unlockSfx, setSfxEnabled, playSfx } from '@/lib/sfx';
 import { setHapticsEnabled, hapticCelebrate, haptic } from '@/lib/haptics';
 import { setBgmEnabled, playBgm } from '@/lib/bgm';
 import { sceneIsNight } from '@/lib/scenes';
-import { usePurchases } from '@/lib/usePurchases';
-import { isScenarioUnlocked } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { getLevelUpLine } from '@/lib/tsumugiVoice';
 import BottomNav, { type Screen } from '@/components/BottomNav';
@@ -26,7 +23,6 @@ import ChatScreen from '@/components/screens/ChatScreen';
 import PhrasebookScreen from '@/components/screens/PhrasebookScreen';
 import ReviewScreen from '@/components/screens/ReviewScreen';
 import ProgressScreen from '@/components/screens/ProgressScreen';
-import PaywallScreen from '@/components/screens/PaywallScreen';
 
 export interface LevelUpEvent {
   level: number;
@@ -36,19 +32,15 @@ export interface LevelUpEvent {
 export default function TsumugiApp() {
   const state = useAppState();
   const hydrated = useHydrated();
-  const purchases = usePurchases();
-  const isPremium = purchases.isPremium;
 
   const [screen, setScreen] = useState<Screen>('home');
   const [activeScenario, setActiveScenario] = useState<FestivalScenarioId | null>(null);
   const [levelUp, setLevelUp] = useState<LevelUpEvent | null>(null);
   /** 復習の出題は「画面を開いた時刻」で確定させる（開いている間に増減しない） */
   const [reviewOpenedAt, setReviewOpenedAt] = useState(0);
-  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     touchStreak();
-    void initPurchases();
     // ブラウザは最初のユーザー操作より前に音を鳴らせない。一度だけ解禁しておく。
     const unlock = () => {
       unlockVoice();
@@ -86,15 +78,6 @@ export default function TsumugiApp() {
     setScreen(next);
   }, []);
 
-  /** 未解放のシナリオを踏んだら、会話ではなくペイウォールを開く */
-  const startScenario = useCallback(
-    (id: FestivalScenarioId) => {
-      if (isScenarioUnlocked(id, isPremium)) setActiveScenario(id);
-      else setShowPaywall(true);
-    },
-    [isPremium]
-  );
-
   /* --------------------------- 初回ロード中 --------------------------- */
   if (!hydrated) {
     return (
@@ -112,11 +95,6 @@ export default function TsumugiApp() {
   /* ---------------------------- オンボーディング ---------------------------- */
   if (!state.profile.onboarded) {
     return <OnboardingScreen />;
-  }
-
-  /* ----------------------------- ペイウォール ----------------------------- */
-  if (showPaywall) {
-    return <PaywallScreen state={state} onClose={() => setShowPaywall(false)} />;
   }
 
   /* ------------------------------ 会話中 ------------------------------ */
@@ -140,36 +118,18 @@ export default function TsumugiApp() {
           state.settings.reduceMotion ? '' : 'anim-screen'
         }`}
       >
-        {screen === 'home' && (
-          <HomeScreen
-            state={state}
-            isPremium={isPremium}
-            onStart={startScenario}
-            onNavigate={navigate}
-            onOpenPaywall={() => setShowPaywall(true)}
-          />
-        )}
-        {screen === 'scenarios' && (
-          <ScenarioListScreen state={state} isPremium={isPremium} onStart={startScenario} />
-        )}
-        {screen === 'phrases' && (
-          <PhrasebookScreen
-            state={state}
-            isPremium={isPremium}
-            onOpenPaywall={() => setShowPaywall(true)}
-          />
-        )}
+        {screen === 'home' && <HomeScreen state={state} onStart={setActiveScenario} onNavigate={navigate} />}
+        {screen === 'scenarios' && <ScenarioListScreen state={state} onStart={setActiveScenario} />}
+        {screen === 'phrases' && <PhrasebookScreen state={state} />}
         {screen === 'review' && <ReviewScreen key={reviewOpenedAt} state={state} now={reviewOpenedAt} />}
         {screen === 'progress' && (
           <ProgressScreen
             state={state}
-            isPremium={isPremium}
             onChangeOutfit={(o) => {
               playSfx('unlock');
               haptic('light');
               setOutfit(o);
             }}
-            onOpenPaywall={() => setShowPaywall(true)}
           />
         )}
       </main>
