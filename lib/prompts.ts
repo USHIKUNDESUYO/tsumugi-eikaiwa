@@ -1,7 +1,7 @@
 import { ChatMode, LanguageLevel, BusinessScenario, DifficultyLevel, FestivalScenarioId } from '@/types';
 import { getBusinessScenarioPrompt } from './businessScenarios';
 import { getFestivalScenarioPrompt, festivalScenarios } from './festivalScenarios';
-import { nameForEnglish } from './learnerName';
+import { NAME_TOKEN, nameForEnglish } from './learnerName';
 
 const LEVEL_GUIDANCE: Record<LanguageLevel, string> = {
   elementary: 'The user is at A2 level (elementary daily conversation). Use simple vocabulary and grammar. Focus on basic daily topics. Encourage with simple phrases.',
@@ -150,12 +150,20 @@ Reply in character first. Then, only if the learner's last message has a real mi
  * 会話の添削では、役の上で答えを知らない相手（サウナ初心者・よそから来たお店の人）だと、
  * 答えの代わりに質問の英訳を入れてしまう（プレビューで測ると説明の質問 36回中 12回）。そのときだけ使う。
  */
-export function getHelpAnswerPrompt(level: LanguageLevel): string {
+export function getHelpAnswerPrompt(level: LanguageLevel, festivalScenario?: FestivalScenarioId): string {
+  // その場面のフレーズ帳に答えがあれば、そのまま使ってもらう（覚える言い方が1つにそろう。
+  // 渡さないと「ととのう」を Totono と書いたりした）
+  const phrases = festivalScenario
+    ? festivalScenarios[festivalScenario].phrases.filter((p) => !p.en.includes(NAME_TOKEN)).map((p) => `- ${p.en}`)
+    : [];
+  const phrasebook = phrases.length
+    ? `\n- The learner's phrasebook for this scene has these lines. If one of them says it, use it as it is:\n${phrases.join('\n')}`
+    : '';
   return `A Japanese learner is practicing small talk for SYNAPSE FESTIVAL 2026, an international music and community festival in Fukuoka. They asked, in Japanese, how to say or explain something in English.
 Give only the English they can say out loud to the other person: 1 or 2 short, natural spoken sentences.
-- If they want to explain a Japanese word or thing, explain it simply and keep the Japanese word ("Mentaiko is spicy pollock roe. It's a Fukuoka specialty.").
+- If they want to explain a Japanese word or thing, explain it simply and keep the Japanese word in standard romaji ("Mentaiko is spicy pollock roe. It's a Fukuoka specialty.").
 - If they want to ask for something, give the question they can ask.
-- ${LEVEL_GUIDANCE[level]}
+- ${LEVEL_GUIDANCE[level]}${phrasebook}
 Reply with JSON only: {"en": "what they can say"}`;
 }
 

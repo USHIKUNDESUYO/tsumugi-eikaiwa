@@ -87,7 +87,7 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
       coach ? 0.4 : 0.9,
       400
     );
-    return { text: coach ? text : await fixHelpCard(text, level), live: true };
+    return { text: coach ? text : await fixHelpCard(text, level, festivalScenario), live: true };
   } catch (error) {
     console.error('AI API error:', error);
     const reason = error instanceof Error ? error.message : String(error);
@@ -150,12 +150,13 @@ const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
  * 役の上で答えを知らない相手（サウナ初心者など）だと、プロンプトで頼んでも3回に1回はこうなった。
  * 相手のセリフと訳はそのまま。作り直せなければ元の返事を返す。
  */
-async function fixHelpCard(text: string, level: LanguageLevel): Promise<string> {
+async function fixHelpCard(text: string, level: LanguageLevel, festivalScenario?: FestivalScenarioId): Promise<string> {
   const match = text.match(CORRECTION_RE);
   const card = match ? parseCorrectionBlock(match[1]) : null;
   if (!match || !card || !hasJapanese(card.said) || !isQuestionAboutEnglish(card.better)) return text;
   try {
-    const raw = await complete(getHelpAnswerPrompt(level), [{ role: 'user', content: card.said }], 0.3, 150, 10_000);
+    const prompt = getHelpAnswerPrompt(level, festivalScenario);
+    const raw = await complete(prompt, [{ role: 'user', content: card.said }], 0.3, 150, 10_000);
     const en = String(JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}').en ?? '').trim();
     if (!en || hasJapanese(en) || isQuestionAboutEnglish(en)) return text;
     const block = `<correction>\n${JSON.stringify({ ...card, better: en }, null, 2)}\n</correction>`;
