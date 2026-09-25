@@ -194,6 +194,8 @@ export interface Settings {
   bgm: boolean;
   reduceMotion: boolean;
   sfxEnabled: boolean;
+  /** 会話で相手の英文を隠して、まず耳で聞く */
+  listeningMode: boolean;
 }
 
 export interface AppState {

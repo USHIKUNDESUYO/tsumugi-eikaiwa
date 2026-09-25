@@ -13,6 +13,8 @@ export interface TTSOptions {
   onStart?: () => void;
   onEnd?: () => void;
   onError?: (error: unknown) => void;
+  /** 速さ（1 が普通）。聞き取りの練習でゆっくり聞くときに下げる */
+  rate?: number;
 }
 
 type VoiceSelectionResult = {
@@ -337,6 +339,8 @@ export async function speakWithCloudTTS(
     const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
+    audio.defaultPlaybackRate = options.rate ?? 1;
+    audio.playbackRate = options.rate ?? 1;
 
     audio.onplay = () => {
       options.onStart?.();
@@ -381,6 +385,7 @@ export function speakWithDeviceTTS(
   }
 
   const utterance = createTsumugiUtterance(text);
+  if (options.rate) utterance.rate *= options.rate;
 
   utterance.onstart = () => {
     options.onStart?.();
@@ -466,6 +471,7 @@ export function speakText(
       onStart: options.onStart,
       onEnd: options.onEnd,
       onError: () => speakLive(text, options),
+      rate: options.rate,
     });
     return;
   }

@@ -12,6 +12,7 @@ import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 const SETTING_ROWS: Array<{ key: keyof Settings; label: string; hint: string }> = [
   { key: 'jaVoice', label: '紬の声（日本語）', hint: '紬のひとことを声で再生します' },
   { key: 'autoSpeak', label: '英語を自動で読み上げ', hint: '返事が来たら自動で読み上げます' },
+  { key: 'listeningMode', label: '聞き取りモード', hint: '会話で相手の英文を隠して、まず耳で聞きます' },
   { key: 'bgm', label: 'BGM', hint: '小さな音で流れます。声が鳴る間は自動で下がります' },
   { key: 'soundEffects', label: '効果音', hint: 'タップや正解のときに音が鳴ります' },
   { key: 'haptics', label: '振動', hint: '節目でそっと震えます' },

@@ -61,6 +61,7 @@ export function getDefaultSettings(): Settings {
     bgm: true,
     reduceMotion: false,
     sfxEnabled: true,
+    listeningMode: false,
   };
 }
 

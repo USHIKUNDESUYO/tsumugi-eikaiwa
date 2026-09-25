@@ -12,6 +12,7 @@ import {
   addMistake,
   markMistakePracticed,
   addBondPoints,
+  updateSettings,
   addSessionStats,
   markScenarioCleared,
   type BondGain,
@@ -102,6 +103,9 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
   ]);
   /** 「訳」を開いている返事 */
   const [shownJa, setShownJa] = useState<ReadonlySet<string>>(() => new Set());
+  /** 聞き取りモードで「英文を見る」を押した返事 */
+  const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => new Set());
+  const listening = state.settings.listeningMode;
   /** 添削された文を、その場で言い直せた返事 */
   const [practiced, setPracticed] = useState<ReadonlySet<string>>(() => new Set());
   const [input, setInput] = useState('');
@@ -143,12 +147,14 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, thinking]);
 
+  /** rate: 1 が普通。🐢 で聞き直すときは 0.7 */
   const speak = useCallback(
-    (text: string) => {
+    (text: string, rate?: number) => {
       if (!text) return;
       stopAllSpeech();
       setSpeaking(true);
       speakText(text, {
+        rate,
         onEnd: () => setSpeaking(false),
         onError: () => setSpeaking(false),
       });
@@ -242,7 +248,8 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
         const gain = addBondPoints(correction ? 2 : 3);
         if (gain.leveledUp) onLevelUp({ level: gain.newLevel, unlocked: gain.unlocked });
 
-        if (state.settings.autoSpeak && reply) speak(reply);
+        // 聞き取りモードは耳で聞くのが目的なので、自動読み上げを切っていても鳴らす
+        if ((state.settings.autoSpeak || state.settings.listeningMode) && reply) speak(reply);
       } catch (error) {
         console.error(error);
         setMessages((prev) => [
@@ -324,6 +331,20 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
               相手：{scenario.partner.name}（{scenario.partner.from}）
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('tap');
+              updateSettings({ listeningMode: !listening });
+            }}
+            aria-label="聞き取りモード"
+            aria-pressed={listening}
+            className="tsu-btn grid h-10 w-10 shrink-0 place-items-center text-[17px]"
+            style={{ background: listening ? 'var(--tsu-pink-500)' : 'var(--tsu-pink-100)' }}
+          >
+            🎧
+          </button>
 
           <button
             type="button"
@@ -414,6 +435,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           <span className="mt-1 block text-[11px] font-bold" style={{ color: 'var(--tsu-pink-600)' }}>
             英語が出てこない時は、日本語で聞いてもいいよ
           </span>
+          {listening && (
+            <span className="mt-1 block text-[11px] font-bold" style={{ color: 'var(--tsu-lav-400)' }}>
+              🎧 聞き取りモード：英文は隠してあるよ。まず耳で聞いてね
+            </span>
+          )}
         </p>
 
         <ul className="flex flex-col gap-2.5 pb-3">
@@ -425,7 +451,23 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
                     className="tsu-card-solid px-4 py-3 text-[15px] font-medium leading-relaxed"
                     style={{ borderTopLeftRadius: 8, color: 'var(--text)' }}
                   >
-                    {m.content}
+                    {listening && !revealed.has(m.id) ? (
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-[14px] font-bold" style={{ color: 'var(--text-faint)' }}>
+                          🎧 まずは耳で聞いてみて
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setRevealed((prev) => new Set(prev).add(m.id))}
+                          className="tsu-btn shrink-0 px-2.5 py-1 text-[11px] font-extrabold"
+                          style={{ background: 'var(--tsu-pink-500)', color: '#fff' }}
+                        >
+                          英文を見る
+                        </button>
+                      </span>
+                    ) : (
+                      m.content
+                    )}
                     {m.translation && shownJa.has(m.id) && (
                       <span
                         className="anim-up mt-2 block border-t pt-2 text-[13px] font-semibold leading-relaxed"
@@ -435,7 +477,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
                       </span>
                     )}
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex flex-wrap gap-1.5">
                     <button
                       type="button"
                       onClick={() => speak(m.content)}
@@ -444,6 +486,16 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
                     >
                       🔊 きく
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => speak(m.content, 0.7)}
+                      aria-label="ゆっくり聞く"
+                      className="tsu-btn px-2.5 py-1 text-[11px] font-extrabold"
+                      style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
+                    >
+                      🐢 ゆっくり
+                    </button>
+
                     {m.translation && (
                       <button
                         type="button"
