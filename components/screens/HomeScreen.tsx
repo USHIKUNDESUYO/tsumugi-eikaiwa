@@ -10,7 +10,8 @@ import {
   getEssentialPhrases,
 } from '@/lib/festivalScenarios';
 import { getGreeting } from '@/lib/tsumugiVoice';
-import { getDueCards } from '@/lib/srs';
+import { buildReviewQueue } from '@/lib/review';
+import { ANSWER_QUESTIONS } from '@/lib/answerQuestions';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 import { fillName } from '@/lib/learnerName';
 import { speakJa } from '@/lib/tsumugiSpeech';
@@ -26,9 +27,11 @@ interface Props {
   state: AppState;
   onStart: (id: FestivalScenarioId) => void;
   onNavigate: (s: Screen) => void;
+  /** フレーズ帳の「自分の答え」を開く */
+  onOpenMyAnswers: () => void;
 }
 
-export default function HomeScreen({ state, onStart, onNavigate }: Props) {
+export default function HomeScreen({ state, onStart, onNavigate, onOpenMyAnswers }: Props) {
   // 挨拶はマウント時に一度だけ決める（毎レンダリングで変わると落ち着かない）
   const [greeting] = useState(() => getGreeting(state.bond.level));
   const [countdown, setCountdown] = useState(() => getCountdown());
@@ -51,7 +54,8 @@ export default function HomeScreen({ state, onStart, onNavigate }: Props) {
     return () => clearTimeout(t);
   }, [greeting.expression, greeting.id, state.settings.jaVoice]);
 
-  const dueCount = getDueCards(state.mistakes).length;
+  const dueCount = buildReviewQueue(state).length;
+  const answersDone = ANSWER_QUESTIONS.filter((q) => state.myAnswers[q.id]?.en).length;
   const cleared = state.clearedScenarios.length;
   const total = festivalScenarioOrder.length;
 
@@ -245,6 +249,34 @@ export default function HomeScreen({ state, onStart, onNavigate }: Props) {
           <p className="mt-2 text-[11px] font-bold" style={{ color: dueCount ? 'var(--tsu-pink-600)' : 'var(--text-faint)' }}>
             {dueCount ? 'いまがちょうどいい時間' : 'ぜんぶ終わってるよ'}
           </p>
+        </button>
+      </section>
+
+      {/* ------------------------- 自分の答えノート ------------------------- */}
+      <section className="mt-4">
+        <button
+          type="button"
+          onClick={onOpenMyAnswers}
+          className="tsu-btn tsu-card-solid flex w-full items-center gap-3.5 px-4 py-3.5 text-left !rounded-[22px]"
+        >
+          <span
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-[24px]"
+            style={{ background: 'var(--tsu-lav-100)' }}
+            aria-hidden
+          >
+            📝
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-extrabold" style={{ color: 'var(--text)' }}>
+              自分の答えノート
+            </span>
+            <span className="mt-0.5 block text-[12px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+              フェスで必ず聞かれる10の質問・できた {answersDone} / {ANSWER_QUESTIONS.length}
+            </span>
+          </span>
+          <span className="shrink-0 text-[18px] font-extrabold" style={{ color: 'var(--text-faint)' }} aria-hidden>
+            ›
+          </span>
         </button>
       </section>
 

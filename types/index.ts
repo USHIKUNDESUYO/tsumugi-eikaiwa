@@ -64,6 +64,10 @@ export interface Message {
   correction?: CorrectionCard;
   /** このメッセージを喋ったときの紬の表情 */
   expression?: Expression;
+  /** 相手の返事の日本語訳（「訳」を押したときだけ見せる） */
+  translation?: string;
+  /** 添削を記録した間違いの id（言い直せたら復習の予定を動かす） */
+  mistakeId?: string;
 }
 
 export interface CorrectionCard {
@@ -88,6 +92,37 @@ export interface MistakeRecord {
   dueAt?: number;
   /** SRS: 現在の間隔インデックス */
   box?: number;
+}
+
+/**
+ * フレーズなどの暗記カードの進み具合（会話で直された間違いの記録とは別に持つ）。
+ * キーは「phrase:<英文>」「answer:<質問の id>」。
+ */
+export interface CardProgress {
+  /** SRS: 現在の間隔インデックス */
+  box: number;
+  /** SRS: 次に出題する時刻 (epoch ms) */
+  dueAt: number;
+  /** 初めて答えた時刻。1日に出す新しいカードの数を数える */
+  introducedAt: number;
+  lastReviewed?: number;
+  correct: number;
+  wrong: number;
+  /** 「このカードはもういらない」 */
+  retired?: boolean;
+}
+
+/** フェスで必ず聞かれる質問への、自分の答え（lib/answerQuestions.ts の id ごと） */
+export interface MyAnswer {
+  /** 本人が書いた下書き（日本語でも英語でも） */
+  draft: string;
+  /** 紬と一緒に作った英語 */
+  en: string;
+  /** その英語の日本語訳 */
+  ja: string;
+  /** 覚えるときのひとこと */
+  tip?: string;
+  updatedAt: number;
 }
 
 export interface UserProfile {
@@ -159,6 +194,8 @@ export interface Settings {
   bgm: boolean;
   reduceMotion: boolean;
   sfxEnabled: boolean;
+  /** 会話で相手の英文を隠して、まず耳で聞く */
+  listeningMode: boolean;
 }
 
 export interface AppState {
@@ -178,6 +215,10 @@ export interface AppState {
   clearedScenarios: FestivalScenarioId[];
   /** 暗記済み必修フレーズ (en をキーに) */
   masteredPhrases: string[];
+  /** 暗記カードの進み具合 */
+  cards: Record<string, CardProgress>;
+  /** 自分の答えノート */
+  myAnswers: Record<string, MyAnswer>;
   /** スキーマバージョン（マイグレーション用） */
   version: number;
 }

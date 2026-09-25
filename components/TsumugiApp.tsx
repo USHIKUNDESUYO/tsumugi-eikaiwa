@@ -10,7 +10,7 @@ import { unlockSfx, setSfxEnabled, playSfx } from '@/lib/sfx';
 import { setHapticsEnabled, hapticCelebrate, haptic } from '@/lib/haptics';
 import { setBgmEnabled, playBgm } from '@/lib/bgm';
 import { sceneIsNight } from '@/lib/scenes';
-import { getDueCards } from '@/lib/srs';
+import { buildReviewQueue } from '@/lib/review';
 import { getLevelUpLine } from '@/lib/tsumugiVoice';
 import BottomNav, { type Screen } from '@/components/BottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
@@ -20,7 +20,7 @@ import OnboardingScreen from '@/components/screens/OnboardingScreen';
 import HomeScreen from '@/components/screens/HomeScreen';
 import ScenarioListScreen from '@/components/screens/ScenarioListScreen';
 import ChatScreen from '@/components/screens/ChatScreen';
-import PhrasebookScreen from '@/components/screens/PhrasebookScreen';
+import PhrasebookScreen, { type PhraseTab } from '@/components/screens/PhrasebookScreen';
 import ReviewScreen from '@/components/screens/ReviewScreen';
 import ProgressScreen from '@/components/screens/ProgressScreen';
 
@@ -38,6 +38,7 @@ export default function TsumugiApp() {
   const [levelUp, setLevelUp] = useState<LevelUpEvent | null>(null);
   /** 復習の出題は「画面を開いた時刻」で確定させる（開いている間に増減しない） */
   const [reviewOpenedAt, setReviewOpenedAt] = useState(0);
+  const [phraseTab, setPhraseTab] = useState<PhraseTab>('scenes');
 
   useEffect(() => {
     touchStreak();
@@ -69,13 +70,17 @@ export default function TsumugiApp() {
     playBgm(activeScenario && sceneIsNight(activeScenario) ? 'night' : 'day');
   }, [activeScenario]);
 
-  const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
+  // 復習の出題数（会話で直された文＋フェスのフレーズ）。バッジの数と画面の中身を揃える
+  const dueCount = useMemo(() => buildReviewQueue(state).length, [state]);
 
   const navigate = useCallback((next: Screen) => {
     playSfx('tap');
     haptic('light');
     if (next === 'review') setReviewOpenedAt(Date.now());
     setScreen(next);
+    // 画面は差し替えてもページのスクロール位置は残るので、ホームの下のほうから開くと
+    // 次の画面が途中から始まっていた（見出しやタブが見えない）。画面を変えたら先頭へ。
+    window.scrollTo({ top: 0 });
   }, []);
 
   /* --------------------------- 初回ロード中 --------------------------- */
@@ -118,9 +123,19 @@ export default function TsumugiApp() {
           state.settings.reduceMotion ? '' : 'anim-screen'
         }`}
       >
-        {screen === 'home' && <HomeScreen state={state} onStart={setActiveScenario} onNavigate={navigate} />}
+        {screen === 'home' && (
+          <HomeScreen
+            state={state}
+            onStart={setActiveScenario}
+            onNavigate={navigate}
+            onOpenMyAnswers={() => {
+              setPhraseTab('mine');
+              navigate('phrases');
+            }}
+          />
+        )}
         {screen === 'scenarios' && <ScenarioListScreen state={state} onStart={setActiveScenario} />}
-        {screen === 'phrases' && <PhrasebookScreen state={state} />}
+        {screen === 'phrases' && <PhrasebookScreen state={state} tab={phraseTab} onTabChange={setPhraseTab} />}
         {screen === 'review' && <ReviewScreen key={reviewOpenedAt} state={state} now={reviewOpenedAt} />}
         {screen === 'progress' && (
           <ProgressScreen

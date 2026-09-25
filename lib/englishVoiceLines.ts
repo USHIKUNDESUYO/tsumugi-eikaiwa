@@ -148,4 +148,11 @@ export const ENGLISH_VOICE_LINES: Record<string, string> = {
   "Same time next year?": '57a3a2c9e942',
   "Take care, and safe travels.": 'e77a97095ade',
   "See you — for real this time.": '49cade70cd7f',
+  "What's your name?": 'c88dda5d6ced',
+  "What do you do?": 'ace1084b5526',
+  "What are you working on these days?": '2050c6dcb173',
+  "What brought you here?": '91ee40e4727c',
+  "What do you do for fun?": '2a6f985608ce',
+  "Any recommendations in Fukuoka?": 'be7603fc2be8',
+  "How long are you staying?": '4be55ffc94c5',
 };

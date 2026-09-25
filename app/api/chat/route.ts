@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSystemPrompt } from '@/lib/prompts';
-import { festivalScenarios } from '@/lib/festivalScenarios';
+import { getCoachPrompt, getSystemPrompt } from '@/lib/prompts';
 import { corsHeaders, preflight } from '@/app/api/cors';
-import { fillName } from '@/lib/learnerName';
 import type {
   ChatMode,
   LanguageLevel,
@@ -22,6 +20,8 @@ interface ChatRequest {
   successfulTurns?: number;
   bondLevel?: number;
   userName?: string;
+  /** 自分の答えノート: この質問への答えを英語にする（messages の最後が下書き） */
+  coach?: { en: string; ja: string };
 }
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -57,6 +57,7 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
     successfulTurns,
     bondLevel,
     userName,
+    coach,
   } = body;
 
   if (!OPENAI_API_KEY) {
@@ -64,16 +65,18 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
   }
 
   try {
-    const systemPrompt = getSystemPrompt(
-      mode,
-      level,
-      businessScenario,
-      businessDifficulty,
-      successfulTurns,
-      festivalScenario,
-      bondLevel,
-      userName
-    );
+    const systemPrompt = coach
+      ? getCoachPrompt({ en: String(coach.en).slice(0, 200), ja: String(coach.ja).slice(0, 200) }, level, userName)
+      : getSystemPrompt(
+          mode,
+          level,
+          businessScenario,
+          businessDifficulty,
+          successfulTurns,
+          festivalScenario,
+          bondLevel,
+          userName
+        );
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30_000);
@@ -91,7 +94,8 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
           { role: 'system', content: systemPrompt },
           ...messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
         ],
-        temperature: 0.9,
+        // 答えの書き直しは、本人の言いたいことから外れないよう揺らぎを抑える
+        temperature: coach ? 0.4 : 0.9,
         max_tokens: 400,
         // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
         // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
@@ -183,25 +187,16 @@ const FESTIVAL_FALLBACKS: Record<FestivalScenarioId, string[]> = {
 
 function getMockResponse(body: ChatRequest): string {
   const { mode, festivalScenario, messages } = body;
+  // 答えの書き直しは AI が無いと作れない。空の答えを返して、画面に「今は作れない」と出させる
+  if (body.coach) return JSON.stringify({ en: '', ja: '', tip: '' });
   const last = messages[messages.length - 1]?.content ?? '';
   const turn = messages.filter((m) => m.role === 'user').length;
 
   if (mode === 'festival' && festivalScenario && FESTIVAL_FALLBACKS[festivalScenario]) {
     const pool = FESTIVAL_FALLBACKS[festivalScenario];
-    const base = pool[Math.min(turn - 1, pool.length - 1)] ?? pool[pool.length - 1];
-    const scenario = festivalScenarios[festivalScenario];
-    const hint = scenario.phrases.find((p) => p.star);
-
-    // ごく簡単な検出だけして、学びのある返しにする
-    if (/^i am |^i'm a /i.test(last.trim()) && /\bstudent|developer|designer\b/i.test(last)) {
-      return base;
-    }
-    if (turn <= 1 && hint) {
-      const better = fillName(hint.en, body.userName, 'en');
-      const why = fillName(hint.ja, body.userName, 'ja');
-      return `${base}\n\n<correction>\n{\n  "said": "${escapeJson(last.slice(0, 80))}",\n  "better": "${escapeJson(better)}",\n  "why": "${escapeJson(why)} — この場面ではこの言い方がいちばん自然です。",\n  "severity": "minor"\n}\n</correction>`;
-    }
-    return base;
+    // AI に繋がらないときは会話をつなぐだけにする。以前は1ターン目に、言った内容と
+    // 関係なく必修フレーズを「添削」として付けていて、正しい文まで復習に残っていた。
+    return pool[Math.min(turn - 1, pool.length - 1)] ?? pool[pool.length - 1];
   }
 
   const lower = last.toLowerCase();
@@ -215,10 +210,6 @@ function getMockResponse(body: ChatRequest): string {
     return "That's a fair point. What timeline do you have in mind for it?";
   }
   return "That's interesting — tell me a bit more about that.";
-}
-
-function escapeJson(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ');
 }
 
 export async function POST(request: NextRequest) {

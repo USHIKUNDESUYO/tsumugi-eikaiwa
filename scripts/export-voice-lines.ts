@@ -8,7 +8,7 @@
  *   lib/englishVoiceLines.ts  … アプリが「この英文は同梱の音声で鳴らせるか」を引く表
  *
  * 日本語は lib/tsumugiVoice.ts の固定セリフ（public/voice/<id>.mp3）。
- * 英語はシナリオの最初のひとこととフレーズ（public/voice-en/<hash>.mp3）。
+ * 英語はシナリオの最初のひとこととフレーズ、自分の答えノートの質問（public/voice-en/<hash>.mp3）。
  * 英文のファイル名は本文のハッシュにする。文言を直せば別ファイルになるので、
  * 古い音声が新しい文言で鳴ることはない。
  *
@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { VOICE_CATALOG } from '../lib/tsumugiVoice';
 import { festivalScenarios, festivalScenarioOrder } from '../lib/festivalScenarios';
 import { NAME_TOKEN } from '../lib/learnerName';
+import { ANSWER_QUESTIONS } from '../lib/answerQuestions';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const hashOf = (text: string) => createHash('sha1').update(text).digest('hex').slice(0, 12);
@@ -47,6 +48,7 @@ for (const id of festivalScenarioOrder) {
     english.set(text, hashOf(text));
   }
 }
+for (const q of ANSWER_QUESTIONS) english.set(q.en, hashOf(q.en));
 for (const [text, hash] of english) {
   lines.push({ id: hash, lang: 'en', text, out: `public/voice-en/${hash}.mp3` });
 }

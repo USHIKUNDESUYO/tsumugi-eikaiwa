@@ -3,12 +3,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message } from '@/types';
 import { festivalScenarios } from '@/lib/festivalScenarios';
+import { ANSWER_QUESTIONS } from '@/lib/answerQuestions';
 import { askTsumugi } from '@/lib/chatTransport';
 import { fillName } from '@/lib/learnerName';
+import { alternatives, hasJapanese, sameWords } from '@/lib/speechMatch';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
+  markMistakePracticed,
   addBondPoints,
+  updateSettings,
   addSessionStats,
   markScenarioCleared,
   type BondGain,
@@ -20,6 +24,7 @@ import { playSfx } from '@/lib/sfx';
 import { haptic } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import MicButton from '@/components/tsumugi/MicButton';
+import SayItPractice from '@/components/tsumugi/SayItPractice';
 import type { LevelUpEvent } from '@/components/TsumugiApp';
 
 /** 何ターン話したらクリア扱いにするか */
@@ -35,29 +40,51 @@ interface Props {
 /* ------------------------- レスポンスの解析 ------------------------- */
 
 const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
+const TRANSLATION_RE = /<ja>\s*([\s\S]*?)\s*<\/ja>/i;
 
-function parseReply(raw: string): { text: string; correction?: CorrectionCard } {
-  const match = raw.match(CORRECTION_RE);
-  const text = raw.replace(CORRECTION_RE, '').trim();
-  if (!match) return { text };
+/**
+ * 読み上げる本文を整える。「*(speaks slower)*」のようなト書きが混ざることがあり、
+ * そのまま読み上げると台無しになる。強調の * は記号だけ落とす。
+ */
+function cleanSpoken(text: string): string {
+  return text
+    .replace(/\*\([^)]*\)\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
+ * 直していない「添削」を捨てる。正しい文にも「完璧です！」と同じ文を返してくることがあり
+ * （測ったら正しい文6回中3回）、そのまま出すと正しい文が取り消し線つきで復習に残る。
+ */
+function isRealCorrection(c: CorrectionCard): boolean {
+  return !alternatives(c.better).some((alt) => sameWords(c.said, alt));
+}
+
+function parseReply(raw: string): { text: string; translation?: string; correction?: CorrectionCard } {
+  const translation = raw.match(TRANSLATION_RE)?.[1]?.trim() || undefined;
+  const body = raw.replace(TRANSLATION_RE, '').replace(/<\/?ja>/gi, '');
+  const match = body.match(CORRECTION_RE);
+  const text = cleanSpoken(body.replace(CORRECTION_RE, ''));
+  if (!match) return { text, translation };
 
   try {
     const parsed = JSON.parse(match[1]) as Partial<CorrectionCard>;
     if (parsed.said && parsed.better && parsed.why) {
-      return {
-        text,
-        correction: {
-          said: parsed.said,
-          better: parsed.better,
-          why: parsed.why,
-          severity: parsed.severity ?? 'minor',
-        },
+      const correction: CorrectionCard = {
+        said: parsed.said,
+        better: parsed.better,
+        why: parsed.why,
+        severity: parsed.severity ?? 'minor',
       };
+      return isRealCorrection(correction) ? { text, translation, correction } : { text, translation };
     }
   } catch {
     /* 壊れたJSONは黙って捨てる。会話が止まる方が損。 */
   }
-  return { text };
+  return { text, translation };
 }
 
 export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Props) {
@@ -69,10 +96,18 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
       id: 'opener',
       role: 'assistant',
       content: scenario.opener,
+      translation: scenario.openerJa,
       timestamp: startedAt,
       expression: 'smile',
     },
   ]);
+  /** 「訳」を開いている返事 */
+  const [shownJa, setShownJa] = useState<ReadonlySet<string>>(() => new Set());
+  /** 聞き取りモードで「英文を見る」を押した返事 */
+  const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => new Set());
+  const listening = state.settings.listeningMode;
+  /** 添削された文を、その場で言い直せた返事 */
+  const [practiced, setPracticed] = useState<ReadonlySet<string>>(() => new Set());
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -88,6 +123,17 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
     () => getScenarioIntro(scenario.title, state.bond.level),
     [scenario.title, state.bond.level]
   );
+  /** 自分の答えノートの答え（💡から入力欄に入れられる）。この場面で聞かれやすい質問を先に */
+  const myAnswers = useMemo(() => {
+    const saved = ANSWER_QUESTIONS.flatMap((question) => {
+      const answer = state.myAnswers[question.id];
+      return answer?.en ? [{ question, answer }] : [];
+    });
+    return [
+      ...saved.filter((a) => a.question.scenes.includes(scenarioId)),
+      ...saved.filter((a) => !a.question.scenes.includes(scenarioId)),
+    ];
+  }, [state.myAnswers, scenarioId]);
   const userTurns = messages.filter((m) => m.role === 'user').length;
   const remainingToClear = Math.max(0, TURNS_TO_CLEAR - userTurns);
 
@@ -101,17 +147,40 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, thinking]);
 
+  /** rate: 1 が普通。🐢 で聞き直すときは 0.7 */
   const speak = useCallback(
-    (text: string) => {
+    (text: string, rate?: number) => {
       if (!text) return;
       stopAllSpeech();
       setSpeaking(true);
       speakText(text, {
+        rate,
         onEnd: () => setSpeaking(false),
         onError: () => setSpeaking(false),
       });
     },
     []
+  );
+
+  /** 直された文を言い直せたら、紬がほめる。復習の予定も少し先に動かす */
+  const praiseRetry = useCallback(
+    (m: Message) => {
+      setPracticed((prev) => new Set(prev).add(m.id));
+      if (m.mistakeId) markMistakePracticed(m.mistakeId);
+      playSfx('correct');
+      haptic('medium');
+      setExpression('cheer');
+      const gain = addBondPoints(1);
+      if (gain.leveledUp) onLevelUp({ level: gain.newLevel, unlocked: gain.unlocked });
+      if (state.settings.jaVoice) {
+        stopAllSpeech();
+        speakJa(getPraise(state.bond.level).id, {
+          onStart: () => setSpeaking(true),
+          onEnd: () => setSpeaking(false),
+        });
+      }
+    },
+    [onLevelUp, state.settings.jaVoice, state.bond.level]
   );
 
   const send = useCallback(
@@ -139,7 +208,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
 
       try {
         const answer = await askTsumugi({
-          messages: next.map(({ role, content }) => ({ role, content })),
+          // 訳はお手本として履歴に残す。消して送ると、数往復で <ja> を付けなくなった（4往復で 1/4）
+          messages: next.map(({ role, content, translation }) => ({
+            role,
+            content: role === 'assistant' && translation ? `${content}\n<ja>${translation}</ja>` : content,
+          })),
           mode: 'festival',
           level: state.profile.currentLevel,
           festivalScenario: scenarioId,
@@ -148,9 +221,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           userName: state.profile.displayName,
         });
 
-        const { text: reply, correction } = parseReply(answer);
+        const { text: reply, translation, correction } = parseReply(answer);
         // 直してくれる場面は、考え顔より指差しのほうが意図が伝わる
         const expr: Expression = correction ? 'point' : inferExpression(reply);
+        const mistakeId = correction ? addMistake(correction, 'festival') : undefined;
+        if (correction) corrections.current += 1;
 
         setMessages((prev) => [
           ...prev,
@@ -161,6 +236,8 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
             timestamp: Date.now(),
             correction,
             expression: expr,
+            translation,
+            mistakeId,
           },
         ]);
         setExpression(expr);
@@ -168,15 +245,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
         // 直されたときは受信音ではなく、やわらかい音にする
         playSfx(correction ? 'soft' : 'receive');
 
-        if (correction) {
-          corrections.current += 1;
-          addMistake(correction, 'festival');
-        }
-
         const gain = addBondPoints(correction ? 2 : 3);
         if (gain.leveledUp) onLevelUp({ level: gain.newLevel, unlocked: gain.unlocked });
 
-        if (state.settings.autoSpeak && reply) speak(reply);
+        // 聞き取りモードは耳で聞くのが目的なので、自動読み上げを切っていても鳴らす
+        if ((state.settings.autoSpeak || state.settings.listeningMode) && reply) speak(reply);
       } catch (error) {
         console.error(error);
         setMessages((prev) => [
@@ -258,6 +331,20 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
               相手：{scenario.partner.name}（{scenario.partner.from}）
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('tap');
+              updateSettings({ listeningMode: !listening });
+            }}
+            aria-label="聞き取りモード"
+            aria-pressed={listening}
+            className="tsu-btn grid h-10 w-10 shrink-0 place-items-center text-[17px]"
+            style={{ background: listening ? 'var(--tsu-pink-500)' : 'var(--tsu-pink-100)' }}
+          >
+            🎧
+          </button>
 
           <button
             type="button"
@@ -345,6 +432,14 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           style={{ background: 'var(--tsu-lav-100)', color: 'var(--text-soft)' }}
         >
           {intro.text}
+          <span className="mt-1 block text-[11px] font-bold" style={{ color: 'var(--tsu-pink-600)' }}>
+            英語が出てこない時は、日本語で聞いてもいいよ
+          </span>
+          {listening && (
+            <span className="mt-1 block text-[11px] font-bold" style={{ color: 'var(--tsu-lav-400)' }}>
+              🎧 聞き取りモード：英文は隠してあるよ。まず耳で聞いてね
+            </span>
+          )}
         </p>
 
         <ul className="flex flex-col gap-2.5 pb-3">
@@ -356,17 +451,81 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
                     className="tsu-card-solid px-4 py-3 text-[15px] font-medium leading-relaxed"
                     style={{ borderTopLeftRadius: 8, color: 'var(--text)' }}
                   >
-                    {m.content}
+                    {listening && !revealed.has(m.id) ? (
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-[14px] font-bold" style={{ color: 'var(--text-faint)' }}>
+                          🎧 まずは耳で聞いてみて
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setRevealed((prev) => new Set(prev).add(m.id))}
+                          className="tsu-btn shrink-0 px-2.5 py-1 text-[11px] font-extrabold"
+                          style={{ background: 'var(--tsu-pink-500)', color: '#fff' }}
+                        >
+                          英文を見る
+                        </button>
+                      </span>
+                    ) : (
+                      m.content
+                    )}
+                    {m.translation && shownJa.has(m.id) && (
+                      <span
+                        className="anim-up mt-2 block border-t pt-2 text-[13px] font-semibold leading-relaxed"
+                        style={{ borderColor: 'var(--border)', color: 'var(--text-soft)' }}
+                      >
+                        {m.translation}
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => speak(m.content)}
-                    className="tsu-btn self-start px-2 py-0.5 text-[10px] font-extrabold"
-                    style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
-                  >
-                    🔊 きく
-                  </button>
-                  {m.correction && <CorrectionBlock correction={m.correction} bondLevel={state.bond.level} />}
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => speak(m.content)}
+                      className="tsu-btn px-2.5 py-1 text-[11px] font-extrabold"
+                      style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
+                    >
+                      🔊 きく
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => speak(m.content, 0.7)}
+                      aria-label="ゆっくり聞く"
+                      className="tsu-btn px-2.5 py-1 text-[11px] font-extrabold"
+                      style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
+                    >
+                      🐢 ゆっくり
+                    </button>
+
+                    {m.translation && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShownJa((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(m.id)) next.delete(m.id);
+                            else next.add(m.id);
+                            return next;
+                          })
+                        }
+                        aria-pressed={shownJa.has(m.id)}
+                        className="tsu-btn px-2.5 py-1 text-[11px] font-extrabold"
+                        style={{
+                          background: shownJa.has(m.id) ? 'var(--tsu-lav-400)' : 'var(--tsu-lav-100)',
+                          color: shownJa.has(m.id) ? '#fff' : 'var(--tsu-lav-400)',
+                        }}
+                      >
+                        訳
+                      </button>
+                    )}
+                  </div>
+                  {m.correction && (
+                    <CorrectionBlock
+                      correction={m.correction}
+                      bondLevel={state.bond.level}
+                      practiced={practiced.has(m.id)}
+                      onPracticed={() => praiseRetry(m)}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="flex justify-end">
@@ -411,6 +570,37 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           <p className="sticky top-0 py-2 text-[11px] font-extrabold" style={{ background: 'var(--surface)', color: 'var(--text-faint)' }}>
             タップで入力欄に入ります
           </p>
+          {myAnswers.length > 0 && (
+            <>
+              <p className="pb-1.5 text-[11px] font-extrabold" style={{ color: 'var(--tsu-lav-400)' }}>
+                📝 自分の答え
+              </p>
+              <ul className="flex flex-col gap-1.5 pb-3">
+                {myAnswers.map(({ question, answer }) => (
+                  <li key={question.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInput(answer.en);
+                        setShowPhrases(false);
+                      }}
+                      className="tsu-btn tsu-card-solid w-full px-3.5 py-2.5 text-left !rounded-2xl"
+                    >
+                      <span className="block text-[14px] font-extrabold" style={{ color: 'var(--text)' }}>
+                        {answer.en}
+                      </span>
+                      <span className="block text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+                        {question.ja}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="pb-1.5 text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
+                📖 この場面のフレーズ
+              </p>
+            </>
+          )}
           <ul className="flex flex-col gap-1.5 pb-2">
             {scenario.phrases.map((p) => {
               const en = fillName(p.en, state.profile.displayName, 'en');
@@ -503,6 +693,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           cleared={summary.turns >= TURNS_TO_CLEAR}
           reduceMotion={state.settings.reduceMotion}
           jaVoice={state.settings.jaVoice}
+          learned={messages.flatMap((m) =>
+            m.correction
+              ? [{ id: m.id, said: m.correction.said, better: m.correction.better, practiced: practiced.has(m.id) }]
+              : []
+          )}
           onClose={() => {
             setSummary(null);
             onExit();
@@ -523,9 +718,25 @@ const SEVERITY: Record<CorrectionCard['severity'], { label: string; color: strin
   important: { label: 'だいじ', color: 'var(--tsu-pink-500)' },
 };
 
-function CorrectionBlock({ correction, bondLevel }: { correction: CorrectionCard; bondLevel: number }) {
-  const meta = SEVERITY[correction.severity];
+/** 日本語で「なんて言うの？」と聞いたときの答え。間違いではないので取り消し線にしない */
+const HOW_TO_SAY = { label: '言い方', color: 'var(--tsu-lav-400)' };
+
+function CorrectionBlock({
+  correction,
+  bondLevel,
+  practiced,
+  onPracticed,
+}: {
+  correction: CorrectionCard;
+  bondLevel: number;
+  /** その場で言い直せたか */
+  practiced: boolean;
+  onPracticed: () => void;
+}) {
+  const askedInJapanese = hasJapanese(correction.said);
+  const meta = askedInJapanese ? HOW_TO_SAY : SEVERITY[correction.severity];
   const [praise] = useState(() => getPraise(bondLevel));
+  const [trying, setTrying] = useState(false);
 
   return (
     <div
@@ -540,19 +751,44 @@ function CorrectionBlock({ correction, bondLevel }: { correction: CorrectionCard
           {meta.label}
         </span>
         <span className="text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
-          紬がそっと直してくれた
+          {askedInJapanese ? '英語ではこう言うよ' : '紬がそっと直してくれた'}
         </span>
       </div>
 
-      <p className="mt-2 text-[13.5px] font-semibold line-through" style={{ color: 'var(--text-faint)' }}>
-        {correction.said}
-      </p>
+      {askedInJapanese ? (
+        <p className="mt-2 text-[13px] font-semibold" style={{ color: 'var(--text-soft)' }}>
+          言いたかったこと：{correction.said}
+        </p>
+      ) : (
+        <p className="mt-2 text-[13.5px] font-semibold line-through" style={{ color: 'var(--text-faint)' }}>
+          {correction.said}
+        </p>
+      )}
       <p className="mt-0.5 text-[16px] font-extrabold leading-snug" style={{ color: 'var(--tsu-pink-600)' }}>
         {correction.better}
       </p>
       <p className="mt-1.5 text-[12.5px] font-semibold leading-relaxed" style={{ color: 'var(--text-soft)' }}>
         {correction.why}
       </p>
+
+      {/* 見て終わりにしない。直された文を自分の口で言ってみる */}
+      {practiced ? (
+        <p className="anim-pop mt-2.5 text-[12.5px] font-extrabold" style={{ color: 'var(--tsu-pink-600)' }}>
+          ✓ 言い直せた！ 忘れたころに、復習でもう一回出すね
+        </p>
+      ) : trying ? (
+        <SayItPractice target={correction.better} onPass={onPracticed} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setTrying(true)}
+          className="tsu-btn mt-2.5 w-full py-2.5 text-[13px] font-extrabold"
+          style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
+        >
+          🎤 言い直してみる
+        </button>
+      )}
+
       <p className="mt-2 text-[11.5px] font-bold" style={{ color: 'var(--text-faint)' }}>
         「{praise.text}」
       </p>
@@ -574,6 +810,7 @@ function SessionSummary({
   cleared,
   reduceMotion,
   jaVoice,
+  learned,
   onClose,
 }: {
   scenarioTitle: string;
@@ -585,6 +822,8 @@ function SessionSummary({
   cleared: boolean;
   reduceMotion: boolean;
   jaVoice: boolean;
+  /** この会話で直された言い方（数字だけで終わらせず、覚えることを最後にもう一度見せる） */
+  learned: Array<{ id: string; said: string; better: string; practiced: boolean }>;
   onClose: () => void;
 }) {
   const [line] = useState(() => getClosingLine(bondLevel, corrections));
@@ -606,7 +845,7 @@ function SessionSummary({
       aria-modal="true"
       aria-label="セッションのまとめ"
     >
-      <div className="tsu-card-solid anim-levelup w-full max-w-sm px-6 pb-6 pt-6 text-center">
+      <div className="tsu-card-solid tsu-scroll anim-levelup max-h-[92dvh] w-full max-w-sm overflow-y-auto px-6 pb-6 pt-6 text-center">
         {cleared && (
           <p
             className="mx-auto mb-1 w-fit rounded-full px-3 py-1 text-[11px] font-extrabold text-white"
@@ -621,6 +860,7 @@ function SessionSummary({
           outfit={outfit}
           size={170}
           reduceMotion={reduceMotion}
+          className="mx-auto"
         />
 
         <p className="mt-1 text-[15px] font-bold leading-relaxed" style={{ color: 'var(--text)' }}>
@@ -640,6 +880,37 @@ function SessionSummary({
           >
             💗 親密度が Lv.{gain.newLevel} になりました
           </p>
+        )}
+
+        {learned.length > 0 && (
+          <div className="mt-4 text-left">
+            <p className="text-[11.5px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
+              きょう覚えた言い方（復習にも入ってるよ）
+            </p>
+            <ul className="mt-1.5 flex flex-col gap-1.5">
+              {learned.map((l) => (
+                <li key={l.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopAllSpeech();
+                      speakText(l.better);
+                    }}
+                    className="tsu-btn w-full rounded-2xl px-3.5 py-2.5 text-left"
+                    style={{ background: 'var(--tsu-pink-50)' }}
+                  >
+                    <span className="block text-[14px] font-extrabold leading-snug" style={{ color: 'var(--tsu-pink-600)' }}>
+                      {l.practiced && '✓ '}
+                      {l.better} <span className="text-[12px]">🔊</span>
+                    </span>
+                    <span className="mt-0.5 block text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+                      {l.said}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <button type="button" onClick={onClose} className="tsu-btn tsu-btn-primary mt-5 w-full py-3.5 text-[15px]">

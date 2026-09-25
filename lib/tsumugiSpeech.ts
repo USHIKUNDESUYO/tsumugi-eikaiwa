@@ -75,6 +75,8 @@ export interface SpeakOptions {
   onEnd?: () => void;
   /** 鳴らせなかったとき。無ければ onEnd を呼ぶ。 */
   onError?: () => void;
+  /** 速さ（1 が普通）。audio 要素は使い回すので、毎回ここで決め直す */
+  rate?: number;
 }
 
 /**
@@ -104,6 +106,9 @@ export function playVoiceFile(src: string, options: SpeakOptions = {}): void {
   };
 
   el.src = src;
+  // 新しい音声を読むと playbackRate は defaultPlaybackRate に戻るので、両方そろえる
+  el.defaultPlaybackRate = options.rate ?? 1;
+  el.playbackRate = options.rate ?? 1;
   el.onended = () => settle(options.onEnd);
   el.onerror = () => settle(options.onError ?? options.onEnd);
 
