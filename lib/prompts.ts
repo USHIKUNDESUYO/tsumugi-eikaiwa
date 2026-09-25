@@ -162,7 +162,7 @@ Give only the English they can say out loud to the other person: 1 or 2 short, n
 - If they want to explain a Japanese word or thing, explain it simply and keep the Japanese word in standard romaji ("Mentaiko is spicy pollock roe. It's a Fukuoka specialty.").
 - If they want to ask for something, give the question they can ask.
 - ${LEVEL_GUIDANCE[level]}${phrasebook}
-Reply with JSON only: {"en": "what they can say"}`;
+Reply with JSON only: {"en": "what they can say", "note": "その英語のポイントを日本語で1文"}`;
 }
 
 // 最後に置く（一覧のフレーズを使おうとして、もう聞いたことを聞き返していた）

@@ -5,6 +5,7 @@ import { hasJapanese } from '@/lib/speechMatch';
 import { corsHeaders, preflight } from '@/app/api/cors';
 import type {
   ChatMode,
+  CorrectionCard,
   LanguageLevel,
   Message,
   BusinessScenario,
@@ -87,7 +88,9 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
       coach ? 0.4 : 0.9,
       400
     );
-    return { text: coach ? text : await fixHelpCard(text, level, festivalScenario), live: true };
+    const last = messages.at(-1);
+    const lastUser = last?.role === 'user' ? last.content : undefined;
+    return { text: coach ? text : await fixHelpCard(text, level, festivalScenario, lastUser), live: true };
   } catch (error) {
     console.error('AI API error:', error);
     const reason = error instanceof Error ? error.message : String(error);
@@ -147,28 +150,53 @@ const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
 /**
  * 日本語で「英語でどう説明する？」と聞かれたのに、添削カードが答えではなく質問の英訳
  * （How do you explain "totonou" in English?）になっていたら、答えだけ作り直して差し替える。
+ * 添削ブロックそのものが無い（カードが出ない）ときは、答えを作ってブロックを足す。
  * 会話のプロンプトで頼む形も試したが、役の上で答えを知らない相手（サウナ初心者など）では
  * 3回に1回は直らず、ふつうの間違いに添削が付かない返事が増えた（72回中 10回。本番は 96回中 2回）。
  * 相手のセリフと訳はそのまま。作り直せなければ元の返事を返す。
  */
-async function fixHelpCard(text: string, level: LanguageLevel, festivalScenario?: FestivalScenarioId): Promise<string> {
+async function fixHelpCard(
+  text: string,
+  level: LanguageLevel,
+  festivalScenario: FestivalScenarioId | undefined,
+  lastUser: string | undefined
+): Promise<string> {
   const match = text.match(CORRECTION_RE);
   const card = match ? parseCorrectionBlock(match[1]) : null;
-  if (!match || !card || !hasJapanese(card.said)) return text;
-  const replaceBetter = (better: string) =>
-    text.replace(match[0], () => `<correction>\n${JSON.stringify({ ...card, better }, null, 2)}\n</correction>`);
-  // 質問の英訳のあとに答えが続いているなら、質問を落とすだけでいい
-  const answerOnly = dropQuestionPrefix(card.better);
-  if (answerOnly !== card.better) return replaceBetter(answerOnly);
-  if (!isQuestionAboutEnglish(card.better)) return text;
+  const withCard = (c: CorrectionCard) => {
+    const block = `<correction>\n${JSON.stringify(c, null, 2)}\n</correction>`;
+    return match ? text.replace(match[0], () => block) : `${text.trimEnd()}\n\n${block}`;
+  };
+
+  if (card && hasJapanese(card.said)) {
+    // 質問の英訳のあとに答えが続いているなら、質問を落とすだけでいい
+    const answerOnly = dropQuestionPrefix(card.better);
+    if (answerOnly !== card.better) return withCard({ ...card, better: answerOnly });
+    if (!isQuestionAboutEnglish(card.better)) return text;
+    const help = await makeHelpAnswer(card.said, level, festivalScenario);
+    // 元の説明は質問の英訳について書いていることがあるので、答えに合わせて入れ替える
+    return help ? withCard({ ...card, better: help.en, why: help.note || card.why }) : text;
+  }
+  if (!match && lastUser && hasJapanese(lastUser)) {
+    const help = await makeHelpAnswer(lastUser, level, festivalScenario);
+    if (help) return withCard({ said: lastUser, better: help.en, why: help.note || 'このまま言ってみよう。', severity: 'minor' });
+  }
+  return text;
+}
+
+async function makeHelpAnswer(
+  said: string,
+  level: LanguageLevel,
+  festivalScenario: FestivalScenarioId | undefined
+): Promise<{ en: string; note: string } | null> {
   try {
-    const prompt = getHelpAnswerPrompt(level, festivalScenario);
-    const raw = await complete(prompt, [{ role: 'user', content: card.said }], 0.3, 150, 10_000);
-    const en = String(JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}').en ?? '').trim();
-    if (!en || hasJapanese(en) || isQuestionAboutEnglish(en)) return text;
-    return replaceBetter(en);
+    const raw = await complete(getHelpAnswerPrompt(level, festivalScenario), [{ role: 'user', content: said }], 0.3, 200, 10_000);
+    const json = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const en = String(json.en ?? '').trim();
+    if (!en || hasJapanese(en) || isQuestionAboutEnglish(en)) return null;
+    return { en, note: String(json.note ?? '').trim() };
   } catch {
-    return text;
+    return null;
   }
 }
 
