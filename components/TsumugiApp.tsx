@@ -10,7 +10,7 @@ import { unlockSfx, setSfxEnabled, playSfx } from '@/lib/sfx';
 import { setHapticsEnabled, hapticCelebrate, haptic } from '@/lib/haptics';
 import { setBgmEnabled, playBgm } from '@/lib/bgm';
 import { sceneIsNight } from '@/lib/scenes';
-import { getDueCards } from '@/lib/srs';
+import { buildReviewQueue } from '@/lib/review';
 import { getLevelUpLine } from '@/lib/tsumugiVoice';
 import BottomNav, { type Screen } from '@/components/BottomNav';
 import InstallPrompt from '@/components/InstallPrompt';
@@ -69,7 +69,8 @@ export default function TsumugiApp() {
     playBgm(activeScenario && sceneIsNight(activeScenario) ? 'night' : 'day');
   }, [activeScenario]);
 
-  const dueCount = useMemo(() => getDueCards(state.mistakes).length, [state.mistakes]);
+  // 復習の出題数（会話で直された文＋フェスのフレーズ）。バッジの数と画面の中身を揃える
+  const dueCount = useMemo(() => buildReviewQueue(state).length, [state]);
 
   const navigate = useCallback((next: Screen) => {
     playSfx('tap');

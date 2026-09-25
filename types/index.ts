@@ -94,6 +94,24 @@ export interface MistakeRecord {
   box?: number;
 }
 
+/**
+ * フレーズなどの暗記カードの進み具合（会話で直された間違いの記録とは別に持つ）。
+ * キーは「phrase:<英文>」。
+ */
+export interface CardProgress {
+  /** SRS: 現在の間隔インデックス */
+  box: number;
+  /** SRS: 次に出題する時刻 (epoch ms) */
+  dueAt: number;
+  /** 初めて答えた時刻。1日に出す新しいカードの数を数える */
+  introducedAt: number;
+  lastReviewed?: number;
+  correct: number;
+  wrong: number;
+  /** 「このカードはもういらない」 */
+  retired?: boolean;
+}
+
 export interface UserProfile {
   nativeLanguage: 'ja';
   displayName: string;
@@ -182,6 +200,8 @@ export interface AppState {
   clearedScenarios: FestivalScenarioId[];
   /** 暗記済み必修フレーズ (en をキーに) */
   masteredPhrases: string[];
+  /** 暗記カードの進み具合 */
+  cards: Record<string, CardProgress>;
   /** スキーマバージョン（マイグレーション用） */
   version: number;
 }

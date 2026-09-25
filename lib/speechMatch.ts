@@ -47,6 +47,11 @@ export function words(text: string): string[] {
     .filter(Boolean);
 }
 
+/** かな・漢字を含むか（日本語で「なんて言うの？」と聞いた文を見分ける） */
+export function hasJapanese(text: string): boolean {
+  return /[\u3040-\u30ff\u3400-\u9fff]/.test(text);
+}
+
 /** お手本は「A / B」の形で言い換えを並べてくることがある */
 export function alternatives(target: string): string[] {
   return target

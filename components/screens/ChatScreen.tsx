@@ -5,7 +5,7 @@ import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message 
 import { festivalScenarios } from '@/lib/festivalScenarios';
 import { askTsumugi } from '@/lib/chatTransport';
 import { fillName } from '@/lib/learnerName';
-import { alternatives, sameWords } from '@/lib/speechMatch';
+import { alternatives, hasJapanese, sameWords } from '@/lib/speechMatch';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
@@ -39,8 +39,6 @@ interface Props {
 
 const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
 const TRANSLATION_RE = /<ja>\s*([\s\S]*?)\s*<\/ja>/i;
-/** かな・漢字を含むか（日本語で「なんて言うの？」と聞いた添削の見せ方を変える） */
-const JA_CHARS = /[぀-ヿ㐀-鿿]/;
 
 /**
  * 読み上げる本文を整える。「*(speaks slower)*」のようなト書きが混ざることがあり、
@@ -640,7 +638,7 @@ function CorrectionBlock({
   practiced: boolean;
   onPracticed: () => void;
 }) {
-  const askedInJapanese = JA_CHARS.test(correction.said);
+  const askedInJapanese = hasJapanese(correction.said);
   const meta = askedInJapanese ? HOW_TO_SAY : SEVERITY[correction.severity];
   const [praise] = useState(() => getPraise(bondLevel));
   const [trying, setTrying] = useState(false);

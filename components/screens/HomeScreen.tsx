@@ -10,7 +10,7 @@ import {
   getEssentialPhrases,
 } from '@/lib/festivalScenarios';
 import { getGreeting } from '@/lib/tsumugiVoice';
-import { getDueCards } from '@/lib/srs';
+import { buildReviewQueue } from '@/lib/review';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 import { fillName } from '@/lib/learnerName';
 import { speakJa } from '@/lib/tsumugiSpeech';
@@ -51,7 +51,7 @@ export default function HomeScreen({ state, onStart, onNavigate }: Props) {
     return () => clearTimeout(t);
   }, [greeting.expression, greeting.id, state.settings.jaVoice]);
 
-  const dueCount = getDueCards(state.mistakes).length;
+  const dueCount = buildReviewQueue(state).length;
   const cleared = state.clearedScenarios.length;
   const total = festivalScenarioOrder.length;
 

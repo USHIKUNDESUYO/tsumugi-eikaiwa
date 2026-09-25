@@ -13,11 +13,12 @@ import type {
   Settings,
   Outfit,
   FestivalScenarioId,
+  CardProgress,
 } from '@/types';
 import { scheduleNext } from './srs';
 
 const STORAGE_KEY = 'tsumugi-app-state';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 /** 親密度レベルごとの必要ハート数 */
 export const BOND_THRESHOLDS = [0, 20, 50, 100, 180, 300, 460, 680, 980, 1400];
@@ -78,6 +79,7 @@ export function getDefaultState(): AppState {
     settings: getDefaultSettings(),
     clearedScenarios: [],
     masteredPhrases: [],
+    cards: {},
     version: SCHEMA_VERSION,
   };
 }
@@ -94,6 +96,7 @@ function migrate(raw: Record<string, unknown>): AppState {
     settings: { ...base.settings, ...((raw.settings as Partial<Settings>) ?? {}) },
     clearedScenarios: (raw.clearedScenarios as FestivalScenarioId[]) ?? [],
     masteredPhrases: (raw.masteredPhrases as string[]) ?? [],
+    cards: (raw.cards as Record<string, CardProgress>) ?? {},
     version: SCHEMA_VERSION,
   };
 
@@ -353,6 +356,38 @@ export function updateMistake(id: string, updates: Partial<MistakeRecord>): void
 export function deleteMistake(id: string): void {
   updateState((s) => {
     s.mistakes = s.mistakes.filter((m) => m.id !== id);
+  });
+}
+
+/* -------------------------------- 暗記カード -------------------------------- */
+
+/** 暗記カードに答えた。言えたら次の間隔へ、言えなかったら最初から */
+export function gradeCard(key: string, correct: boolean, now = Date.now()): void {
+  updateState((s) => {
+    const prev = s.cards[key];
+    s.cards[key] = {
+      ...scheduleNext(correct ? (prev?.box ?? 0) + 1 : 0, now),
+      introducedAt: prev?.introducedAt ?? now,
+      lastReviewed: now,
+      correct: (prev?.correct ?? 0) + (correct ? 1 : 0),
+      wrong: (prev?.wrong ?? 0) + (correct ? 0 : 1),
+    };
+  });
+}
+
+/** 「このカードはもういらない」。記録は残して、出題だけ止める */
+export function retireCard(key: string, now = Date.now()): void {
+  updateState((s) => {
+    const prev = s.cards[key];
+    s.cards[key] = {
+      box: prev?.box ?? 0,
+      dueAt: prev?.dueAt ?? now,
+      introducedAt: prev?.introducedAt ?? now,
+      lastReviewed: prev?.lastReviewed,
+      correct: prev?.correct ?? 0,
+      wrong: prev?.wrong ?? 0,
+      retired: true,
+    };
   });
 }
 

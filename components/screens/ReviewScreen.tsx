@@ -1,9 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { AppState, Expression, MistakeRecord } from '@/types';
-import { getDueCards, onCorrect, onWrong, masteryRatio, MAX_BOX } from '@/lib/srs';
-import { updateMistake, deleteMistake, addBondPoints } from '@/lib/storage';
+import type { AppState, Expression } from '@/types';
+import { onCorrect, onWrong, masteryRatio, MAX_BOX } from '@/lib/srs';
+import { updateMistake, deleteMistake, addBondPoints, gradeCard, retireCard } from '@/lib/storage';
+import { buildReviewQueue, NEW_PHRASES_PER_DAY, type ReviewItem } from '@/lib/review';
+import { festivalScenarios } from '@/lib/festivalScenarios';
+import { fillName } from '@/lib/learnerName';
+import { hasJapanese } from '@/lib/speechMatch';
 import { getPraise, getEncouragement } from '@/lib/tsumugiVoice';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 import { speakJa } from '@/lib/tsumugiSpeech';
@@ -11,27 +15,84 @@ import { playSfx } from '@/lib/sfx';
 import { haptic } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import SpeechBubble from '@/components/tsumugi/SpeechBubble';
+import SayItPractice from '@/components/tsumugi/SayItPractice';
+
+/** カード1枚ぶんの、問題・答え・補足 */
+interface CardView {
+  /** どの場面のフレーズか */
+  context?: string;
+  isNew?: boolean;
+  promptLabel: string;
+  prompt: string;
+  /** 問題を取り消し線で出すか（自分の間違い） */
+  strike: boolean;
+  question: string;
+  /** 正解の英語（「A / B」の言い換えを含むことがある） */
+  answer: string;
+  /** 答えの後に出す説明 */
+  note?: string;
+  /** 定着度 0..1 */
+  mastery: number;
+}
+
+function viewOf(item: ReviewItem, displayName: string): CardView {
+  if (item.kind === 'mistake') {
+    // 日本語で「なんて言うの？」と聞いた記録は、間違いではないので取り消し線にしない
+    const askedInJapanese = hasJapanese(item.record.said);
+    return {
+      promptLabel: askedInJapanese ? '言いたかったこと' : 'あなたが言ったのは',
+      prompt: item.record.said,
+      strike: !askedInJapanese,
+      question: askedInJapanese ? '英語で言うと？' : '自然な言い方は？',
+      answer: item.record.better,
+      note: item.record.why,
+      mastery: masteryRatio(item.record),
+    };
+  }
+  const scenario = festivalScenarios[item.scenarioId];
+  return {
+    context: `${scenario.emoji} ${scenario.title}`,
+    isNew: item.isNew,
+    promptLabel: 'フェスのフレーズ',
+    prompt: fillName(item.phrase.ja, displayName, 'ja'),
+    strike: false,
+    question: '英語で言うと？',
+    answer: fillName(item.phrase.en, displayName, 'en'),
+    note: item.phrase.note,
+    mastery: Math.min(1, (item.progress?.box ?? 0) / MAX_BOX),
+  };
+}
 
 export default function ReviewScreen({ state, now }: { state: AppState; now: number }) {
   // 出題リストは画面を開いた時点で確定させる（解答中に増減させない）
-  const [queue, setQueue] = useState<MistakeRecord[]>(() => getDueCards(state.mistakes, now || Date.now()));
+  const [queue, setQueue] = useState<ReviewItem[]>(() => buildReviewQueue(state, now || Date.now()));
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  /** 答えてから次のカードに移るまで。ボタンの二度押しで二重に記録しない */
+  const [answered, setAnswered] = useState(false);
   const [done, setDone] = useState(0);
   const [expression, setExpression] = useState<Expression>('smile');
   const [line, setLine] = useState('さ、ひとつずつ思い出してみよう。');
 
-  const card = queue[index];
+  const item = queue[index];
+  const view = item ? viewOf(item, state.profile.displayName) : null;
   const remaining = queue.length - index;
 
   const totalMastered = useMemo(
-    () => state.mistakes.filter((m) => (m.box ?? 0) >= MAX_BOX).length,
-    [state.mistakes]
+    () =>
+      state.mistakes.filter((m) => (m.box ?? 0) >= MAX_BOX).length +
+      Object.values(state.cards).filter((c) => !c.retired && c.box >= MAX_BOX).length,
+    [state.mistakes, state.cards]
   );
 
-  const answer = (correct: boolean) => {
-    if (!card) return;
-    updateMistake(card.id, correct ? onCorrect(card) : onWrong(card));
+  const answer = (correct: boolean, nextDelay = 900) => {
+    if (!item || answered) return;
+    setAnswered(true);
+    if (item.kind === 'mistake') {
+      updateMistake(item.record.id, correct ? onCorrect(item.record) : onWrong(item.record));
+    } else {
+      gradeCard(item.key, correct);
+    }
     if (correct) {
       playSfx('correct');
       haptic('medium');
@@ -51,25 +112,22 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
 
     setTimeout(() => {
       setRevealed(false);
+      setAnswered(false);
       setIndex((i) => i + 1);
       setExpression('smile');
-    }, 900);
+    }, nextDelay);
+  };
+
+  const retire = () => {
+    if (!item || answered) return;
+    if (item.kind === 'mistake') deleteMistake(item.record.id);
+    else retireCard(item.key);
+    setQueue((q) => q.filter((c) => c.key !== item.key));
+    setRevealed(false);
   };
 
   /* ------------------------------ 空っぽ ------------------------------ */
-  if (state.mistakes.length === 0) {
-    return (
-      <EmptyState
-        outfit={state.bond.currentOutfit}
-        reduceMotion={state.settings.reduceMotion}
-        title="まだカードがありません"
-        body={'会話の中で直してもらった表現が、\nここに自動でたまります。\nまずは1回、紬と話してみて。'}
-        expression="smile"
-      />
-    );
-  }
-
-  if (!card) {
+  if (!item || !view) {
     return (
       <EmptyState
         outfit={state.bond.currentOutfit}
@@ -78,7 +136,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
         body={
           done > 0
             ? 'つぎの出題タイミングまで、ちょっと寝かせるね。\n間隔をあけたほうが、ちゃんと残るから。'
-            : `覚えきったカード ${totalMastered} 枚。\nまた時間がたったら出てくるよ。`
+            : `新しいフレーズは、1日${NEW_PHRASES_PER_DAY}枚ずつ出てくるよ。\n覚えきったカード ${totalMastered} 枚。`
         }
         expression={done > 0 ? 'happy' : 'smile'}
       />
@@ -121,17 +179,33 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
 
         {/* 問題カード */}
         <div className="tsu-card-solid w-full px-5 py-5">
+          {view.context && (
+            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
+              <span>{view.context}</span>
+              {view.isNew && (
+                <span
+                  className="rounded-full px-1.5 py-[1px] text-[9.5px] text-white"
+                  style={{ background: 'var(--tsu-pink-500)' }}
+                >
+                  NEW
+                </span>
+              )}
+            </p>
+          )}
           <p className="text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
-            あなたが言ったのは
+            {view.promptLabel}
           </p>
-          <p className="mt-1 text-[17px] font-extrabold leading-snug line-through decoration-2" style={{ color: 'var(--text-soft)' }}>
-            {card.said}
+          <p
+            className={`mt-1 text-[17px] font-extrabold leading-snug ${view.strike ? 'line-through decoration-2' : ''}`}
+            style={{ color: view.strike ? 'var(--text-soft)' : 'var(--text)' }}
+          >
+            {view.prompt}
           </p>
 
           <div className="my-3.5 flex items-center gap-2">
             <span className="h-px flex-1" style={{ background: 'var(--border)' }} />
             <span className="text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
-              自然な言い方は？
+              {view.question}
             </span>
             <span className="h-px flex-1" style={{ background: 'var(--border)' }} />
           </div>
@@ -142,29 +216,46 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
                 type="button"
                 onClick={() => {
                   stopAllSpeech();
-                  speakText(card.better);
+                  speakText(view.answer);
                 }}
                 className="tsu-btn w-full text-left"
               >
                 <p className="text-[19px] font-extrabold leading-snug" style={{ color: 'var(--tsu-pink-600)' }}>
-                  {card.better} <span className="text-[15px]">🔊</span>
+                  {view.answer} <span className="text-[15px]">🔊</span>
                 </p>
               </button>
-              <p className="mt-2 text-[12.5px] font-semibold leading-relaxed" style={{ color: 'var(--text-soft)' }}>
-                {card.why}
-              </p>
+              {view.note && (
+                <p className="mt-2 text-[12.5px] font-semibold leading-relaxed" style={{ color: 'var(--text-soft)' }}>
+                  {view.note}
+                </p>
+              )}
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => {
-                playSfx('tap');
-                setRevealed(true);
-              }}
-              className="tsu-btn tsu-btn-ghost w-full py-3.5 text-[14px]"
-            >
-              答えを見る
-            </button>
+            <>
+              {/* 答えを見る前に、自分の口で言ってみる（思い出す練習がいちばん残る） */}
+              <p className="text-[11.5px] font-bold" style={{ color: 'var(--text-faint)' }}>
+                声に出して言ってみて（打ってもOK）
+              </p>
+              <SayItPractice
+                key={item.key}
+                target={view.answer}
+                hideAnswer
+                onPass={() => {
+                  setRevealed(true);
+                  answer(true, 1600);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  playSfx('tap');
+                  setRevealed(true);
+                }}
+                className="tsu-btn tsu-btn-ghost mt-3 w-full py-3.5 text-[14px]"
+              >
+                答えを見る
+              </button>
+            </>
           )}
 
           <div className="mt-4 flex items-center gap-2">
@@ -175,7 +266,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
               <div
                 className="h-full rounded-full"
                 style={{
-                  width: `${masteryRatio(card) * 100}%`,
+                  width: `${view.mastery * 100}%`,
                   background: 'linear-gradient(90deg, var(--tsu-mint), var(--tsu-pink-500))',
                 }}
               />
@@ -183,7 +274,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
           </div>
         </div>
 
-        {revealed && (
+        {revealed && !answered && (
           <div className="anim-up flex w-full gap-2.5">
             <button
               type="button"
@@ -204,10 +295,7 @@ export default function ReviewScreen({ state, now }: { state: AppState; now: num
 
         <button
           type="button"
-          onClick={() => {
-            deleteMistake(card.id);
-            setQueue((q) => q.filter((c) => c.id !== card.id));
-          }}
+          onClick={retire}
           className="tsu-btn pb-4 text-[11.5px] font-bold underline"
           style={{ color: 'var(--text-faint)' }}
         >
