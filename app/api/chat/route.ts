@@ -147,7 +147,8 @@ const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
 /**
  * 日本語で「英語でどう説明する？」と聞かれたのに、添削カードが答えではなく質問の英訳
  * （How do you explain "totonou" in English?）になっていたら、答えだけ作り直して差し替える。
- * 役の上で答えを知らない相手（サウナ初心者など）だと、プロンプトで頼んでも3回に1回はこうなった。
+ * 会話のプロンプトで頼む形も試したが、役の上で答えを知らない相手（サウナ初心者など）では
+ * 3回に1回は直らず、ふつうの間違いに添削が付かない返事が増えた（72回中 10回。本番は 96回中 2回）。
  * 相手のセリフと訳はそのまま。作り直せなければ元の返事を返す。
  */
 async function fixHelpCard(text: string, level: LanguageLevel, festivalScenario?: FestivalScenarioId): Promise<string> {
