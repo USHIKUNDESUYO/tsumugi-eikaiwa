@@ -292,7 +292,9 @@ export function touchStreak(now = new Date()): { streak: Streak; isNewDay: boole
 
 /* ---------------------------------- 間違い --------------------------------- */
 
-export function addMistake(correction: CorrectionCard, mode: ChatMode): void {
+/** 間違いを記録して、その記録の id を返す（同じ直しが前にもあれば、その記録を出題し直す） */
+export function addMistake(correction: CorrectionCard, mode: ChatMode): string {
+  let id = '';
   updateState((s) => {
     const existing = s.mistakes.find(
       (m) =>
@@ -305,11 +307,13 @@ export function addMistake(correction: CorrectionCard, mode: ChatMode): void {
       existing.lastReviewed = Date.now();
       existing.mode = mode;
       Object.assign(existing, scheduleNext(0));
+      id = existing.id;
       return;
     }
 
+    id = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
     s.mistakes.push({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      id,
       said: correction.said,
       better: correction.better,
       why: correction.why,
@@ -320,6 +324,18 @@ export function addMistake(correction: CorrectionCard, mode: ChatMode): void {
       timesMastered: 0,
       ...scheduleNext(0),
     });
+  });
+  return id;
+}
+
+/**
+ * 会話の中で、直された文をその場で言い直せた。すぐに復習に出しても答えを覚えているだけなので、
+ * 1段進めて少し寝かせる（10分後）。
+ */
+export function markMistakePracticed(id: string): void {
+  updateState((s) => {
+    const m = s.mistakes.find((x) => x.id === id);
+    if (m && (m.box ?? 0) < 1) Object.assign(m, scheduleNext(1));
   });
 }
 

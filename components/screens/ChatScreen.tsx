@@ -9,6 +9,7 @@ import { alternatives, sameWords } from '@/lib/speechMatch';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
+  markMistakePracticed,
   addBondPoints,
   addSessionStats,
   markScenarioCleared,
@@ -21,6 +22,7 @@ import { playSfx } from '@/lib/sfx';
 import { haptic } from '@/lib/haptics';
 import TsumugiArt from '@/components/tsumugi/TsumugiArt';
 import MicButton from '@/components/tsumugi/MicButton';
+import SayItPractice from '@/components/tsumugi/SayItPractice';
 import type { LevelUpEvent } from '@/components/TsumugiApp';
 
 /** 何ターン話したらクリア扱いにするか */
@@ -101,6 +103,8 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
   ]);
   /** 「訳」を開いている返事 */
   const [shownJa, setShownJa] = useState<ReadonlySet<string>>(() => new Set());
+  /** 添削された文を、その場で言い直せた返事 */
+  const [practiced, setPracticed] = useState<ReadonlySet<string>>(() => new Set());
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -140,6 +144,27 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
       });
     },
     []
+  );
+
+  /** 直された文を言い直せたら、紬がほめる。復習の予定も少し先に動かす */
+  const praiseRetry = useCallback(
+    (m: Message) => {
+      setPracticed((prev) => new Set(prev).add(m.id));
+      if (m.mistakeId) markMistakePracticed(m.mistakeId);
+      playSfx('correct');
+      haptic('medium');
+      setExpression('cheer');
+      const gain = addBondPoints(1);
+      if (gain.leveledUp) onLevelUp({ level: gain.newLevel, unlocked: gain.unlocked });
+      if (state.settings.jaVoice) {
+        stopAllSpeech();
+        speakJa(getPraise(state.bond.level).id, {
+          onStart: () => setSpeaking(true),
+          onEnd: () => setSpeaking(false),
+        });
+      }
+    },
+    [onLevelUp, state.settings.jaVoice, state.bond.level]
   );
 
   const send = useCallback(
@@ -183,6 +208,8 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
         const { text: reply, translation, correction } = parseReply(answer);
         // 直してくれる場面は、考え顔より指差しのほうが意図が伝わる
         const expr: Expression = correction ? 'point' : inferExpression(reply);
+        const mistakeId = correction ? addMistake(correction, 'festival') : undefined;
+        if (correction) corrections.current += 1;
 
         setMessages((prev) => [
           ...prev,
@@ -194,17 +221,13 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
             correction,
             expression: expr,
             translation,
+            mistakeId,
           },
         ]);
         setExpression(expr);
 
         // 直されたときは受信音ではなく、やわらかい音にする
         playSfx(correction ? 'soft' : 'receive');
-
-        if (correction) {
-          corrections.current += 1;
-          addMistake(correction, 'festival');
-        }
 
         const gain = addBondPoints(correction ? 2 : 3);
         if (gain.leveledUp) onLevelUp({ level: gain.newLevel, unlocked: gain.unlocked });
@@ -433,7 +456,14 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
                       </button>
                     )}
                   </div>
-                  {m.correction && <CorrectionBlock correction={m.correction} bondLevel={state.bond.level} />}
+                  {m.correction && (
+                    <CorrectionBlock
+                      correction={m.correction}
+                      bondLevel={state.bond.level}
+                      practiced={practiced.has(m.id)}
+                      onPracticed={() => praiseRetry(m)}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="flex justify-end">
@@ -570,6 +600,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           cleared={summary.turns >= TURNS_TO_CLEAR}
           reduceMotion={state.settings.reduceMotion}
           jaVoice={state.settings.jaVoice}
+          learned={messages.flatMap((m) =>
+            m.correction
+              ? [{ id: m.id, said: m.correction.said, better: m.correction.better, practiced: practiced.has(m.id) }]
+              : []
+          )}
           onClose={() => {
             setSummary(null);
             onExit();
@@ -593,10 +628,22 @@ const SEVERITY: Record<CorrectionCard['severity'], { label: string; color: strin
 /** 日本語で「なんて言うの？」と聞いたときの答え。間違いではないので取り消し線にしない */
 const HOW_TO_SAY = { label: '言い方', color: 'var(--tsu-lav-400)' };
 
-function CorrectionBlock({ correction, bondLevel }: { correction: CorrectionCard; bondLevel: number }) {
+function CorrectionBlock({
+  correction,
+  bondLevel,
+  practiced,
+  onPracticed,
+}: {
+  correction: CorrectionCard;
+  bondLevel: number;
+  /** その場で言い直せたか */
+  practiced: boolean;
+  onPracticed: () => void;
+}) {
   const askedInJapanese = JA_CHARS.test(correction.said);
   const meta = askedInJapanese ? HOW_TO_SAY : SEVERITY[correction.severity];
   const [praise] = useState(() => getPraise(bondLevel));
+  const [trying, setTrying] = useState(false);
 
   return (
     <div
@@ -630,6 +677,25 @@ function CorrectionBlock({ correction, bondLevel }: { correction: CorrectionCard
       <p className="mt-1.5 text-[12.5px] font-semibold leading-relaxed" style={{ color: 'var(--text-soft)' }}>
         {correction.why}
       </p>
+
+      {/* 見て終わりにしない。直された文を自分の口で言ってみる */}
+      {practiced ? (
+        <p className="anim-pop mt-2.5 text-[12.5px] font-extrabold" style={{ color: 'var(--tsu-pink-600)' }}>
+          ✓ 言い直せた！ 忘れたころに、復習でもう一回出すね
+        </p>
+      ) : trying ? (
+        <SayItPractice target={correction.better} onPass={onPracticed} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setTrying(true)}
+          className="tsu-btn mt-2.5 w-full py-2.5 text-[13px] font-extrabold"
+          style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
+        >
+          🎤 言い直してみる
+        </button>
+      )}
+
       <p className="mt-2 text-[11.5px] font-bold" style={{ color: 'var(--text-faint)' }}>
         「{praise.text}」
       </p>
@@ -651,6 +717,7 @@ function SessionSummary({
   cleared,
   reduceMotion,
   jaVoice,
+  learned,
   onClose,
 }: {
   scenarioTitle: string;
@@ -662,6 +729,8 @@ function SessionSummary({
   cleared: boolean;
   reduceMotion: boolean;
   jaVoice: boolean;
+  /** この会話で直された言い方（数字だけで終わらせず、覚えることを最後にもう一度見せる） */
+  learned: Array<{ id: string; said: string; better: string; practiced: boolean }>;
   onClose: () => void;
 }) {
   const [line] = useState(() => getClosingLine(bondLevel, corrections));
@@ -683,7 +752,7 @@ function SessionSummary({
       aria-modal="true"
       aria-label="セッションのまとめ"
     >
-      <div className="tsu-card-solid anim-levelup w-full max-w-sm px-6 pb-6 pt-6 text-center">
+      <div className="tsu-card-solid tsu-scroll anim-levelup max-h-[92dvh] w-full max-w-sm overflow-y-auto px-6 pb-6 pt-6 text-center">
         {cleared && (
           <p
             className="mx-auto mb-1 w-fit rounded-full px-3 py-1 text-[11px] font-extrabold text-white"
@@ -698,6 +767,7 @@ function SessionSummary({
           outfit={outfit}
           size={170}
           reduceMotion={reduceMotion}
+          className="mx-auto"
         />
 
         <p className="mt-1 text-[15px] font-bold leading-relaxed" style={{ color: 'var(--text)' }}>
@@ -717,6 +787,37 @@ function SessionSummary({
           >
             💗 親密度が Lv.{gain.newLevel} になりました
           </p>
+        )}
+
+        {learned.length > 0 && (
+          <div className="mt-4 text-left">
+            <p className="text-[11.5px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
+              きょう覚えた言い方（復習にも入ってるよ）
+            </p>
+            <ul className="mt-1.5 flex flex-col gap-1.5">
+              {learned.map((l) => (
+                <li key={l.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopAllSpeech();
+                      speakText(l.better);
+                    }}
+                    className="tsu-btn w-full rounded-2xl px-3.5 py-2.5 text-left"
+                    style={{ background: 'var(--tsu-pink-50)' }}
+                  >
+                    <span className="block text-[14px] font-extrabold leading-snug" style={{ color: 'var(--tsu-pink-600)' }}>
+                      {l.practiced && '✓ '}
+                      {l.better} <span className="text-[12px]">🔊</span>
+                    </span>
+                    <span className="mt-0.5 block text-[11.5px] font-semibold" style={{ color: 'var(--text-faint)' }}>
+                      {l.said}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <button type="button" onClick={onClose} className="tsu-btn tsu-btn-primary mt-5 w-full py-3.5 text-[15px]">

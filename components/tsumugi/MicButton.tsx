@@ -32,11 +32,13 @@ interface MicButtonProps {
   onResult: (text: string) => void;
   onInterim?: (text: string) => void;
   disabled?: boolean;
+  /** カードの中など、狭い所に置くとき */
+  compact?: boolean;
 }
 
 const subscribeNoop = () => () => {};
 
-export default function MicButton({ onResult, onInterim, disabled }: MicButtonProps) {
+export default function MicButton({ onResult, onInterim, disabled, compact }: MicButtonProps) {
   // SpeechRecognition の有無はブラウザ側の事実なので、外部ストアとして読む
   const supported = useSyncExternalStore(
     subscribeNoop,
@@ -114,7 +116,7 @@ export default function MicButton({ onResult, onInterim, disabled }: MicButtonPr
         disabled={disabled}
         aria-label={listening ? '録音を止める' : '英語で話す'}
         aria-pressed={listening}
-        className="tsu-btn relative grid h-12 w-12 place-items-center text-[20px]"
+        className={`tsu-btn relative grid place-items-center ${compact ? 'h-10 w-10 text-[17px]' : 'h-12 w-12 text-[20px]'}`}
         style={{
           background: listening
             ? 'linear-gradient(135deg, var(--tsu-pink-400), var(--tsu-pink-600))'

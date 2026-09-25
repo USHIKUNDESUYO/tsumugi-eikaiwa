@@ -66,6 +66,8 @@ export interface Message {
   expression?: Expression;
   /** 相手の返事の日本語訳（「訳」を押したときだけ見せる） */
   translation?: string;
+  /** 添削を記録した間違いの id（言い直せたら復習の予定を動かす） */
+  mistakeId?: string;
 }
 
 export interface CorrectionCard {
