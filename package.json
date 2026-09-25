@@ -6,20 +6,33 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:mobile": "BUILD_TARGET=mobile node scripts/build-mobile.mjs",
+    "cap:open": "npx cap open android",
+    "cap:sync": "npx cap sync android",
+    "gen:character": "node scripts/generate-character.mjs",
+    "gen:voice": "npx tsx scripts/export-voice-lines.ts && python3 scripts/generate-voice-qwen.py",
+    "gen:scenes": "node scripts/generate-scenes.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@revenuecat/purchases-capacitor": "^13.6.1",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@breezystack/lamejs": "^1.2.7",
+    "@capacitor/cli": "^8.5.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

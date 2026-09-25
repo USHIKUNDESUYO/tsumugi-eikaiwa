@@ -4,10 +4,15 @@
  * Includes soft female English voice selection for device TTS
  */
 
+import { apiUrl } from './apiBase';
+import { duckBgm, unduckBgm } from './bgm';
+import { playVoiceFile, stopVoice } from './tsumugiSpeech';
+import { ENGLISH_VOICE_LINES } from './englishVoiceLines';
+
 export interface TTSOptions {
   onStart?: () => void;
   onEnd?: () => void;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
 }
 
 type VoiceSelectionResult = {
@@ -254,6 +259,9 @@ export function createTsumugiUtterance(content: string): SpeechSynthesisUtteranc
  * Stops all speech (both cloud and device)
  */
 export function stopAllSpeech() {
+  // 同梱の音声（紬の日本語のセリフ・事前に作った英文）も止める
+  stopVoice();
+
   if (currentAudio) {
     currentAudio.pause();
     currentAudio = null;
@@ -294,7 +302,7 @@ export async function probeCloudTTS(): Promise<void> {
   }
   
   try {
-    const response = await fetch('/api/tts', {
+    const response = await fetch(apiUrl('/api/tts'), {
       method: 'HEAD',
       signal: AbortSignal.timeout(2000),
     });
@@ -313,7 +321,7 @@ export async function speakWithCloudTTS(
   options: TTSOptions = {}
 ): Promise<boolean> {
   try {
-    const response = await fetch('/api/tts', {
+    const response = await fetch(apiUrl('/api/tts'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -449,25 +457,75 @@ export function speakText(
 ): void {
   stopAllSpeech();
 
+  // 紬の声で事前に作ってある英文（フレーズ・場面の最初のひとこと）は、
+  // 同梱の音声をそのまま鳴らす。読めなかったときだけ、その場の読み上げに回す。
+  const key = text.trim();
+  const clip = Object.hasOwn(ENGLISH_VOICE_LINES, key) ? ENGLISH_VOICE_LINES[key] : undefined;
+  if (clip) {
+    playVoiceFile(`/voice-en/${clip}.mp3`, {
+      onStart: options.onStart,
+      onEnd: options.onEnd,
+      onError: () => speakLive(text, options),
+    });
+    return;
+  }
+
+  speakLive(text, options);
+}
+
+/** その場で読み上げる（クラウドTTSが設定されていればそれ、無ければ端末の声） */
+function speakLive(text: string, options: TTSOptions): void {
+  // 読み上げ中はBGMを下げる。英語を聞き取る邪魔をしない。
+  let ducked = false;
+  const duck = () => {
+    if (ducked) return;
+    ducked = true;
+    duckBgm();
+  };
+  const unduck = () => {
+    if (!ducked) return;
+    ducked = false;
+    unduckBgm();
+  };
+  // 呼び出し元のコールバックは options から呼ぶ。options を wrapped に差し替えると
+  // 各コールバックが自分自身を呼び続けてスタックが溢れ、onEnd が画面に届かない
+  // （読み上げが終わっても紬の口パクが止まらなかった）。
+  const wrapped: TTSOptions = {
+    ...options,
+    onStart: () => {
+      duck();
+      options.onStart?.();
+    },
+    onEnd: () => {
+      unduck();
+      options.onEnd?.();
+    },
+    onError: (error) => {
+      unduck();
+      options.onError?.(error);
+    },
+  };
+  duck();
+
   // Synchronous check - no network calls before speaking
   if (isCloudTTSEnabled()) {
     // Cloud TTS is explicitly configured - try it asynchronously
     speakWithCloudTTS(text, {
-      ...options,
+      ...wrapped,
       onError: (error) => {
         console.error('Cloud TTS failed, falling back to device:', error);
         // Fallback to device TTS on error
-        speakWithDeviceTTS(text, options);
+        speakWithDeviceTTS(text, wrapped);
       }
     }).catch((error) => {
       console.error('Cloud TTS error, falling back to device:', error);
-      speakWithDeviceTTS(text, options);
+      speakWithDeviceTTS(text, wrapped);
     });
     return;
   }
-  
+
   // Use device TTS (default path, synchronous)
-  speakWithDeviceTTS(text, options);
+  speakWithDeviceTTS(text, wrapped);
 }
 
 /**

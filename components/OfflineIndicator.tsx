@@ -1,58 +1,45 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+
+function subscribeOnline(callback: () => void) {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
 
 export default function OfflineIndicator() {
-  const [isOnline, setIsOnline] = useState(true);
-  const [showOfflineNotice, setShowOfflineNotice] = useState(false);
+  // navigator.onLine はブラウザ側の状態なので外部ストアとして購読する
+  const isOnline = useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true
+  );
+  const [wasOffline, setWasOffline] = useState(!isOnline);
 
+  // オフラインに落ちたことをレンダー中に記録しておく（復帰バナーを出すため）
+  if (!isOnline && !wasOffline) setWasOffline(true);
+
+  // 復帰バナーはしばらくしたら自分で消える。setState はタイマーの中だけ。
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!isOnline || !wasOffline) return;
+    const t = setTimeout(() => setWasOffline(false), 2600);
+    return () => clearTimeout(t);
+  }, [isOnline, wasOffline]);
 
-    const updateOnlineStatus = () => {
-      const online = navigator.onLine;
-      setIsOnline(online);
-      
-      if (!online) {
-        setShowOfflineNotice(true);
-      } else {
-        setTimeout(() => setShowOfflineNotice(false), 3000);
-      }
-    };
-
-    setIsOnline(navigator.onLine);
-    setShowOfflineNotice(!navigator.onLine);
-
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-
-    return () => {
-      window.removeEventListener('online', updateOnlineStatus);
-      window.removeEventListener('offline', updateOnlineStatus);
-    };
-  }, []);
-
-  if (!showOfflineNotice && isOnline) return null;
+  const showRecovered = isOnline && wasOffline;
+  if (isOnline && !showRecovered) return null;
 
   return (
     <div
-      className={`fixed top-14 sm:top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full shadow-lg text-sm font-medium transition-all duration-300 ${
-        isOnline
-          ? 'bg-green-500 text-white'
-          : 'bg-amber-500 text-white'
-      }`}
+      role="status"
+      className="anim-pop fixed left-1/2 top-3 z-[60] -translate-x-1/2 rounded-full px-4 py-2 text-[12.5px] font-extrabold text-white shadow-lg safe-top"
+      style={{ background: isOnline ? '#3FBF8F' : 'var(--tsu-gold)' }}
     >
-      {isOnline ? (
-        <>
-          <span className="mr-2">✓</span>
-          オンラインに戻りました
-        </>
-      ) : (
-        <>
-          <span className="mr-2">📡</span>
-          オフラインモード - 復習リストは利用可能
-        </>
-      )}
+      {isOnline ? '✓ オンラインに戻りました' : '📡 オフライン中 — 復習とフレーズ帳は使えます'}
     </div>
   );
 }

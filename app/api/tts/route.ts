@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { corsHeaders, preflight } from '@/app/api/cors';
 
 // Only use explicit TTS_API_KEY - do NOT fallback to OPENAI_API_KEY
 // (which may be a DeepSeek chat key, not a TTS key)
@@ -11,14 +12,21 @@ interface TTSRequest {
   text: string;
 }
 
-export async function HEAD() {
+export async function HEAD(request: NextRequest) {
+  const headers = corsHeaders(request);
   if (!TTS_API_KEY) {
-    return new NextResponse(null, { status: 503 });
+    return new NextResponse(null, { status: 503, headers });
   }
-  return new NextResponse(null, { status: 200 });
+  return new NextResponse(null, { status: 200, headers });
+}
+
+/** アプリ版（Capacitor）からのプリフライト */
+export function OPTIONS(request: NextRequest) {
+  return preflight(request);
 }
 
 export async function POST(request: NextRequest) {
+  const headers = corsHeaders(request);
   try {
     const body: TTSRequest = await request.json();
     const { text } = body;
@@ -26,14 +34,14 @@ export async function POST(request: NextRequest) {
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
         { error: 'Invalid text format' },
-        { status: 400 }
+        { status: 400, headers }
       );
     }
 
     if (!TTS_API_KEY) {
       return NextResponse.json(
         { error: 'TTS service not configured' },
-        { status: 503 }
+        { status: 503, headers }
       );
     }
 
@@ -54,7 +62,7 @@ export async function POST(request: NextRequest) {
       console.error('TTS API error:', response.status, response.statusText);
       return NextResponse.json(
         { error: 'TTS service failed' },
-        { status: response.status }
+        { status: response.status, headers }
       );
     }
 
@@ -63,6 +71,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(audioBuffer, {
       status: 200,
       headers: {
+        ...headers,
         'Content-Type': 'audio/mpeg',
         'Cache-Control': 'public, max-age=3600',
       },
@@ -71,7 +80,7 @@ export async function POST(request: NextRequest) {
     console.error('TTS API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 }

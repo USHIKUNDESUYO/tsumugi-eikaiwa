@@ -1,129 +1,249 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSystemPrompt } from '@/lib/prompts';
-import { ChatMode, LanguageLevel, Message, BusinessScenario, DifficultyLevel } from '@/types';
+import { festivalScenarios } from '@/lib/festivalScenarios';
+import { corsHeaders, preflight } from '@/app/api/cors';
+import { fillName } from '@/lib/learnerName';
+import type {
+  ChatMode,
+  LanguageLevel,
+  Message,
+  BusinessScenario,
+  DifficultyLevel,
+  FestivalScenarioId,
+} from '@/types';
 
 interface ChatRequest {
   messages: Message[];
   mode: ChatMode;
   level: LanguageLevel;
   businessScenario?: BusinessScenario;
+  festivalScenario?: FestivalScenarioId;
   businessDifficulty?: DifficultyLevel;
   successfulTurns?: number;
+  bondLevel?: number;
+  userName?: string;
 }
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.deepseek.com';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'deepseek-v4-flash';
+/** 思考モードを切るパラメータは DeepSeek 独自。ほかの OpenAI 互換 API には送らない。 */
+const IS_DEEPSEEK = (() => {
+  try {
+    return /(^|\.)deepseek\.com$/.test(new URL(OPENAI_BASE_URL).hostname);
+  } catch {
+    return false;
+  }
+})();
 
-async function getAIResponse(
-  messages: Message[], 
-  mode: ChatMode, 
-  level: LanguageLevel,
-  businessScenario?: BusinessScenario,
-  businessDifficulty?: DifficultyLevel,
-  successfulTurns?: number
-): Promise<string> {
+/** 直近のやり取りだけ送ってトークンと遅延を抑える */
+const MAX_HISTORY = 16;
+
+/** live: false のときは reason に理由を入れる（定型文に落ちた原因を外から測るため） */
+interface AIResult {
+  text: string;
+  live: boolean;
+  reason?: string;
+}
+
+async function getAIResponse(body: ChatRequest): Promise<AIResult> {
+  const {
+    messages,
+    mode,
+    level,
+    businessScenario,
+    festivalScenario,
+    businessDifficulty,
+    successfulTurns,
+    bondLevel,
+    userName,
+  } = body;
+
   if (!OPENAI_API_KEY) {
-    return getMockResponse(messages[messages.length - 1]?.content || '', mode, businessScenario);
+    return { text: getMockResponse(body), live: false, reason: 'no-api-key' };
   }
 
   try {
-    const systemPrompt = getSystemPrompt(mode, level, businessScenario, businessDifficulty, successfulTurns);
-    
+    const systemPrompt = getSystemPrompt(
+      mode,
+      level,
+      businessScenario,
+      businessDifficulty,
+      successfulTurns,
+      festivalScenario,
+      bondLevel,
+      userName
+    );
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+
     const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
+      signal: controller.signal,
       body: JSON.stringify({
         model: OPENAI_MODEL,
         messages: [
           { role: 'system', content: systemPrompt },
-          ...messages.map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
+          ...messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
         ],
-        temperature: 0.8,
-        max_tokens: 500,
+        temperature: 0.9,
+        max_tokens: 400,
+        // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
+        // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
+        // 途中で切れたりしていた。会話は返事の速さが命で、思考モードでは
+        // temperature も効かないので、思考は切る。
+        ...(IS_DEEPSEEK ? { thinking: { type: 'disabled' } } : {}),
       }),
-    });
+    }).finally(() => clearTimeout(timeout));
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const detail = (await response.text().catch(() => '')).slice(0, 200);
+      throw new Error(`API error: ${response.status} ${detail}`);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || 'I apologize, I had trouble responding. Could you try again?';
+    const choice = data.choices?.[0];
+    const text = choice?.message?.content;
+    if (!text) {
+      throw new Error(
+        `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
+      );
+    }
+    return { text, live: true };
   } catch (error) {
     console.error('AI API error:', error);
-    return getMockResponse(messages[messages.length - 1]?.content || '', mode, businessScenario);
+    const reason = error instanceof Error ? error.message : String(error);
+    return { text: getMockResponse(body), live: false, reason };
   }
 }
 
-function getMockResponse(userMessage: string, mode: ChatMode, businessScenario?: BusinessScenario): string {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
-    return "Hello! It's nice to meet you. How are you doing today?";
+/* ------------------------------------------------------------------ */
+/*  APIキーが無くても「会話している感じ」が壊れないようにするフォールバック  */
+/* ------------------------------------------------------------------ */
+
+const FESTIVAL_FALLBACKS: Record<FestivalScenarioId, string[]> = {
+  'arrival-checkin': [
+    "Perfect, you're all set! Your wristband goes on the left. Your tent site is number 34 — head past the big tree and turn right. Need help with your bags?",
+    "Got it. Re-entry is fine, just keep the wristband on. Anything else you want to know before you head in?",
+  ],
+  'first-hello': [
+    "Nice to meet you! I'm Leo, from Berlin. This is my second time in Japan but my first Synapse. What about you?",
+    "Oh really? That's cool. So what brought you all the way out here?",
+  ],
+  'about-your-work': [
+    "An app! Okay, now I'm curious. What does it actually do?",
+    "That's honestly impressive. How long have you been working on it?",
+  ],
+  'music-talk': [
+    "Right?! The way he layered that bassline — unreal. Are you more into house or techno?",
+    "You should check out this artist I saw last year. Do you want me to write it down?",
+  ],
+  'camping-tent': [
+    "Ha, no worries — take one of my spare pegs. It gets windy here by the bay at night.",
+    "I'm heading to the main stage around eleven. Want to walk over together?",
+  ],
+  'sauna-totonou': [
+    "Wait, so you wash BEFORE going in? Okay, okay. And how long do I stay in there?",
+    "Totonou… I love that there's a word for it. We definitely don't have that in English.",
+  ],
+  'food-drinks': [
+    "One of those coming up! Do you want it spicy or mild?",
+    "Oh that looks amazing. What is it? I have no idea what I'm looking at.",
+  ],
+  'workshop-art': [
+    "Of course you can join — we just started. It takes about forty minutes. Have you done anything like this before?",
+    "This piece is about connection, actually. Everyone adds one thread and it becomes a net.",
+  ],
+  'bonfire-deeptalk': [
+    "Mm. I think most people never really ask themselves that. … What would you do if it worked?",
+    "That's honest. Thanks for saying it. I think I'm scared of the same thing.",
+  ],
+  'swap-contacts': [
+    "Perfect, I'll scan your code. Done — I just followed you. Are you in the Discord too?",
+    "Definitely message me when the app is live. I want to try it.",
+  ],
+  'fukuoka-guide': [
+    "Yatai! Okay, I'm writing that down. How do I get there from Hakata station?",
+    "Motsunabe… is that the hotpot thing? Is it very spicy?",
+  ],
+  'rescue-phrases': [
+    "Ah sorry — I talk way too fast. Let me try again, slower. Is the second stage better than the main one?",
+    "Good, that's exactly how to ask. Okay, faster this time: what're you up to after this set?",
+  ],
+  'see-you-again': [
+    "Same. Three days and it already feels like I've known you way longer.",
+    "Okay — same time next year. Promise. Take care, alright?",
+  ],
+};
+
+function getMockResponse(body: ChatRequest): string {
+  const { mode, festivalScenario, messages } = body;
+  const last = messages[messages.length - 1]?.content ?? '';
+  const turn = messages.filter((m) => m.role === 'user').length;
+
+  if (mode === 'festival' && festivalScenario && FESTIVAL_FALLBACKS[festivalScenario]) {
+    const pool = FESTIVAL_FALLBACKS[festivalScenario];
+    const base = pool[Math.min(turn - 1, pool.length - 1)] ?? pool[pool.length - 1];
+    const scenario = festivalScenarios[festivalScenario];
+    const hint = scenario.phrases.find((p) => p.star);
+
+    // ごく簡単な検出だけして、学びのある返しにする
+    if (/^i am |^i'm a /i.test(last.trim()) && /\bstudent|developer|designer\b/i.test(last)) {
+      return base;
+    }
+    if (turn <= 1 && hint) {
+      const better = fillName(hint.en, body.userName, 'en');
+      const why = fillName(hint.ja, body.userName, 'ja');
+      return `${base}\n\n<correction>\n{\n  "said": "${escapeJson(last.slice(0, 80))}",\n  "better": "${escapeJson(better)}",\n  "why": "${escapeJson(why)} — この場面ではこの言い方がいちばん自然です。",\n  "severity": "minor"\n}\n</correction>`;
+    }
+    return base;
   }
-  
-  if (lowerMessage.includes('weather')) {
-    return "The weather is a great topic! I hope you're having nice weather where you are. Do you prefer sunny days or rainy days?\n\n<correction>\n{\n  \"said\": \"weather\",\n  \"better\": \"the weather\",\n  \"why\": \"天気について話すときは 'the weather' と定冠詞を付けるのが自然です\",\n  \"severity\": \"minor\"\n}\n</correction>";
+
+  const lower = last.toLowerCase();
+  if (/\b(hello|hi|hey)\b/.test(lower)) {
+    return "Hey! Good to see you. How's it going today?";
   }
-  
-  if (mode === 'meeting') {
-    return "That's an interesting point. From my perspective, clear communication in meetings is essential for team success. What do you think about setting clear agendas before meetings?";
+  if (lower.includes('weather')) {
+    return "The weather's been really nice, actually. Do you prefer sunny days or rainy ones?";
   }
-  
-  if (mode === 'vocab-drill') {
-    return "Let's learn some useful vocabulary! The word 'collaborate' means to work together with others toward a common goal. For example: 'Our team collaborated on the project.' Can you make a sentence using 'collaborate'?";
-  }
-  
   if (mode === 'business') {
-    const businessMockResponses: Record<string, string> = {
-      'meeting-basics': "That's a good point. I think we should also consider the timeline. When do you think we can complete this phase?\n\n<correction>\n{\n  \"said\": \"good point\",\n  \"better\": \"That's a good point\" or \"That's an excellent point\",\n  \"why\": \"ビジネス会議では 'That's a...' と完全な文で始めるのがより丁寧です\",\n  \"severity\": \"minor\"\n}\n</correction>",
-      'email-tone': "Thank you for your email. I would appreciate it if you could provide more details about the project timeline. Please let me know if you need any additional information.",
-      'presentation-qa': "That's a great question. Let me clarify the data from slide 3. Our growth rate increased by 15% year-over-year. Does that answer your question?",
-      'small-talk-work': "My weekend was great, thanks for asking! I went hiking. How about yours? By the way, have you had a chance to review the proposal I sent last week?",
-      'negotiation': "I appreciate your proposal. However, our timeline is quite tight. Would it be possible to move the deadline to next Friday instead of Monday?",
-      'phone-video': "Yes, I can hear you fine now. Thanks for checking! Let's move on to the main agenda. Can everyone see the slide I'm sharing?",
-    };
-    
-    return businessMockResponses[businessScenario || 'meeting-basics'] || businessMockResponses['meeting-basics'];
+    return "That's a fair point. What timeline do you have in mind for it?";
   }
-  
-  return "That's interesting! Thank you for sharing. Could you tell me more about that? I'd love to hear your thoughts.";
+  return "That's interesting — tell me a bit more about that.";
+}
+
+function escapeJson(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ');
 }
 
 export async function POST(request: NextRequest) {
+  const headers = corsHeaders(request);
   try {
     const body: ChatRequest = await request.json();
-    const { messages, mode, level, businessScenario, businessDifficulty, successfulTurns } = body;
 
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Invalid messages format' },
-        { status: 400 }
-      );
+    if (!body?.messages || !Array.isArray(body.messages)) {
+      return NextResponse.json({ error: 'Invalid messages format' }, { status: 400, headers });
     }
 
-    const aiResponse = await getAIResponse(
-      messages, 
-      mode, 
-      level, 
-      businessScenario, 
-      businessDifficulty, 
-      successfulTurns
-    );
-
-    return NextResponse.json({ response: aiResponse });
+    const { text, live, reason } = await getAIResponse(body);
+    return NextResponse.json({ response: text, live, reason }, { headers });
   } catch (error) {
     console.error('Chat API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers });
   }
+}
+
+/** クライアントが「AIが本当に繋がっているか」を確認するため */
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ configured: Boolean(OPENAI_API_KEY) }, { headers: corsHeaders(request) });
+}
+
+/** アプリ版（Capacitor）からのプリフライト */
+export function OPTIONS(request: NextRequest) {
+  return preflight(request);
 }

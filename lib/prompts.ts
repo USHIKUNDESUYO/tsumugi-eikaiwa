@@ -1,12 +1,17 @@
-import { ChatMode, LanguageLevel, BusinessScenario, DifficultyLevel } from '@/types';
+import { ChatMode, LanguageLevel, BusinessScenario, DifficultyLevel, FestivalScenarioId } from '@/types';
 import { getBusinessScenarioPrompt } from './businessScenarios';
+import { getFestivalScenarioPrompt, festivalScenarios } from './festivalScenarios';
 
 export function getSystemPrompt(
-  mode: ChatMode, 
+  mode: ChatMode,
   level: LanguageLevel,
   businessScenario?: BusinessScenario,
   businessDifficulty?: DifficultyLevel,
-  successfulTurns?: number
+  successfulTurns?: number,
+  festivalScenario?: FestivalScenarioId,
+  bondLevel = 1,
+  /** 学習者の名前（オンボーディングで入れたもの）。フェスの相手役に背景として渡す */
+  learnerName?: string
 ): string {
   const basePersonality = `You are Tsumugi (紬), a gentle companion who helps with English conversation. Your personality is soft, warm, and slightly reserved — like a kind friend who's naturally shy but genuinely wants to help. You're patient and encouraging, never harsh or condescending.
 
@@ -47,10 +52,11 @@ Only correct when truly helpful — don't overwhelm. Focus on mistakes that matt
     'presentation': 'Practice presentation skills: introducing topics, explaining data, handling questions, smooth transitions, engaging the audience.',
     'vocab-drill': 'Focus on vocabulary building. Introduce new words in context, explain usage, create example sentences together, and review.',
     'business': 'Business English practice with specific scenarios.',
+    'festival': 'Roleplay practice for SYNAPSE FESTIVAL 2026 in Fukuoka.',
   };
 
   let specificGuidance = modeGuidance[mode];
-  
+
   // Add business scenario specific guidance
   if (mode === 'business' && businessScenario && businessDifficulty) {
     specificGuidance = getBusinessScenarioPrompt(
@@ -60,14 +66,59 @@ Only correct when truly helpful — don't overwhelm. Focus on mistakes that matt
     );
   }
 
+  // Festival roleplay replaces the persona entirely: Tsumugi *plays* the character.
+  if (mode === 'festival' && festivalScenario && festivalScenarios[festivalScenario]) {
+    return `${getFestivalScenarioPrompt(festivalScenario, learnerName)}
+
+Level of the learner: ${levelGuidance[level]}
+
+${CORRECTION_FORMAT}`;
+  }
+
   return `${basePersonality}
+
+${getWarmthGuidance(bondLevel)}
 
 Level: ${levelGuidance[level]}
 
 Mode: ${specificGuidance}`;
 }
 
-export function getInitialGreeting(mode: ChatMode, businessScenario?: BusinessScenario): string {
+/** 親密度が上がるほど、紬の距離が近くなる */
+function getWarmthGuidance(bondLevel: number): string {
+  if (bondLevel >= 9) {
+    return `Closeness: You and the learner have practiced together for a long time now. Be openly warm and a little playful. You can tease them gently, show that you look forward to seeing them, and let real affection show through your shyness. Still never overstep into anything inappropriate — you are a supportive companion.`;
+  }
+  if (bondLevel >= 6) {
+    return `Closeness: You know this learner well by now. Drop most of the formality, use their name sometimes, refer back to how far they have come, and let your warmth show more openly.`;
+  }
+  if (bondLevel >= 3) {
+    return `Closeness: You are starting to get comfortable with this learner. Be a little more casual and personal than at the start.`;
+  }
+  return `Closeness: You have only just started practicing with this learner. Be kind and encouraging, but a touch reserved and polite.`;
+}
+
+const CORRECTION_FORMAT = `CORRECTION FORMAT
+When the learner makes a mistake worth fixing, append this block AFTER your in-character reply:
+<correction>
+{
+  "said": "the exact phrase the learner used",
+  "better": "the natural version",
+  "why": "日本語で、なぜそちらが自然なのかを1〜2文で",
+  "severity": "minor|moderate|important"
+}
+</correction>
+Correct at most one thing per reply, and only when it genuinely matters for being understood or sounding natural. Never correct twice in a row unless the mistake blocks understanding — momentum matters more than perfection.`;
+
+export function getInitialGreeting(
+  mode: ChatMode,
+  businessScenario?: BusinessScenario,
+  festivalScenario?: FestivalScenarioId
+): string {
+  if (mode === 'festival' && festivalScenario && festivalScenarios[festivalScenario]) {
+    return festivalScenarios[festivalScenario].opener;
+  }
+
   const greetings: Record<ChatMode, string> = {
     'free-chat': "Hi... I'm Tsumugi. Um, it's nice to meet you. Let's practice English together today. What would you like to talk about?",
     'daily-life': "Hello! I thought we could practice some everyday English today. How's your day been so far? Or... maybe you'd like to tell me about something you did recently?",
@@ -78,6 +129,7 @@ export function getInitialGreeting(mode: ChatMode, businessScenario?: BusinessSc
     'presentation': "Hello! Let's work on presentation skills. You could pick any topic — even something simple like a hobby you enjoy. What would you like to present about?",
     'vocab-drill': "Hi! Let's build your vocabulary today. Which area would help you most? Business terms, daily expressions, or... something else?",
     'business': "Hello! Let's practice business English together. I know it can feel a bit formal, but... I'll help you feel more confident. We can take it step by step.",
+    'festival': "Hey! Welcome to Synapse. Shall we practice for the festival?",
   };
   
   const businessGreetings: Record<BusinessScenario, string> = {

@@ -41,3 +41,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# capacitor / mobile build
+/.api-stash/
+/android/app/build/
+/android/build/
+/android/.gradle/
+/android/local.properties
+/android/app/release/
+*.keystore
+*.jks
+.tsumugi-gen.json
+
+# 生成イラストの中間ファイル（配信するのは .webp だけ）
+/public/tsumugi/*.png
+.tsumugi-scenes.json
+
+# BGMの元WAV（配信するのは加工済みMP3だけ）
+/public/bgm/_raw/
+
+# Python（scripts/generate-voice-qwen.py）
+__pycache__/

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Capacitor が生成・同期するもの（ビルド成果物なので対象外）
+    "android/**",
+    "ios/**",
+    ".api-stash/**",
   ]),
 ]);
 
