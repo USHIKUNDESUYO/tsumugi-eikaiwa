@@ -38,8 +38,8 @@ export interface FestivalPhrase {
   /** 最重要フレーズ（暗記推奨）*/
   star?: boolean;
   /**
-   * 学習者だけが言うセリフ。相手役が言うとおかしい（日本に来た人への質問、手伝ってもらう側の返事など）。
-   * 相手役は一覧のフレーズを自分のセリフに混ぜるので、印が無いと学習者の側のセリフまで口にしていた
+   * 学習者だけが言うセリフ。相手役が言うとおかしい（日本に来た人への質問、手伝ってもらう側の返事、
+   * 学習者が教える側の説明など）。相手役のプロンプトには渡さない（渡すと口にしていた）
    */
   userOnly?: boolean;
 }
@@ -263,7 +263,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       vibe: 'warm, practical, happy to lend things, asks about Japanese camping culture',
     },
     situation:
-      'You are camping in the tent next to the user at the festival campground overlooking Hakata Bay. It is evening. Camping in Japan is new to you, and you are curious how locals do it. Chat about setting up tents, the weather, borrowing gear, what time things start tomorrow, and where to get coffee in the morning. Be a helpful neighbour.',
+      'You are camping in the tent next to the user at the festival campground overlooking Hakata Bay. It is evening. Chat about setting up tents, the weather, borrowing gear, what time things start tomorrow, and where to get coffee in the morning. Be a helpful neighbour.',
     missions: [
       '隣のテントの人に挨拶する',
       '何か貸してもらえないか聞く',
@@ -656,19 +656,16 @@ export function getFestivalScenarioPrompt(id: FestivalScenarioId, learnerName?: 
   const s = festivalScenarios[id];
   const name = nameForEnglish(learnerName);
   const unknown = "[the user's name]";
-  const line = (p: FestivalPhrase) =>
-    `- "${fillName(p.en, learnerName, 'en', unknown)}" (${fillName(p.ja, learnerName, 'ja', unknown)})`;
-  // 学習者だけが言うセリフ（名前入りの自己紹介も）は、相手役が使う一覧と分けて渡す。
-  // 同じ一覧に「言わないで」と添えても、相手が自問自答したり（Can I still join? Yes, you can!）、
-  // 学習者が教えるはずのことを先に言ったりしていた（本番で 117回中 23回）
-  const isUserLine = (p: FestivalPhrase) => p.userOnly || p.en.includes(NAME_TOKEN);
-  const partnerLines = s.phrases.filter((p) => !isUserLine(p)).map(line).join('\n');
-  const userLines = s.phrases.filter(isUserLine).map(line).join('\n');
-  const usePhrases = partnerLines
-    ? `\n- Naturally work these useful expressions into your own lines so the user picks them up. Skip any question the user has already answered:\n${partnerLines}`
-    : '';
-  const practiceLines = userLines
-    ? `\nLINES THE USER IS PRACTICING\nThese are the user's lines, not yours. Never say or ask them as your own lines, and don't guess them aloud for the user. Play your part so they get natural chances to say them. If the user asks in Japanese how to say something, still give them the English to say (see CORRECTION FORMAT), even when it is one of these lines.\n${userLines}\n`
+  // 学習者だけが言うセリフ（名前入りの自己紹介も）は、相手役には渡さない。
+  // 同じ一覧に「言わないで」と添えても、「学習者が練習中のセリフ」として別に見せても、相手が
+  // 自問自答したり（Can I still join? Yes, you can!）、学習者に聞いたりしていた（本番で 117回中 23回）。
+  // 見せなければ写せない。学習者はフレーズ帳と復習で覚える
+  const phraseList = s.phrases
+    .filter((p) => !p.userOnly && !p.en.includes(NAME_TOKEN))
+    .map((p) => `- "${fillName(p.en, learnerName, 'en', unknown)}" (${fillName(p.ja, learnerName, 'ja', unknown)})`)
+    .join('\n');
+  const usePhrases = phraseList
+    ? `\n- Naturally work these useful expressions into your own lines so the user picks them up. Skip any question the user has already answered:\n${phraseList}`
     : '';
   // 名前は背景として渡すだけ。初対面の練習なので、本人が名乗るまでは使わせない。
   const aboutUser = name
@@ -696,7 +693,7 @@ HOW TO PLAY IT
 - Match the user's level: if they write short, simple English, keep yours simple too.
 - React like a human: laugh, get excited, be surprised, pause.
 - The user is a Japanese attendee practicing their English. They live in Japan, so treat them as a local, not a visitor.${usePhrases}
-${practiceLines}
+
 CORRECTIONS
 You are also secretly their English coach. When the user makes a mistake worth fixing, still reply in character first, then append the correction block. Do not break character inside the spoken reply itself.`;
 }
