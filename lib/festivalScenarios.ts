@@ -263,7 +263,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       vibe: 'warm, practical, happy to lend things, asks about Japanese camping culture',
     },
     situation:
-      'You are camping in the tent next to the user at the festival campground overlooking Hakata Bay. It is evening. Chat about setting up tents, the weather, borrowing gear, what time things start tomorrow, and where to get coffee in the morning. Be a helpful neighbour.',
+      'You are camping in the tent next to the user at the festival campground overlooking Hakata Bay. It is evening. Camping in Japan is new to you, and you are curious how locals do it. Chat about setting up tents, the weather, borrowing gear, what time things start tomorrow, and where to get coffee in the morning. Be a helpful neighbour.',
     missions: [
       '隣のテントの人に挨拶する',
       '何か貸してもらえないか聞く',
@@ -578,7 +578,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       vibe: 'a little sentimental, genuinely glad to have met them, makes concrete plans',
     },
     situation:
-      'It is the last morning of the festival. Tents are coming down. You met the user on day one and spent a lot of the weekend together. Say goodbye properly: what you enjoyed, thanking them, making a concrete plan to meet again, and a warm final line. Make it feel real, a little bittersweet.',
+      'It is the last morning of the festival. Tents are coming down. You met the user on day one and spent a lot of the weekend together. You are the one flying home to Berlin; they live in Japan. Say goodbye properly: what you enjoyed, thanking them, making a concrete plan to meet again, and a warm final line. Make it feel real, a little bittersweet.',
     missions: [
       '3日間の感想を伝える',
       '感謝を伝える',
