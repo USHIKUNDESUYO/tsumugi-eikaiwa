@@ -668,7 +668,7 @@ export function getFestivalScenarioPrompt(id: FestivalScenarioId, learnerName?: 
     ? `\n- Naturally work these useful expressions into your own lines so the user picks them up. Skip any question the user has already answered:\n${partnerLines}`
     : '';
   const practiceLines = userLines
-    ? `\nLINES THE USER IS PRACTICING\nThese are the user's lines, not yours. Never say or ask them yourself, not even to guess what they will say. Play your part so they get natural chances to say them.\n${userLines}\n`
+    ? `\nLINES THE USER IS PRACTICING\nThese are the user's lines, not yours. Never say or ask them as your own lines, and don't guess them aloud for the user. Play your part so they get natural chances to say them. If the user asks in Japanese how to say something, still give them the English to say (see CORRECTION FORMAT), even when it is one of these lines.\n${userLines}\n`
     : '';
   // 名前は背景として渡すだけ。初対面の練習なので、本人が名乗るまでは使わせない。
   const aboutUser = name
