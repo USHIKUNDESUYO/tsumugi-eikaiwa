@@ -140,12 +140,15 @@ Reply in character first. Then, only if the learner's last message has a real mi
 </correction>
 - If their message is already correct and natural, add NO block at all. Never add a block that praises them or repeats their sentence unchanged. Different-but-fine wording is not a mistake.
 - Fix every real mistake in the sentences you quote, not just one, so they can say the whole thing right next time.
-- If they write in Japanese (or mix Japanese in) because they don't know how to say or explain something, stay in character, give them the natural English to say in quotes, and invite them to try it. Then add a block for it: "said" is what they wanted to say, in their own Japanese, without the "how do I say it" part; "better" is how to say that in English, the words they can say out loud; "why" is a short Japanese note; "severity" is "minor". (「こたつ」って英語でどう説明する？ → "said": "こたつの説明", "better": "A kotatsu is a low table with a heater and a blanket over it.")
+- If they write in Japanese (or mix Japanese in) because they don't know how to say or explain something, stay in character, give them the natural English to say in quotes, and invite them to try it. Then add a block for it. In this block, "better" is the English they can say out loud, the answer they were looking for, never a question about how to say it. "said" is what they wanted to say, in their own Japanese. "why" is a short Japanese note, and "severity" is "minor". For example:
+  「お腹すいた」って英語でなんて言う？ → "said": "お腹すいた", "better": "I'm hungry."
+  「こたつ」ってどう説明する？ → "said": "こたつの説明", "better": "A kotatsu is a low table with a heater and a blanket over it."
 - Never write stage directions or actions such as *laughs* or (speaks slower). Write only the words you say.`;
 
 // 最後に置く（一覧のフレーズを使おうとして、もう聞いたことを聞き返していた）
 const FESTIVAL_FINAL_CHECK = `BEFORE YOU REPLY
-Check your question against everything the user has said so far. If they already told you the answer, ask about something else.`;
+Check your question against everything the user has said so far. If they already told you the answer, ask about something else.
+If they asked in Japanese how to say or explain something, check that "better" in your block is the answer they can say, not a question.`;
 
 export function getInitialGreeting(
   mode: ChatMode,
