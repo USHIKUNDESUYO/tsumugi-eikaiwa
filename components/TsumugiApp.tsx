@@ -78,6 +78,9 @@ export default function TsumugiApp() {
     haptic('light');
     if (next === 'review') setReviewOpenedAt(Date.now());
     setScreen(next);
+    // 画面は差し替えてもページのスクロール位置は残るので、ホームの下のほうから開くと
+    // 次の画面が途中から始まっていた（見出しやタブが見えない）。画面を変えたら先頭へ。
+    window.scrollTo({ top: 0 });
   }, []);
 
   /* --------------------------- 初回ロード中 --------------------------- */
