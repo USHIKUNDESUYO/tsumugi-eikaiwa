@@ -167,7 +167,11 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
 
       try {
         const answer = await askTsumugi({
-          messages: next.map(({ role, content }) => ({ role, content })),
+          // 訳はお手本として履歴に残す。消して送ると、数往復で <ja> を付けなくなった（4往復で 1/4）
+          messages: next.map(({ role, content, translation }) => ({
+            role,
+            content: role === 'assistant' && translation ? `${content}\n<ja>${translation}</ja>` : content,
+          })),
           mode: 'festival',
           level: state.profile.currentLevel,
           festivalScenario: scenarioId,
