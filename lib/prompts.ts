@@ -75,7 +75,9 @@ Level of the learner: ${LEVEL_GUIDANCE[level]}
 
 ${TRANSLATION_FORMAT}
 
-${CORRECTION_FORMAT}`;
+${CORRECTION_FORMAT}
+
+${FESTIVAL_FINAL_CHECK}`;
   }
 
   return `${basePersonality}
@@ -140,6 +142,10 @@ Reply in character first. Then, only if the learner's last message has a real mi
 - Fix every real mistake in the sentences you quote, not just one, so they can say the whole thing right next time.
 - If they write in Japanese (or mix Japanese in) because they don't know how to say something, stay in character, give them the natural English to say in quotes, and invite them to try it. Then add a block where "said" is their Japanese, "better" is that English, "why" is a short Japanese note, and "severity" is "minor".
 - Never write stage directions or actions such as *laughs* or (speaks slower). Write only the words you say.`;
+
+// 最後に置く（一覧のフレーズを使おうとして、もう聞いたことを聞き返していた）
+const FESTIVAL_FINAL_CHECK = `BEFORE YOU REPLY
+Check your question against everything the user has said so far. If they already told you the answer, ask about something else.`;
 
 export function getInitialGreeting(
   mode: ChatMode,

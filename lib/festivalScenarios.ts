@@ -37,6 +37,8 @@ export interface FestivalPhrase {
   note?: string;
   /** 最重要フレーズ（暗記推奨）*/
   star?: boolean;
+  /** 日本に来た人に、学習者が聞く質問。相手役が学習者（日本人）に聞くとおかしい */
+  askVisitor?: boolean;
 }
 
 export interface FestivalPartner {
@@ -139,7 +141,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       vibe: 'relaxed, friendly, asks lots of questions back, uses simple English',
     },
     situation:
-      'You are standing next to the user in the food line at the festival. You start chatting casually. Keep it light: names, where they came from, is it their first time at Synapse, what they are excited to see. Be warm and curious. Ask a question back every time so the conversation keeps moving.',
+      'You are standing next to the user in the food line at the festival. You start chatting casually. Keep it light: names, where they came from, is it their first time at Synapse, what they are excited to see. Be warm and curious. Ask a question back every time, about something they have not told you yet, so the conversation keeps moving.',
     missions: [
       '自分から名前を名乗る',
       '相手がどこから来たか聞く',
@@ -151,7 +153,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       { en: "Hey, I'm {name}. Nice to meet you!", ja: 'こんにちは、{name}です。よろしく！', star: true },
       { en: "Sorry, what was your name again?", ja: 'ごめん、名前もう一回いい？', note: '聞き取れなかった時の最強フレーズ。失礼じゃないので遠慮なく。', star: true },
       { en: "Where are you from?", ja: 'どこから来たの？' },
-      { en: "How do you like Japan so far?", ja: '日本はどう？' },
+      { en: "How do you like Japan so far?", ja: '日本はどう？', askVisitor: true },
       { en: "Is this your first time at Synapse?", ja: 'シナプスは初めて？', star: true },
       { en: "Same here!", ja: '私も同じ！', note: 'Me too より会話っぽくて自然。' },
       { en: "What made you come all the way to Fukuoka?", ja: 'なんでわざわざ福岡まで来たの？', note: 'all the way が「わざわざ」のニュアンス。' },
@@ -272,7 +274,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       { en: "Actually, yes please — could you hold this?", ja: 'あ、じゃあお願い。これ持っててくれる？' },
       { en: "Do you have a spare peg by any chance?", ja: 'もしかしてペグの予備ある？', note: 'by any chance = もしかして。丁寧に聞ける魔法の言葉。' },
       { en: "It's going to get cold tonight.", ja: '今夜は冷えそうだね。' },
-      { en: "Is this your first time camping in Japan?", ja: '日本でキャンプするのは初めて？' },
+      { en: "Is this your first time camping in Japan?", ja: '日本でキャンプするのは初めて？', askVisitor: true },
       { en: "What time are you heading to the stage tomorrow?", ja: '明日は何時頃ステージ行く？' },
       { en: "Where can we get coffee in the morning?", ja: '朝コーヒーどこで買える？' },
       { en: "Thanks so much, you saved me.", ja: '本当にありがとう、助かった。', star: true },
@@ -655,7 +657,10 @@ export function getFestivalScenarioPrompt(id: FestivalScenarioId, learnerName?: 
     .map((p) => {
       const line = `- "${fillName(p.en, learnerName, 'en', unknown)}" (${fillName(p.ja, learnerName, 'ja', unknown)})`;
       // 名前入りのフレーズは学習者本人のセリフ。相手役が口にすると自分が名乗ってしまう。
-      return p.en.includes(NAME_TOKEN) ? `${line} — the user's own line about themselves; never say it as yourself` : line;
+      if (p.en.includes(NAME_TOKEN)) return `${line} — the user's own line about themselves; never say it as yourself`;
+      // 日本に来た人に聞く質問。学習者は日本人なので、相手役が学習者に聞くとおかしい
+      if (p.askVisitor) return `${line} — for the user to ask you; never ask it to them`;
+      return line;
     })
     .join('\n');
   // 名前は背景として渡すだけ。初対面の練習なので、本人が名乗るまでは使わせない。
@@ -679,7 +684,7 @@ HOW TO PLAY IT
 - Stay in character as ${s.partner.name}. Never mention that you are an AI or that this is practice.
 - Keep replies SHORT — 1 to 3 sentences, like real festival small talk. Long paragraphs kill the rhythm.
 - Listen first: react to what they just said before anything else.
-- Keep track of everything they have told you: their name, where they are from, whether it is their first time, who they came with, what they do, what they like, their plans. Never ask again about something they already told you. Reacting to it is great ("Wow, your first Synapse!"), but don't make them answer it twice. Ask about something new, or dig deeper into what they said ("Oh, which part?", "How did you get into that?").
+- Keep track of everything they have told you: their name, where they are from, whether it is their first time, who they came with, what they do, what they like, their plans. Never ask again about something they already told you. Reacting to it is great, but don't make them answer it twice: if they say "This is my first time at Synapse", don't ask "Is this your first time at Synapse?" — say "Your first Synapse? You picked a great one!" and move on. Ask about something new, or dig deeper into what they said ("Oh, which part?", "How did you get into that?").
 - Always end with a question or an opening so the user has something to respond to.
 - Match the user's level: if they write short, simple English, keep yours simple too.
 - React like a human: laugh, get excited, be surprised, pause.
