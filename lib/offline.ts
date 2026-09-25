@@ -37,8 +37,30 @@ export function prepareOffline(outfit: Outfit): void {
   ];
 
   navigator.serviceWorker.ready
-    .then((registration) => registration.active?.postMessage({ type: 'precache', shell, urls }))
+    .then(async (registration) => {
+      // 前の版から更新したばかりだと、まだ前の版のサービスワーカーが動いていることがある。
+      // 前の版は保存の頼みを知らないので無視される（遅い回線だと入れ替わりが頼んだ後になり、
+      // 声が1本も保存されなかった）。新しい版があるか確かめて、入れ替わってから頼む
+      await registration.update().catch(() => {});
+      const incoming = registration.installing ?? registration.waiting ?? registration.active;
+      if (incoming) await settled(incoming);
+      registration.active?.postMessage({ type: 'precache', shell, urls });
+    })
     .catch(() => {
       /* 保存できなくても、電波がある間はふつうに使える */
     });
+}
+
+/** 入れ替わり中のサービスワーカーが動き出す（か、入れ替わりに失敗する）まで待つ */
+function settled(worker: ServiceWorker): Promise<void> {
+  const done = () => worker.state === 'activated' || worker.state === 'redundant';
+  if (done()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const onChange = () => {
+      if (!done()) return;
+      worker.removeEventListener('statechange', onChange);
+      resolve();
+    };
+    worker.addEventListener('statechange', onChange);
+  });
 }
