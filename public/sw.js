@@ -108,12 +108,35 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => {
-        // Fallback to cache
-        return caches.match(request);
-      })
+      .catch(() => fromCache(request))
   );
 });
+
+/**
+ * 電波が無いときに、保存してある応答を返す。
+ * 音声の要素は「一部だけ（Range）」を頼んでくるので、保存してある丸ごとから頼まれた部分を切り出して 206 で返す。
+ * 丸ごと（200）を返しても Chrome は鳴らせるが、Safari は最初に先頭2バイトだけ頼んで 206 を待つので鳴らせない。
+ */
+async function fromCache(request) {
+  const cached = await caches.match(request);
+  const range = request.headers.get('range');
+  if (!cached || !range || cached.status !== 200) return cached;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
+  if (!m || (m[1] === '' && m[2] === '')) return cached;
+
+  const body = await cached.arrayBuffer();
+  const size = body.byteLength;
+  // bytes=-N は末尾から N バイト
+  const start = m[1] === '' ? Math.max(0, size - Number(m[2])) : Number(m[1]);
+  const end = m[1] === '' || m[2] === '' ? size - 1 : Math.min(Number(m[2]), size - 1);
+  if (start >= size || start > end) {
+    return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } });
+  }
+  const headers = new Headers(cached.headers);
+  headers.set('Content-Range', `bytes ${start}-${end}/${size}`);
+  headers.set('Content-Length', String(end - start + 1));
+  return new Response(body.slice(start, end + 1), { status: 206, statusText: 'Partial Content', headers });
+}
 
 /* ------------------------------------------------------------------ */
 /*  オフラインの準備（lib/offline.ts から頼まれる）                        */
