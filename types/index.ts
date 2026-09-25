@@ -64,6 +64,8 @@ export interface Message {
   correction?: CorrectionCard;
   /** このメッセージを喋ったときの紬の表情 */
   expression?: Expression;
+  /** 相手の返事の日本語訳（「訳」を押したときだけ見せる） */
+  translation?: string;
 }
 
 export interface CorrectionCard {

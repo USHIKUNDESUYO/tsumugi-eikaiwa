@@ -36,6 +36,9 @@ interface Props {
 /* ------------------------- レスポンスの解析 ------------------------- */
 
 const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
+const TRANSLATION_RE = /<ja>\s*([\s\S]*?)\s*<\/ja>/i;
+/** かな・漢字を含むか（日本語で「なんて言うの？」と聞いた添削の見せ方を変える） */
+const JA_CHARS = /[぀-ヿ㐀-鿿]/;
 
 /**
  * 読み上げる本文を整える。「*(speaks slower)*」のようなト書きが混ざることがあり、
@@ -58,10 +61,12 @@ function isRealCorrection(c: CorrectionCard): boolean {
   return !alternatives(c.better).some((alt) => sameWords(c.said, alt));
 }
 
-function parseReply(raw: string): { text: string; correction?: CorrectionCard } {
-  const match = raw.match(CORRECTION_RE);
-  const text = cleanSpoken(raw.replace(CORRECTION_RE, ''));
-  if (!match) return { text };
+function parseReply(raw: string): { text: string; translation?: string; correction?: CorrectionCard } {
+  const translation = raw.match(TRANSLATION_RE)?.[1]?.trim() || undefined;
+  const body = raw.replace(TRANSLATION_RE, '').replace(/<\/?ja>/gi, '');
+  const match = body.match(CORRECTION_RE);
+  const text = cleanSpoken(body.replace(CORRECTION_RE, ''));
+  if (!match) return { text, translation };
 
   try {
     const parsed = JSON.parse(match[1]) as Partial<CorrectionCard>;
@@ -72,12 +77,12 @@ function parseReply(raw: string): { text: string; correction?: CorrectionCard } 
         why: parsed.why,
         severity: parsed.severity ?? 'minor',
       };
-      return isRealCorrection(correction) ? { text, correction } : { text };
+      return isRealCorrection(correction) ? { text, translation, correction } : { text, translation };
     }
   } catch {
     /* 壊れたJSONは黙って捨てる。会話が止まる方が損。 */
   }
-  return { text };
+  return { text, translation };
 }
 
 export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Props) {
@@ -89,10 +94,13 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
       id: 'opener',
       role: 'assistant',
       content: scenario.opener,
+      translation: scenario.openerJa,
       timestamp: startedAt,
       expression: 'smile',
     },
   ]);
+  /** 「訳」を開いている返事 */
+  const [shownJa, setShownJa] = useState<ReadonlySet<string>>(() => new Set());
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -168,7 +176,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           userName: state.profile.displayName,
         });
 
-        const { text: reply, correction } = parseReply(answer);
+        const { text: reply, translation, correction } = parseReply(answer);
         // 直してくれる場面は、考え顔より指差しのほうが意図が伝わる
         const expr: Expression = correction ? 'point' : inferExpression(reply);
 
@@ -181,6 +189,7 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
             timestamp: Date.now(),
             correction,
             expression: expr,
+            translation,
           },
         ]);
         setExpression(expr);
@@ -365,6 +374,9 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
           style={{ background: 'var(--tsu-lav-100)', color: 'var(--text-soft)' }}
         >
           {intro.text}
+          <span className="mt-1 block text-[11px] font-bold" style={{ color: 'var(--tsu-pink-600)' }}>
+            英語が出てこない時は、日本語で聞いてもいいよ
+          </span>
         </p>
 
         <ul className="flex flex-col gap-2.5 pb-3">
@@ -377,15 +389,46 @@ export default function ChatScreen({ scenarioId, state, onExit, onLevelUp }: Pro
                     style={{ borderTopLeftRadius: 8, color: 'var(--text)' }}
                   >
                     {m.content}
+                    {m.translation && shownJa.has(m.id) && (
+                      <span
+                        className="anim-up mt-2 block border-t pt-2 text-[13px] font-semibold leading-relaxed"
+                        style={{ borderColor: 'var(--border)', color: 'var(--text-soft)' }}
+                      >
+                        {m.translation}
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => speak(m.content)}
-                    className="tsu-btn self-start px-2 py-0.5 text-[10px] font-extrabold"
-                    style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
-                  >
-                    🔊 きく
-                  </button>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => speak(m.content)}
+                      className="tsu-btn px-2.5 py-1 text-[11px] font-extrabold"
+                      style={{ background: 'var(--tsu-pink-100)', color: 'var(--tsu-pink-600)' }}
+                    >
+                      🔊 きく
+                    </button>
+                    {m.translation && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShownJa((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(m.id)) next.delete(m.id);
+                            else next.add(m.id);
+                            return next;
+                          })
+                        }
+                        aria-pressed={shownJa.has(m.id)}
+                        className="tsu-btn px-2.5 py-1 text-[11px] font-extrabold"
+                        style={{
+                          background: shownJa.has(m.id) ? 'var(--tsu-lav-400)' : 'var(--tsu-lav-100)',
+                          color: shownJa.has(m.id) ? '#fff' : 'var(--tsu-lav-400)',
+                        }}
+                      >
+                        訳
+                      </button>
+                    )}
+                  </div>
                   {m.correction && <CorrectionBlock correction={m.correction} bondLevel={state.bond.level} />}
                 </div>
               ) : (
@@ -543,8 +586,12 @@ const SEVERITY: Record<CorrectionCard['severity'], { label: string; color: strin
   important: { label: 'だいじ', color: 'var(--tsu-pink-500)' },
 };
 
+/** 日本語で「なんて言うの？」と聞いたときの答え。間違いではないので取り消し線にしない */
+const HOW_TO_SAY = { label: '言い方', color: 'var(--tsu-lav-400)' };
+
 function CorrectionBlock({ correction, bondLevel }: { correction: CorrectionCard; bondLevel: number }) {
-  const meta = SEVERITY[correction.severity];
+  const askedInJapanese = JA_CHARS.test(correction.said);
+  const meta = askedInJapanese ? HOW_TO_SAY : SEVERITY[correction.severity];
   const [praise] = useState(() => getPraise(bondLevel));
 
   return (
@@ -560,13 +607,19 @@ function CorrectionBlock({ correction, bondLevel }: { correction: CorrectionCard
           {meta.label}
         </span>
         <span className="text-[11px] font-extrabold" style={{ color: 'var(--text-faint)' }}>
-          紬がそっと直してくれた
+          {askedInJapanese ? '英語ではこう言うよ' : '紬がそっと直してくれた'}
         </span>
       </div>
 
-      <p className="mt-2 text-[13.5px] font-semibold line-through" style={{ color: 'var(--text-faint)' }}>
-        {correction.said}
-      </p>
+      {askedInJapanese ? (
+        <p className="mt-2 text-[13px] font-semibold" style={{ color: 'var(--text-soft)' }}>
+          言いたかったこと：{correction.said}
+        </p>
+      ) : (
+        <p className="mt-2 text-[13.5px] font-semibold line-through" style={{ color: 'var(--text-faint)' }}>
+          {correction.said}
+        </p>
+      )}
       <p className="mt-0.5 text-[16px] font-extrabold leading-snug" style={{ color: 'var(--tsu-pink-600)' }}>
         {correction.better}
       </p>

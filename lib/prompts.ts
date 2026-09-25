@@ -72,6 +72,8 @@ Only correct when truly helpful — don't overwhelm. Focus on mistakes that matt
 
 Level of the learner: ${levelGuidance[level]}
 
+${TRANSLATION_FORMAT}
+
 ${CORRECTION_FORMAT}`;
   }
 
@@ -97,6 +99,10 @@ function getWarmthGuidance(bondLevel: number): string {
   }
   return `Closeness: You have only just started practicing with this learner. Be kind and encouraging, but a touch reserved and polite.`;
 }
+
+const TRANSLATION_FORMAT = `TRANSLATION
+Right after your in-character reply, always add a natural Japanese translation of what you just said (your reply only, not the correction block) inside <ja></ja>. The learner only sees it when they tap "訳", so keep it faithful and natural.
+Order: your reply, then <ja>…</ja>, then the correction block if there is one.`;
 
 const CORRECTION_FORMAT = `CORRECTION FORMAT
 Reply in character first. Then, only if the learner's last message has a real mistake or sounds clearly unnatural, append ONE correction block:

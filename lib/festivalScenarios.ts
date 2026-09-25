@@ -67,6 +67,8 @@ export interface FestivalScenario {
   missions: string[];
   /** 相手からの第一声 */
   opener: string;
+  /** 第一声の日本語訳（会話画面の「訳」で出す） */
+  openerJa: string;
   phrases: FestivalPhrase[];
   /** 文化的なひとことアドバイス */
   culturalTip?: string;
@@ -105,6 +107,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '荷物を預けられるか聞く',
     ],
     opener: "Hi! Welcome to Synapse. Do you have a ticket with you?",
+    openerJa: 'こんにちは！Synapse へようこそ。チケットはお持ちですか？',
     phrases: [
       { en: "I have a three-day pass.", ja: '3日通し券を持っています。', star: true },
       { en: "It's under the name {name}.", ja: '「{name}」の名前で予約しています。', note: '受付で名前を確認されたら。under the name 〜 が定番。' },
@@ -143,6 +146,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '「フェスは初めて？」を聞く',
     ],
     opener: "Hey! This line is insane, right? Have you tried the food here before?",
+    openerJa: 'ねえ！この列、すごすぎない？ここのごはん、前に食べたことある？',
     phrases: [
       { en: "Hey, I'm {name}. Nice to meet you!", ja: 'こんにちは、{name}です。よろしく！', star: true },
       { en: "Sorry, what was your name again?", ja: 'ごめん、名前もう一回いい？', note: '聞き取れなかった時の最強フレーズ。失礼じゃないので遠慮なく。', star: true },
@@ -181,6 +185,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '相手の仕事について質問を返す',
     ],
     opener: "So what do you do? Or — what are you working on these days?",
+    openerJa: 'それで、仕事は何してるの？というか、最近は何に取り組んでるの？',
     phrases: [
       { en: "I'm a developer. I build apps.", ja: '開発者です。アプリを作っています。', star: true },
       { en: "I'm working on an English conversation app right now.", ja: '今は英会話アプリを作っています。', star: true },
@@ -220,6 +225,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '相手におすすめを聞く',
     ],
     opener: "Oh man, this track is so good. Do you know who's playing right now?",
+    openerJa: 'うわ、この曲めちゃくちゃいいね。いま誰がやってるか知ってる？',
     phrases: [
       { en: "This track is amazing.", ja: 'この曲やばい。', star: true, note: 'track = 曲。フェスでは song より track の方が自然。' },
       { en: "I love this vibe.", ja: 'この雰囲気すごく好き。', star: true },
@@ -259,6 +265,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '明日の朝の予定を話す',
     ],
     opener: "Hey neighbour! Need a hand with that tent?",
+    openerJa: 'やあ、お隣さん！テント張るの、手伝おうか？',
     phrases: [
       { en: "Hey! I'm in the tent right next to you.", ja: 'こんにちは、隣のテントです。', star: true },
       { en: "Do you need a hand?", ja: '手伝おうか？', note: 'need a hand = 手を貸そうか。超自然。', star: true },
@@ -297,6 +304,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '何セット入るか聞く',
     ],
     opener: "Okay, I've never done this properly. How does this actually work?",
+    openerJa: 'ねえ、ちゃんとやったことないんだ。これって、どうやるのが正しいの？',
     phrases: [
       { en: "First you wash, then you go in.", ja: 'まず体を洗って、それから入る。', star: true, note: '日本の風呂マナーの基本。これだけは伝えたい。' },
       { en: "Usually three rounds is enough.", ja: '普通は3セットで十分だよ。', note: 'round = セット。サウナ用語として通じます。' },
@@ -335,6 +343,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '料理を説明する／シェアを提案する',
     ],
     opener: "Hey! What can I get you?",
+    openerJa: 'いらっしゃい！何にする？',
     phrases: [
       { en: "Could I get one of these, please?", ja: 'これを1つください。', star: true, note: '指さし + これで100%通じる。最強。' },
       { en: "What would you recommend?", ja: 'おすすめは何ですか？', star: true },
@@ -374,6 +383,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '作品の意味について質問する',
     ],
     opener: "Hi! Come closer — are you interested in joining?",
+    openerJa: 'こんにちは！もっと近くでどうぞ。参加してみない？',
     phrases: [
       { en: "Can I still join?", ja: '今からでも参加できますか？', star: true },
       { en: "How long does it take?", ja: 'どれくらい時間かかりますか？' },
@@ -412,6 +422,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '相手の話に深く相づちを打つ',
     ],
     opener: "It's quiet now… Can I ask you something? Why do you do what you do?",
+    openerJa: '静かになったね…ちょっと聞いてもいい？どうして今のことをやってるの？',
     phrases: [
       { en: "That's a big question.", ja: '大きな質問だね。', star: true, note: '考える時間を稼げる。しかも深い人に見える。' },
       { en: "Honestly, I'm still figuring it out.", ja: '正直、まだ答えを探してる。', star: true },
@@ -451,6 +462,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '「また会おう」で締める',
     ],
     opener: "Hey, this was really fun. Are you on Instagram?",
+    openerJa: 'ねえ、すごく楽しかった。インスタやってる？',
     phrases: [
       { en: "Let's keep in touch!", ja: '連絡取り合おう！', star: true },
       { en: "Are you on Instagram?", ja: 'インスタやってる？', star: true, note: 'フェスではインスタが一番よく使われます。' },
@@ -489,6 +501,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '「絶対食べるべきもの」を伝える',
     ],
     opener: "I have four more days here. Where should I go?",
+    openerJa: 'あと4日ここにいるんだ。どこに行けばいい？',
     phrases: [
       { en: "You should definitely check out the yatai.", ja: '屋台は絶対行った方がいい。', star: true },
       { en: "Yatai are open-air food stalls along the river. They open at night.", ja: '屋台は川沿いの屋外の食べ物の店。夜に開くんだ。', star: true, note: '日本語の固有名詞は「名前 + 説明」のセットで言うと必ず伝わる。' },
@@ -527,6 +540,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '「〜って意味？」で確認する',
     ],
     opener: "Ah brilliant, so you reckon the second stage lineup's better than the main one or what?",
+    openerJa: 'おお、いいね。じゃあ、セカンドステージのラインナップのほうがメインより良いと思ってるってこと？',
     phrases: [
       { en: "Sorry, could you say that again?", ja: 'すみません、もう一度言ってもらえますか？', star: true },
       { en: "Could you speak a little slower, please?", ja: 'もう少しゆっくり話してもらえますか？', star: true },
@@ -566,6 +580,7 @@ export const festivalScenarios: Record<FestivalScenarioId, FestivalScenario> = {
       '具体的な「次」の約束をする',
     ],
     opener: "So… that's it. Three days went way too fast.",
+    openerJa: 'そっか…これで終わりだね。3日間、あっという間すぎた。',
     phrases: [
       { en: "That went way too fast.", ja: 'あっという間だったね。', star: true },
       { en: "This was the best part of my year.", ja: '今年一番いい時間だった。' },
