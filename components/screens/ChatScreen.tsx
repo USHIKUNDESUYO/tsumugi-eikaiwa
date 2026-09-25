@@ -5,6 +5,7 @@ import type { AppState, CorrectionCard, Expression, FestivalScenarioId, Message 
 import { festivalScenarios } from '@/lib/festivalScenarios';
 import { askTsumugi } from '@/lib/chatTransport';
 import { fillName } from '@/lib/learnerName';
+import { alternatives, sameWords } from '@/lib/speechMatch';
 import { sceneSrc } from '@/lib/scenes';
 import {
   addMistake,
@@ -36,23 +37,42 @@ interface Props {
 
 const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
 
+/**
+ * 読み上げる本文を整える。「*(speaks slower)*」のようなト書きが混ざることがあり、
+ * そのまま読み上げると台無しになる。強調の * は記号だけ落とす。
+ */
+function cleanSpoken(text: string): string {
+  return text
+    .replace(/\*\([^)]*\)\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
+ * 直していない「添削」を捨てる。正しい文にも「完璧です！」と同じ文を返してくることがあり
+ * （測ったら正しい文6回中3回）、そのまま出すと正しい文が取り消し線つきで復習に残る。
+ */
+function isRealCorrection(c: CorrectionCard): boolean {
+  return !alternatives(c.better).some((alt) => sameWords(c.said, alt));
+}
+
 function parseReply(raw: string): { text: string; correction?: CorrectionCard } {
   const match = raw.match(CORRECTION_RE);
-  const text = raw.replace(CORRECTION_RE, '').trim();
+  const text = cleanSpoken(raw.replace(CORRECTION_RE, ''));
   if (!match) return { text };
 
   try {
     const parsed = JSON.parse(match[1]) as Partial<CorrectionCard>;
     if (parsed.said && parsed.better && parsed.why) {
-      return {
-        text,
-        correction: {
-          said: parsed.said,
-          better: parsed.better,
-          why: parsed.why,
-          severity: parsed.severity ?? 'minor',
-        },
+      const correction: CorrectionCard = {
+        said: parsed.said,
+        better: parsed.better,
+        why: parsed.why,
+        severity: parsed.severity ?? 'minor',
       };
+      return isRealCorrection(correction) ? { text, correction } : { text };
     }
   } catch {
     /* 壊れたJSONは黙って捨てる。会話が止まる方が損。 */

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSystemPrompt } from '@/lib/prompts';
-import { festivalScenarios } from '@/lib/festivalScenarios';
 import { corsHeaders, preflight } from '@/app/api/cors';
-import { fillName } from '@/lib/learnerName';
 import type {
   ChatMode,
   LanguageLevel,
@@ -188,20 +186,9 @@ function getMockResponse(body: ChatRequest): string {
 
   if (mode === 'festival' && festivalScenario && FESTIVAL_FALLBACKS[festivalScenario]) {
     const pool = FESTIVAL_FALLBACKS[festivalScenario];
-    const base = pool[Math.min(turn - 1, pool.length - 1)] ?? pool[pool.length - 1];
-    const scenario = festivalScenarios[festivalScenario];
-    const hint = scenario.phrases.find((p) => p.star);
-
-    // ごく簡単な検出だけして、学びのある返しにする
-    if (/^i am |^i'm a /i.test(last.trim()) && /\bstudent|developer|designer\b/i.test(last)) {
-      return base;
-    }
-    if (turn <= 1 && hint) {
-      const better = fillName(hint.en, body.userName, 'en');
-      const why = fillName(hint.ja, body.userName, 'ja');
-      return `${base}\n\n<correction>\n{\n  "said": "${escapeJson(last.slice(0, 80))}",\n  "better": "${escapeJson(better)}",\n  "why": "${escapeJson(why)} — この場面ではこの言い方がいちばん自然です。",\n  "severity": "minor"\n}\n</correction>`;
-    }
-    return base;
+    // AI に繋がらないときは会話をつなぐだけにする。以前は1ターン目に、言った内容と
+    // 関係なく必修フレーズを「添削」として付けていて、正しい文まで復習に残っていた。
+    return pool[Math.min(turn - 1, pool.length - 1)] ?? pool[pool.length - 1];
   }
 
   const lower = last.toLowerCase();
@@ -215,10 +202,6 @@ function getMockResponse(body: ChatRequest): string {
     return "That's a fair point. What timeline do you have in mind for it?";
   }
   return "That's interesting — tell me a bit more about that.";
-}
-
-function escapeJson(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ');
 }
 
 export async function POST(request: NextRequest) {

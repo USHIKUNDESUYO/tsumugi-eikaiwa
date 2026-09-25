@@ -99,16 +99,19 @@ function getWarmthGuidance(bondLevel: number): string {
 }
 
 const CORRECTION_FORMAT = `CORRECTION FORMAT
-When the learner makes a mistake worth fixing, append this block AFTER your in-character reply:
+Reply in character first. Then, only if the learner's last message has a real mistake or sounds clearly unnatural, append ONE correction block:
 <correction>
 {
-  "said": "the exact phrase the learner used",
-  "better": "the natural version",
-  "why": "日本語で、なぜそちらが自然なのかを1〜2文で",
+  "said": "the learner's sentence(s) that contain mistakes, copied exactly",
+  "better": "the same sentence(s) with every mistake fixed, the way a native speaker would say them",
+  "why": "日本語で、いちばん大事な直しを1〜2文で（ほかにも直した所があれば短く触れる）",
   "severity": "minor|moderate|important"
 }
 </correction>
-Correct at most one thing per reply, and only when it genuinely matters for being understood or sounding natural. Never correct twice in a row unless the mistake blocks understanding — momentum matters more than perfection.`;
+- If their message is already correct and natural, add NO block at all. Never add a block that praises them or repeats their sentence unchanged. Different-but-fine wording is not a mistake.
+- Fix every real mistake in the sentences you quote, not just one, so they can say the whole thing right next time.
+- If they write in Japanese (or mix Japanese in) because they don't know how to say something, stay in character, give them the natural English to say in quotes, and invite them to try it. Then add a block where "said" is their Japanese, "better" is that English, "why" is a short Japanese note, and "severity" is "minor".
+- Never write stage directions or actions such as *laughs* or (speaks slower). Write only the words you say.`;
 
 export function getInitialGreeting(
   mode: ChatMode,
