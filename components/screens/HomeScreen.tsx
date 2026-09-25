@@ -10,7 +10,6 @@ import {
   getEssentialPhrases,
 } from '@/lib/festivalScenarios';
 import { getGreeting } from '@/lib/tsumugiVoice';
-import { isScenarioUnlocked, LOCKED_SCENARIO_COUNT } from '@/lib/entitlements';
 import { getDueCards } from '@/lib/srs';
 import { speakText, stopAllSpeech } from '@/lib/ttsVoice';
 import { fillName } from '@/lib/learnerName';
@@ -25,13 +24,11 @@ import type { Screen } from '@/components/BottomNav';
 
 interface Props {
   state: AppState;
-  isPremium: boolean;
   onStart: (id: FestivalScenarioId) => void;
   onNavigate: (s: Screen) => void;
-  onOpenPaywall: () => void;
 }
 
-export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOpenPaywall }: Props) {
+export default function HomeScreen({ state, onStart, onNavigate }: Props) {
   // 挨拶はマウント時に一度だけ決める（毎レンダリングで変わると落ち着かない）
   const [greeting] = useState(() => getGreeting(state.bond.level));
   const [countdown, setCountdown] = useState(() => getCountdown());
@@ -60,10 +57,9 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
 
   /** 今日のおすすめ = まだクリアしていない最初のシナリオ */
   const recommended = useMemo(() => {
-    const playable = festivalScenarioOrder.filter((id) => isScenarioUnlocked(id, isPremium));
-    const next = playable.find((id) => !state.clearedScenarios.includes(id));
-    return festivalScenarios[next ?? playable[0] ?? festivalScenarioOrder[0]];
-  }, [state.clearedScenarios, isPremium]);
+    const next = festivalScenarioOrder.find((id) => !state.clearedScenarios.includes(id));
+    return festivalScenarios[next ?? festivalScenarioOrder[0]];
+  }, [state.clearedScenarios]);
 
   /** 今日のひとこと（日替わりで固定） */
   const [phraseOfDay] = useState(() => {
@@ -251,32 +247,6 @@ export default function HomeScreen({ state, isPremium, onStart, onNavigate, onOp
           </p>
         </button>
       </section>
-
-      {/* ---------------------------- 解放のご案内 ---------------------------- */}
-      {!isPremium && (
-        <section className="mt-4">
-          <button
-            type="button"
-            onClick={onOpenPaywall}
-            className="tsu-btn relative w-full overflow-hidden rounded-[26px] px-4 py-4 text-left text-white"
-            style={{
-              background: 'linear-gradient(120deg, #FF7FA9, #EE3D75 60%, #A78BFA)',
-              boxShadow: 'var(--shadow-md)',
-            }}
-          >
-            <span className="anim-shimmer pointer-events-none absolute inset-0" aria-hidden />
-            <span className="block text-[10.5px] font-extrabold tracking-[0.18em] opacity-90">
-              LOCKED
-            </span>
-            <span className="mt-0.5 block text-[15.5px] font-extrabold">
-              あと {LOCKED_SCENARIO_COUNT} 場面、紬と話せます
-            </span>
-            <span className="mt-0.5 block text-[11.5px] font-semibold opacity-90">
-              焚き火の夜・サウナ・音楽の話・連絡先交換…本番で効くところ
-            </span>
-          </button>
-        </section>
-      )}
 
       {/* --------------------------- 今日のひとこと --------------------------- */}
       <section className="mt-4 mb-6">
