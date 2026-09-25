@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCoachPrompt, getHelpAnswerPrompt, getSystemPrompt } from '@/lib/prompts';
-import { isQuestionAboutEnglish, parseCorrectionBlock } from '@/lib/correction';
+import { dropQuestionPrefix, isQuestionAboutEnglish, parseCorrectionBlock } from '@/lib/correction';
 import { hasJapanese } from '@/lib/speechMatch';
 import { corsHeaders, preflight } from '@/app/api/cors';
 import type {
@@ -153,14 +153,19 @@ const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
 async function fixHelpCard(text: string, level: LanguageLevel, festivalScenario?: FestivalScenarioId): Promise<string> {
   const match = text.match(CORRECTION_RE);
   const card = match ? parseCorrectionBlock(match[1]) : null;
-  if (!match || !card || !hasJapanese(card.said) || !isQuestionAboutEnglish(card.better)) return text;
+  if (!match || !card || !hasJapanese(card.said)) return text;
+  const replaceBetter = (better: string) =>
+    text.replace(match[0], () => `<correction>\n${JSON.stringify({ ...card, better }, null, 2)}\n</correction>`);
+  // 質問の英訳のあとに答えが続いているなら、質問を落とすだけでいい
+  const answerOnly = dropQuestionPrefix(card.better);
+  if (answerOnly !== card.better) return replaceBetter(answerOnly);
+  if (!isQuestionAboutEnglish(card.better)) return text;
   try {
     const prompt = getHelpAnswerPrompt(level, festivalScenario);
     const raw = await complete(prompt, [{ role: 'user', content: card.said }], 0.3, 150, 10_000);
     const en = String(JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}').en ?? '').trim();
     if (!en || hasJapanese(en) || isQuestionAboutEnglish(en)) return text;
-    const block = `<correction>\n${JSON.stringify({ ...card, better: en }, null, 2)}\n</correction>`;
-    return text.replace(match[0], () => block);
+    return replaceBetter(en);
   } catch {
     return text;
   }

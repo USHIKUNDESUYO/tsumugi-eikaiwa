@@ -71,3 +71,13 @@ export function isQuestionAboutEnglish(better: string): boolean {
     /\bin english\b|\bhow (do|should|would|can|could) (i|you|we) (say|explain|describe)\b/i.test(better)
   );
 }
+
+/**
+ * 「How do I explain motsunabe? It's a hot pot with …」のように、質問の英訳のあとに答えが
+ * 続いているときは、前の質問を落として答えだけにする。そうでなければそのまま返す
+ */
+export function dropQuestionPrefix(better: string): string {
+  const m = better.match(/^(.*?\?["'”’]?)\s*(?:\/\s*)?(\S[\s\S]*)$/);
+  if (!m || !isQuestionAboutEnglish(m[1]) || isQuestionAboutEnglish(m[2])) return better;
+  return m[2].trim();
+}
