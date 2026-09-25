@@ -12,10 +12,13 @@ import { getDueCards } from './srs';
  * 自分の答えノートで作った答えも、質問を聞いて答えるカードにする。
  */
 
-/** 1日に新しく出すフレーズの数。まとめて出すと覚えきれず、翌日からの復習が溜まる */
-export const NEW_PHRASES_PER_DAY = 6;
-/** 1回の復習で出す最大の枚数（数分で終わる量にする） */
-export const SESSION_LIMIT = 20;
+/**
+ * 1日に新しく出すフレーズの数。まとめて出すと覚えきれず、翌日からの復習が溜まる。
+ * フェス（10/2）までの7日で必修54個が全部出るよう、8枚（7日で56枚）。
+ */
+export const NEW_PHRASES_PER_DAY = 8;
+/** 1回の復習で出す最大の枚数（数分で終わる量にする。入りきらない分は次の回に回る） */
+export const SESSION_LIMIT = 25;
 
 export type ReviewItem =
   | { kind: 'mistake'; key: string; record: MistakeRecord }
@@ -107,5 +110,8 @@ export function buildReviewQueue(state: AppState, now = Date.now()): ReviewItem[
   }
 
   due.sort((a, b) => a.box - b.box || a.dueAt - b.dueAt);
-  return [...due.map((d) => d.item), ...fresh].slice(0, SESSION_LIMIT);
+  // 新しいフレーズの枠を先に取る。期限の来たカードが枠を埋めると新しいフレーズが出てこず、
+  // 1日1回の復習ではフェスまでに必修が 27/54 しか出なかった（試算）。確保すると 54/54
+  const dueRoom = Math.max(0, SESSION_LIMIT - fresh.length);
+  return [...due.slice(0, dueRoom).map((d) => d.item), ...fresh];
 }
