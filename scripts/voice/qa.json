@@ -139,6 +139,13 @@
     "speaker": 0.9472806453704834,
     "text": 1.0
   },
+  "2050c6dcb173": {
+    "heard": "What are you working on these days?",
+    "passed": true,
+    "seconds": 1.92,
+    "speaker": 0.9266998767852783,
+    "text": 1.0
+  },
   "20ffaad2fba7": {
     "heard": "It was really nice meeting you.",
     "passed": true,
@@ -179,6 +186,13 @@
     "passed": true,
     "seconds": 2.72,
     "speaker": 0.9093785285949707,
+    "text": 1.0
+  },
+  "2a6f985608ce": {
+    "heard": "What do you do for fun?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.9166125059127808,
     "text": 1.0
   },
   "2d63e271d130": {
@@ -291,6 +305,13 @@
     "passed": true,
     "seconds": 1.76,
     "speaker": 0.9476230144500732,
+    "text": 1.0
+  },
+  "4be55ffc94c5": {
+    "heard": "How long are you staying?",
+    "passed": true,
+    "seconds": 1.68,
+    "speaker": 0.8899322152137756,
     "text": 1.0
   },
   "4c05e4eacb70": {
@@ -636,6 +657,13 @@
     "speaker": 0.8014830946922302,
     "text": 1.0
   },
+  "91ee40e4727c": {
+    "heard": "What brought you here?",
+    "passed": true,
+    "seconds": 1.2,
+    "speaker": 0.8645723462104797,
+    "text": 1.0
+  },
   "9b9305684d25": {
     "heard": "Take it easy on your first time.",
     "passed": true,
@@ -713,6 +741,13 @@
     "speaker": 0.8578265309333801,
     "text": 1.0
   },
+  "ace1084b5526": {
+    "heard": "What do you do?",
+    "passed": true,
+    "seconds": 1.04,
+    "speaker": 0.9100396633148193,
+    "text": 1.0
+  },
   "af486880f803": {
     "heard": "What made you come all the way to Fukuoka?",
     "passed": true,
@@ -769,6 +804,13 @@
     "speaker": 0.9074652194976807,
     "text": 1.0
   },
+  "be7603fc2be8": {
+    "heard": "Any recommendations in Fukuoka?",
+    "passed": true,
+    "seconds": 2.08,
+    "speaker": 0.915351390838623,
+    "text": 1.0
+  },
   "bf76f18208e1": {
     "heard": "I'm working on an English conversation app right now.",
     "passed": true,
@@ -816,6 +858,13 @@
     "passed": true,
     "seconds": 2.0,
     "speaker": 0.9445610046386719,
+    "text": 1.0
+  },
+  "c88dda5d6ced": {
+    "heard": "What's your name?",
+    "passed": true,
+    "seconds": 1.36,
+    "speaker": 0.9622828960418701,
     "text": 1.0
   },
   "cb0ec3777b3d": {

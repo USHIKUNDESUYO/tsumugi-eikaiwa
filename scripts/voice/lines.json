@@ -1211,6 +1211,48 @@
       "lang": "en",
       "text": "See you — for real this time.",
       "out": "public/voice-en/49cade70cd7f.mp3"
+    },
+    {
+      "id": "c88dda5d6ced",
+      "lang": "en",
+      "text": "What's your name?",
+      "out": "public/voice-en/c88dda5d6ced.mp3"
+    },
+    {
+      "id": "ace1084b5526",
+      "lang": "en",
+      "text": "What do you do?",
+      "out": "public/voice-en/ace1084b5526.mp3"
+    },
+    {
+      "id": "2050c6dcb173",
+      "lang": "en",
+      "text": "What are you working on these days?",
+      "out": "public/voice-en/2050c6dcb173.mp3"
+    },
+    {
+      "id": "91ee40e4727c",
+      "lang": "en",
+      "text": "What brought you here?",
+      "out": "public/voice-en/91ee40e4727c.mp3"
+    },
+    {
+      "id": "2a6f985608ce",
+      "lang": "en",
+      "text": "What do you do for fun?",
+      "out": "public/voice-en/2a6f985608ce.mp3"
+    },
+    {
+      "id": "be7603fc2be8",
+      "lang": "en",
+      "text": "Any recommendations in Fukuoka?",
+      "out": "public/voice-en/be7603fc2be8.mp3"
+    },
+    {
+      "id": "4be55ffc94c5",
+      "lang": "en",
+      "text": "How long are you staying?",
+      "out": "public/voice-en/4be55ffc94c5.mp3"
     }
   ]
 }
