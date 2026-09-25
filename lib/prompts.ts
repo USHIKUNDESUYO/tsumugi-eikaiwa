@@ -145,6 +145,20 @@ Reply in character first. Then, only if the learner's last message has a real mi
   「こたつ」ってどう説明する？ → "said": "こたつの説明", "better": "A kotatsu is a low table with a heater and a blanket over it."
 - Never write stage directions or actions such as *laughs* or (speaks slower). Write only the words you say.`;
 
+/**
+ * 日本語で「英語でどう説明する？」と聞かれたときの答えだけを作る。
+ * 会話の添削では、役の上で答えを知らない相手（サウナ初心者・よそから来たお店の人）だと、
+ * 答えの代わりに質問の英訳を入れてしまう（プレビューで測ると説明の質問 36回中 12回）。そのときだけ使う。
+ */
+export function getHelpAnswerPrompt(level: LanguageLevel): string {
+  return `A Japanese learner is practicing small talk for SYNAPSE FESTIVAL 2026, an international music and community festival in Fukuoka. They asked, in Japanese, how to say or explain something in English.
+Give only the English they can say out loud to the other person: 1 or 2 short, natural spoken sentences.
+- If they want to explain a Japanese word or thing, explain it simply and keep the Japanese word ("Mentaiko is spicy pollock roe. It's a Fukuoka specialty.").
+- If they want to ask for something, give the question they can ask.
+- ${LEVEL_GUIDANCE[level]}
+Reply with JSON only: {"en": "what they can say"}`;
+}
+
 // 最後に置く（一覧のフレーズを使おうとして、もう聞いたことを聞き返していた）
 const FESTIVAL_FINAL_CHECK = `BEFORE YOU REPLY
 Check your question against everything the user has said so far. If they already told you the answer, ask about something else.

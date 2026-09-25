@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCoachPrompt, getSystemPrompt } from '@/lib/prompts';
+import { getCoachPrompt, getHelpAnswerPrompt, getSystemPrompt } from '@/lib/prompts';
+import { isQuestionAboutEnglish, parseCorrectionBlock } from '@/lib/correction';
+import { hasJapanese } from '@/lib/speechMatch';
 import { corsHeaders, preflight } from '@/app/api/cors';
 import type {
   ChatMode,
@@ -78,51 +80,88 @@ async function getAIResponse(body: ChatRequest): Promise<AIResult> {
           userName
         );
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30_000);
-
-    const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
-        ],
-        // 答えの書き直しは、本人の言いたいことから外れないよう揺らぎを抑える
-        temperature: coach ? 0.4 : 0.9,
-        max_tokens: 400,
-        // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
-        // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
-        // 途中で切れたりしていた。会話は返事の速さが命で、思考モードでは
-        // temperature も効かないので、思考は切る。
-        ...(IS_DEEPSEEK ? { thinking: { type: 'disabled' } } : {}),
-      }),
-    }).finally(() => clearTimeout(timeout));
-
-    if (!response.ok) {
-      const detail = (await response.text().catch(() => '')).slice(0, 200);
-      throw new Error(`API error: ${response.status} ${detail}`);
-    }
-
-    const data = await response.json();
-    const choice = data.choices?.[0];
-    const text = choice?.message?.content;
-    if (!text) {
-      throw new Error(
-        `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
-      );
-    }
-    return { text, live: true };
+    const text = await complete(
+      systemPrompt,
+      messages.slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content })),
+      // 答えの書き直しは、本人の言いたいことから外れないよう揺らぎを抑える
+      coach ? 0.4 : 0.9,
+      400
+    );
+    return { text: coach ? text : await fixHelpCard(text, level), live: true };
   } catch (error) {
     console.error('AI API error:', error);
     const reason = error instanceof Error ? error.message : String(error);
     return { text: getMockResponse(body), live: false, reason };
+  }
+}
+
+/** OpenAI 互換 API に1回聞いて本文を返す。失敗は throw する */
+async function complete(
+  systemPrompt: string,
+  messages: Array<{ role: string; content: string }>,
+  temperature: number,
+  maxTokens: number,
+  timeoutMs = 30_000
+): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    signal: controller.signal,
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
+      temperature,
+      max_tokens: maxTokens,
+      // deepseek-v4-flash は既定で「考えてから答える」（effort: high）。考えた分も
+      // max_tokens に数えられるため、考えるだけで使い切って本文が空になったり、
+      // 途中で切れたりしていた。会話は返事の速さが命で、思考モードでは
+      // temperature も効かないので、思考は切る。
+      ...(IS_DEEPSEEK ? { thinking: { type: 'disabled' } } : {}),
+    }),
+  }).finally(() => clearTimeout(timeout));
+
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => '')).slice(0, 200);
+    throw new Error(`API error: ${response.status} ${detail}`);
+  }
+
+  const data = await response.json();
+  const choice = data.choices?.[0];
+  const text = choice?.message?.content;
+  if (!text) {
+    throw new Error(
+      `Empty completion (finish_reason=${choice?.finish_reason}, usage=${JSON.stringify(data.usage)})`
+    );
+  }
+  return text;
+}
+
+const CORRECTION_RE = /<correction>\s*([\s\S]*?)\s*<\/correction>/i;
+
+/**
+ * 日本語で「英語でどう説明する？」と聞かれたのに、添削カードが答えではなく質問の英訳
+ * （How do you explain "totonou" in English?）になっていたら、答えだけ作り直して差し替える。
+ * 役の上で答えを知らない相手（サウナ初心者など）だと、プロンプトで頼んでも3回に1回はこうなった。
+ * 相手のセリフと訳はそのまま。作り直せなければ元の返事を返す。
+ */
+async function fixHelpCard(text: string, level: LanguageLevel): Promise<string> {
+  const match = text.match(CORRECTION_RE);
+  const card = match ? parseCorrectionBlock(match[1]) : null;
+  if (!match || !card || !hasJapanese(card.said) || !isQuestionAboutEnglish(card.better)) return text;
+  try {
+    const raw = await complete(getHelpAnswerPrompt(level), [{ role: 'user', content: card.said }], 0.3, 150, 10_000);
+    const en = String(JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}').en ?? '').trim();
+    if (!en || hasJapanese(en) || isQuestionAboutEnglish(en)) return text;
+    const block = `<correction>\n${JSON.stringify({ ...card, better: en }, null, 2)}\n</correction>`;
+    return text.replace(match[0], () => block);
+  } catch {
+    return text;
   }
 }
 
